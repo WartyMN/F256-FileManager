@@ -17,7 +17,6 @@
 *.pch
 
 # Libraries
-*.lib
 *.a
 *.la
 *.lo
@@ -50,3 +49,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Folders I block
+build_cc65/
+build_vbcc/
+
+# Files I block
+.DS_Store
