@@ -116,12 +116,12 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id);
 // constructor
 // allocates space for the object and any string or other properties that need allocating
 // if make_copy_of_folder_file is false, it will use the passed file object as is. Do not pass a file object that is owned by a folder already (without setting to true)!
-WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file);
+WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number, uint8_t the_unit_number);
 
 // reset the folder, without destroying it, to a condition where it can be completely repopulated
 // destroys all child objects except the folder file, which is emptied out
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder);
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number);
 
 // destructor
 // frees all allocated memory associated with the passed object, and the object itself

@@ -185,14 +185,10 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	uint8_t		the_new_device;
 	uint8_t		the_new_unit;
 	
-	if (Folder_Reset(the_panel->root_folder_) == false)
-	{
-		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-	
 	the_drive_index = the_panel->drive_index_ + 1;
-
+	//sprintf(global_string_buff1, "panel drive index was %i before switch; trying to be %i; max=%u", the_panel->drive_index_, the_drive_index, max_drive_num);
+	//Buffer_NewMessage(global_string_buff1);
+	
 	//sprintf(global_string_buff1, "drive index was %u; will be %u, max drive num=%u", the_panel->drive_index_, the_drive_index, max_drive_num);
 	//Buffer_NewMessage(global_string_buff1);
 
@@ -204,14 +200,18 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	the_new_device = global_connected_device[the_drive_index];
 	the_new_unit = global_connected_unit[the_drive_index];
 	
-// 	sprintf(global_string_buff1, "Switching to device %u, unit %u", the_new_device, the_new_unit);
-// 	Buffer_NewMessage(global_string_buff1);
+	//sprintf(global_string_buff1, "Switching to device %u, unit %u, drive idx=%i", the_new_device, the_new_unit, the_drive_index);
+	//Buffer_NewMessage(global_string_buff1);
 	
 	the_panel->drive_index_ = the_drive_index;
 	the_panel->device_number_ = the_new_device;
 	the_panel->unit_number_ = the_new_unit;
-	the_panel->root_folder_->device_number_ = the_new_device;
-	the_panel->root_folder_->unit_number_ = the_new_unit;
+
+	if (Folder_Reset(the_panel->root_folder_, the_new_device, the_new_unit) == false)
+	{
+		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+	}
 	
 	Panel_Init(the_panel);
 	

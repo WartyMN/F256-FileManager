@@ -202,38 +202,32 @@ void App_Initialize(void)
 	
 	app_active_panel_id = PANEL_ID_LEFT;
 	
-	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true) ) == NULL)
+	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
 		Buffer_NewMessage("error creating left folder object");
 	}
 
-	app_root_folder[PANEL_ID_LEFT]->device_number_ = global_connected_device[the_drive_index];
-	app_root_folder[PANEL_ID_LEFT]->unit_number_ = global_connected_unit[the_drive_index];
 	app_file_panel[PANEL_ID_LEFT].drive_index_ = the_drive_index;
 	++the_drive_index;
 	
 	// set the 2nd panel to the next device, unless there is only 1 device. in that case, have same device on both sides. 
 	if (the_drive_index <= app_connected_drive_count)
 	{
-		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true) ) == NULL)
+		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 		{
 			Buffer_NewMessage("error creating right folder object");
 		}
 
-		app_root_folder[PANEL_ID_RIGHT]->device_number_ = global_connected_device[the_drive_index];
-		app_root_folder[PANEL_ID_RIGHT]->unit_number_ = global_connected_unit[the_drive_index];
 		app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
 		++the_drive_index;
 	}
 	else
 	{
-		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_left, true) ) == NULL)
+		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_left, true, app_root_folder[PANEL_ID_LEFT]->device_number_, app_root_folder[PANEL_ID_LEFT]->unit_number_) ) == NULL)
 		{
 			Buffer_NewMessage("error creating right folder object");
 		}
 
-		app_root_folder[PANEL_ID_RIGHT]->device_number_ = app_root_folder[PANEL_ID_LEFT]->device_number_;
-		app_root_folder[PANEL_ID_RIGHT]->unit_number_ = app_root_folder[PANEL_ID_LEFT]->unit_number_;
 		app_file_panel[PANEL_ID_RIGHT].drive_index_ = -1;
 	}
 	

@@ -320,7 +320,7 @@ WB2KList* Folder_FindListItemByFileName(WB2KFolderObject* the_folder, char* the_
 // constructor
 // allocates space for the object and any string or other properties that need allocating
 // if make_copy_of_folder_file is false, it will use the passed file object as is. Do not pass a file object that is owned by a folder already (without setting to true)!
-WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file)
+WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number, uint8_t the_unit_number)
 {
 	WB2KFolderObject*	the_folder;
 	WB2KFileObject*		the_copy_of_folder_file;
@@ -363,6 +363,8 @@ WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_cop
 	the_folder->file_count_ = 0;
 	the_folder->total_blocks_ = 0;
 	the_folder->selected_blocks_ = 0;
+	the_folder->device_number_ = the_device_number;
+	the_folder->unit_number_ = the_unit_number;
 
 	return the_folder;
 
@@ -375,10 +377,11 @@ error:
 // reset the folder, without destroying it, to a condition where it can be completely repopulated
 // destroys all child objects except the folder file, which is emptied out
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder)
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number)
 {
 	WB2KFileObject**	this_file;
 	char**				this_string_p;
+	char				path_buff[3];
 	
 	// free all files in the folder's file list
 	Folder_DestroyAllFiles(the_folder);
@@ -397,6 +400,13 @@ bool Folder_Reset(WB2KFolderObject* the_folder)
 	
 	this_string_p = &the_folder->folder_file_->file_name_;
 	the_folder->folder_file_->file_name_ = NULL;
+	if (*this_string_p)
+	{
+		free(*this_string_p);
+	}
+	
+	this_string_p = &the_folder->folder_file_->file_path_;
+	the_folder->folder_file_->file_path_ = NULL;
 	if (*this_string_p)
 	{
 		free(*this_string_p);
@@ -421,6 +431,27 @@ bool Folder_Reset(WB2KFolderObject* the_folder)
 	the_folder->file_count_ = 0;
 	the_folder->total_blocks_ = 0;
 	the_folder->selected_blocks_ = 0;
+	the_folder->device_number_ = the_device_number;
+	the_folder->unit_number_ = the_unit_number;
+	
+	// set the folder filepath and folder file filepath to match device+":"
+	sprintf(path_buff, "%d:", the_device_number);
+
+	if ( (the_folder->folder_file_->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
+	{
+		Buffer_NewMessage("could not allocate memory for the path name");
+		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
+		goto error;
+	}
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->folder_file_->file_path_ General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+	
+	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
+	{
+		Buffer_NewMessage("could not allocate memory for the path name");
+		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
+		goto error;
+	}
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_ General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
 	return true;
 
