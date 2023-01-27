@@ -63,7 +63,7 @@ typedef struct WB2KFileObject
 	uint8_t				row_;			// row_ is relative to the first file in the folder. 
 	char*				file_path_;
 	char*				file_name_;
-	char*				file_size_string_;	// human-readable version of file size
+	//char*				file_size_string_;	// human-readable version of file size
 	uint8_t				device_number_;	// For CBM, the drive unit #. eg, 8.
 	uint8_t				unit_number_;	// For CBM, the unit number. eg, 0 or 1. 0 for all single-drive devices.
 	char*				device_name_[3]; 	// volume this file is contained on: "0:", "1:", "2:", etc.

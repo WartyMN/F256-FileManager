@@ -428,7 +428,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	char**				this_string_p;
 	char				path_buff[3];
 	
-Buffer_NewMessage("folder reset: reached");	
+//Buffer_NewMessage("folder reset: reached");	
 	// free all files in the folder's file list
 	Folder_DestroyAllFiles(the_folder);
 	LOG_ALLOC(("%s %d:	__FREE__	(the_folder)->list_	%p	size	%i", __func__ , __LINE__, (the_folder)->list_, sizeof(WB2KList*)));
@@ -437,14 +437,14 @@ Buffer_NewMessage("folder reset: reached");
 	
 	// free the file size string, file name and file path of the folder file, as they are no longer valid.
 
-	this_string_p = &the_folder->folder_file_->file_size_string_;
-	the_folder->folder_file_->file_size_string_ = NULL;
-	if (*this_string_p)
-	{
-		free(*this_string_p);
-	}
+// 	this_string_p = &the_folder->folder_file_->file_size_string_;
+// 	the_folder->folder_file_->file_size_string_ = NULL;
+// 	if (*this_string_p)
+// 	{
+// 		free(*this_string_p);
+// 	}
 	
-Buffer_NewMessage("folder reset: 1");	
+//Buffer_NewMessage("folder reset: 1");	
 	this_string_p = &the_folder->folder_file_->file_name_;
 	the_folder->folder_file_->file_name_ = NULL;
 	if (*this_string_p)
@@ -452,7 +452,7 @@ Buffer_NewMessage("folder reset: 1");
 		free(*this_string_p);
 	}
 	
-Buffer_NewMessage("folder reset: 2");	
+//Buffer_NewMessage("folder reset: 2");	
 	this_string_p = &the_folder->folder_file_->file_path_;
 	the_folder->folder_file_->file_path_ = NULL;
 	if (*this_string_p)
@@ -460,7 +460,7 @@ Buffer_NewMessage("folder reset: 2");
 		free(*this_string_p);
 	}
 	
-Buffer_NewMessage("folder reset: 3");	
+//Buffer_NewMessage("folder reset: 3");	
 	this_string_p = &the_folder->file_path_;
 	the_folder->file_path_ = NULL;
 	if (*this_string_p)
@@ -468,7 +468,7 @@ Buffer_NewMessage("folder reset: 3");
 		free(*this_string_p);
 	}
 	
-Buffer_NewMessage("folder reset: stuff free up");	
+//Buffer_NewMessage("folder reset: stuff free up");	
 
 	// initiate the list, but don't add the first node yet (we don't have any items yet)
 	if ( (the_folder->list_ = (WB2KList**)calloc(1, sizeof(WB2KList*)) ) == NULL)
@@ -496,7 +496,7 @@ Buffer_NewMessage("folder reset: stuff free up");
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->folder_file_->file_path_ General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
-Buffer_NewMessage("folder reset: folder file file_path_ set");	
+//Buffer_NewMessage("folder reset: folder file file_path_ set");	
 	
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
@@ -506,7 +506,7 @@ Buffer_NewMessage("folder reset: folder file file_path_ set");
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_ General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
-Buffer_NewMessage("folder reset: folder file_path_ set");	
+//Buffer_NewMessage("folder reset: folder file_path_ set");	
 	
 	return true;
 
@@ -996,8 +996,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
 			++file_cnt;
 			
-			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
-			//Buffer_NewMessage(global_string_buff1);
+			sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+			Buffer_NewMessage(global_string_buff1);
 		}
 
 	}

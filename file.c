@@ -77,7 +77,8 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 
 	if ( (the_file = (WB2KFileObject*)calloc(1, sizeof(WB2KFileObject)) ) == NULL)
 	{
-		Buffer_NewMessage("could not allocate memory to create new file object");
+		sprintf(global_string_buff1, "could not allocate memory to create new file object '%s'", the_file_name);
+		Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
 		goto error;
 	}
@@ -120,16 +121,15 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 	
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
-	sprintf(global_string_buff1, "%4lu blocks", the_filesize);
-
-	if ( (the_file->file_size_string_ = General_StrlcpyWithAlloc(global_string_buff1, FILE_SIZE_MAX_SIZE)) == NULL)
-	{
-		Buffer_NewMessage("could not allocate memory for human-readable file-size");
-		LOG_ERR(("%s %d: could not allocate memory for human-readable file-size", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_size_string_	%p	size	%i", __func__ , __LINE__, the_file->file_size_string_, General_Strnlen(the_file->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
-	//General_StrnPetsciiToScreen(the_file->file_size_string_, FILE_SIZE_MAX_SIZE);	
+// 	sprintf(global_string_buff1, "%4lu blocks", the_filesize);
+// 
+// 	if ( (the_file->file_size_string_ = General_StrlcpyWithAlloc(global_string_buff1, FILE_SIZE_MAX_SIZE)) == NULL)
+// 	{
+// 		Buffer_NewMessage("could not allocate memory for human-readable file-size");
+// 		LOG_ERR(("%s %d: could not allocate memory for human-readable file-size", __func__ , __LINE__));
+// 		goto error;
+// 	}
+// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_size_string_	%p	size	%i", __func__ , __LINE__, the_file->file_size_string_, General_Strnlen(the_file->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
 
 	// get filetype
 	the_file->is_directory_ = is_directory;
@@ -221,12 +221,12 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 	the_duplicate_file->device_number_ = the_original_file->device_number_;
 	the_duplicate_file->unit_number_ = the_original_file->unit_number_;
 
-	if ( (the_duplicate_file->file_size_string_ = General_StrlcpyWithAlloc(the_original_file->file_size_string_, FILE_MAX_PATHNAME_SIZE)) == NULL)
-	{
-		LOG_ERR(("%s %d: could not allocate memory for the file size string", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_size_string_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_size_string_, General_Strnlen(the_duplicate_file->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
+// 	if ( (the_duplicate_file->file_size_string_ = General_StrlcpyWithAlloc(the_original_file->file_size_string_, FILE_MAX_PATHNAME_SIZE)) == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: could not allocate memory for the file size string", __func__ , __LINE__));
+// 		goto error;
+// 	}
+// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_size_string_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_size_string_, General_Strnlen(the_duplicate_file->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
 
 
 // 	// remember date stamp, for sorting, display to user, etc. Use OS functions to convert the DateStamp we got from ExAll to a datetime and strings
@@ -340,12 +340,12 @@ void File_Destroy(WB2KFileObject** the_file)
 		(*the_file)->file_path_ = NULL;
 	}
 	
-	if ((*the_file)->file_size_string_ != NULL)
-	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_size_string_	%p	size	%i", __func__ , __LINE__, (*the_file)->file_size_string_, General_Strnlen((*the_file)->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
-		free((*the_file)->file_size_string_);
-		(*the_file)->file_size_string_ = NULL;
-	}
+// 	if ((*the_file)->file_size_string_ != NULL)
+// 	{
+// 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_size_string_	%p	size	%i", __func__ , __LINE__, (*the_file)->file_size_string_, General_Strnlen((*the_file)->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
+// 		free((*the_file)->file_size_string_);
+// 		(*the_file)->file_size_string_ = NULL;
+// 	}
 	
 //	if (the_file->file_type_ != NULL)
 //	{
@@ -1081,10 +1081,11 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 	
 	if (the_file->display_row_ != -1)
 	{
+		sprintf(global_string_buff1, "%4lu", the_file->size_);
 		y = the_file->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( x1, y, the_file->file_name_, the_color, APP_BACKGROUND_COLOR);
-		Text_DrawStringAtXY( sizex, y, the_file->file_size_string_, the_color, APP_BACKGROUND_COLOR);
+		Text_DrawStringAtXY( sizex, y, global_string_buff1, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( typex, y, General_GetFileTypeString(the_file->file_type_), the_color, APP_BACKGROUND_COLOR);
 		
 		if (as_selected == true)
