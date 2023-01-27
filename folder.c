@@ -27,8 +27,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include <dirent.h>
 #include <device.h>
+//#include <dirent.h>
+#include "cc65/temp/dirent.h"
 
 // F256 includes
 #include <f256.h>
@@ -46,51 +47,11 @@
 
 extern uint8_t*		global_temp_buff_192b_1;
 extern uint8_t*		global_temp_buff_192b_2;
-extern uint8_t*		global_temp_buff_192b_3;
+extern uint8_t*		global_temp_buff_384b;
 
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 
-
-
-// void cmd_ls(void)
-// {
-//     DIR			*dir;
-//     struct		dirent *dirent;
-// 	uint8_t		x1 = 1;
-// 	uint8_t		y1 = 5;
-// 	uint8_t		file_cnt = 0;
-// 	
-//     /* print directory listing */
-// 
-//     dir = opendir(".");
-//     if (! dir) {
-//         puts("opendir failed");
-//         return;
-//     }
-// 
-//     while (dirent = readdir(dir))
-//     {
-//         // is this is the disk name, or a file?
-//         if (dirent->d_type == _CBM_T_HEADER)
-//         {
-// 			sprintf(global_temp_buff_192b_2, General_GetString(ID_STR_DEV_NAME), 8);
-// 			sprintf(global_temp_buff_192b_1, "%s: %s", global_temp_buff_192b_2, dirent->d_name);
-//  			Text_DrawStringAtXY(x1, 3, global_temp_buff_192b_1);
-//        }
-//         else
-//         {
-// 			Text_DrawStringAtXY(x1, y1  + file_cnt, dirent->d_name);
-// 			sprintf(global_temp_buff_192b_1, "%u blck", dirent->d_blocks);
-// 			Text_DrawStringAtXY(x1 + 20, y1  + file_cnt, global_temp_buff_192b_1);
-// 			//Text_SetCharAtXY(x1 + 30, y1  + file_cnt, dirent->d_type);
-// 			Text_DrawStringAtXY(x1 + 29, y1  + file_cnt, General_GetFileTypeString(dirent->d_type));
-// 			++file_cnt;
-//        }
-// 	}
-// 	
-//     closedir(dir);
-// }
 
 
 /*****************************************************************************/
@@ -116,10 +77,92 @@ WB2KList* Folder_FindListItemByFilePath(WB2KFolderObject* the_folder, char* the_
 // Returns NULL if nothing matches, or returns pointer to first matching FileObject
 WB2KFileObject* Folder_FindFileByFilePath(WB2KFolderObject* the_folder, char* the_file_path, short the_compare_len);
 
+// copy file bytes. Returns number of bytes copied, or -1 in event of any error
+signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path);
+
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
+
+
+// copy file bytes. Returns number of bytes copied, or -1 in event of any error
+signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path)
+{
+	FILE*		the_source_handle;
+	FILE*		the_target_handle;
+	uint8_t*	the_buffer = global_temp_buff_384b;
+	int16_t		bytes_read = 0;
+	int16_t		total_bytes_read = 0;
+	bool		keep_going = true;
+	
+	// Open source file for Reading
+	the_source_handle = fopen(the_source_file_path, "r");
+	
+	if (the_source_handle == NULL)
+	{
+		sprintf(global_string_buff1, "source file '%s' could not be opened", the_source_file_path);
+		Buffer_NewMessage(global_string_buff1);
+		LOG_ERR(("%s %d: file '%s' could not be opened for copying", __func__ , __LINE__, the_source_file_path));
+		goto error;
+	}
+	else
+	{
+		// Open target file for Writing
+		the_target_handle = fopen(the_target_file_path, "w");
+	
+		if (the_target_handle == NULL)
+		{
+			sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
+			Buffer_NewMessage(global_string_buff1);
+			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+			goto error;
+		}
+
+		// loop until source file EOF, writing FILE_COPY_BUFFER_SIZE bytes per loop (sized to available buffer)
+		do
+		{
+			bytes_read = fread(the_buffer, 1, FILE_COPY_BUFFER_SIZE, the_source_handle);
+	
+			if ( bytes_read < 0)
+			{
+				Buffer_NewMessage("bytes_read < 0");
+				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, bytes_read));
+				goto error;
+			}
+	
+			if ( bytes_read == 0)
+			{
+				Buffer_NewMessage("bytes_read == 0 (end of file)");
+				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
+				keep_going = false;
+			}
+		
+			if ( bytes_read < FILE_COPY_BUFFER_SIZE )
+			{
+				// we hit end of file
+				//Buffer_NewMessage("s_bytes_read_from_disk was less than full row");
+				//LOG_ERR(("%s %d: reading file '%s' expected %u bytes, got %i bytes", __func__ , __LINE__, the_file->file_name_, num_bytes_to_read, s_bytes_read_from_disk));
+				keep_going = false;
+			}
+
+			fwrite(the_buffer, 1, bytes_read, the_target_handle);
+			total_bytes_read += bytes_read;
+			
+		} while (keep_going == true);
+		
+		fclose(the_source_handle);
+		fclose(the_target_handle);
+	}
+	
+	return total_bytes_read;
+	
+error:
+	if (the_source_handle)	fclose(the_source_handle);
+	if (the_target_handle)	fclose(the_target_handle);
+	
+	return -1;
+}
 
 
 // free every fileobject in the panel's list, and remove the nodes from the list
@@ -139,6 +182,8 @@ void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
 	while (the_item != NULL)
 	{
 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
+Buffer_NewMessage(global_string_buff1);	
 		
 		File_Destroy(&this_file);
 		++num_nodes;
@@ -383,6 +428,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	char**				this_string_p;
 	char				path_buff[3];
 	
+Buffer_NewMessage("folder reset: reached");	
 	// free all files in the folder's file list
 	Folder_DestroyAllFiles(the_folder);
 	LOG_ALLOC(("%s %d:	__FREE__	(the_folder)->list_	%p	size	%i", __func__ , __LINE__, (the_folder)->list_, sizeof(WB2KList*)));
@@ -398,6 +444,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 		free(*this_string_p);
 	}
 	
+Buffer_NewMessage("folder reset: 1");	
 	this_string_p = &the_folder->folder_file_->file_name_;
 	the_folder->folder_file_->file_name_ = NULL;
 	if (*this_string_p)
@@ -405,6 +452,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 		free(*this_string_p);
 	}
 	
+Buffer_NewMessage("folder reset: 2");	
 	this_string_p = &the_folder->folder_file_->file_path_;
 	the_folder->folder_file_->file_path_ = NULL;
 	if (*this_string_p)
@@ -412,6 +460,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 		free(*this_string_p);
 	}
 	
+Buffer_NewMessage("folder reset: 3");	
 	this_string_p = &the_folder->file_path_;
 	the_folder->file_path_ = NULL;
 	if (*this_string_p)
@@ -419,6 +468,8 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 		free(*this_string_p);
 	}
 	
+Buffer_NewMessage("folder reset: stuff free up");	
+
 	// initiate the list, but don't add the first node yet (we don't have any items yet)
 	if ( (the_folder->list_ = (WB2KList**)calloc(1, sizeof(WB2KList*)) ) == NULL)
 	{
@@ -444,6 +495,8 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 		goto error;
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->folder_file_->file_path_ General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+
+Buffer_NewMessage("folder reset: folder file file_path_ set");	
 	
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
@@ -453,6 +506,8 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_ General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
+Buffer_NewMessage("folder reset: folder file_path_ set");	
+	
 	return true;
 
 error:
@@ -851,16 +906,16 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
 	if (the_folder->folder_file_ == NULL)
 	{
-		sprintf(global_string_buff1, "folder file was null");
-		Buffer_NewMessage(global_string_buff1);
+		//sprintf(global_string_buff1, "folder file was null");
+		//Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: passed file was null", __func__ , __LINE__));
 		App_Exit(ERROR_FOLDER_FILE_WAS_NULL);	// crash early, crash often
 	}
 
 	if (the_folder->folder_file_->file_path_ == NULL)
 	{
-		sprintf(global_string_buff1, "filepath for folder file '%s' as null", the_folder->folder_file_->file_path_);
-		Buffer_NewMessage(global_string_buff1);
+		//sprintf(global_string_buff1, "filepath for folder file '%s' as null", the_folder->folder_file_->file_path_);
+		//Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: passed file's filepath was null", __func__ , __LINE__));
 		App_Exit(ERROR_FOLDER_WAS_NULL);	// crash early, crash often
 	}
@@ -889,18 +944,39 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
     while ( (dirent = readdir(dir)) != NULL )
     {
         // is this is the disk name, or a file?
-//         if (dirent->d_type == _CBM_T_HEADER)
-//         {
-// 			General_Strlcpy(the_folder->folder_file_->file_name_, dirent->d_name, FILE_MAX_FILENAME_SIZE);
-// 			the_folder->folder_file_->file_type_ = dirent->d_type;
-// 		}
-//         else
+
+        if (_DE_ISDIR(dirent->d_type))
+        {
+			the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
+			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
+			
+			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISDIR", dirent->d_name);
+			//Buffer_NewMessage(global_string_buff1);
+		}
+        else if (_DE_ISLBL(dirent->d_type))
+        {
+			if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
+			{
+				// this is hte internal SD card. give a more user-friendly name
+				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_SD_CARD), FILE_MAX_FILENAME_SIZE);
+			}
+			else
+			{
+				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
+			}
+			
+			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
+			
+			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
+			//Buffer_NewMessage(global_string_buff1);
+		}
+        else if (_DE_ISREG(dirent->d_type))
         {
 			this_file_name = dirent->d_name;
 			General_Strlcpy(the_path, the_parent_path, FILE_MAX_PATHNAME_SIZE);
 			General_Strlcat(the_path, this_file_name, FILE_MAX_PATHNAME_SIZE);
 
-			this_file = File_New(this_file_name, the_path, false, 111, 1, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+			this_file = File_New(this_file_name, the_path, false, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), 1, the_folder->device_number_, the_folder->unit_number_, file_cnt);
 
 			if (this_file == NULL)
 			{
@@ -920,8 +996,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
 			++file_cnt;
 			
-			sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
-			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+			//Buffer_NewMessage(global_string_buff1);
 		}
 
 	}
@@ -947,13 +1023,13 @@ error:
 
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
-bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* the_target_folder)
+bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder)
 {
-	WB2KFileObject*		the_file = (WB2KFileObject*)the_item->payload_;
-	int16_t			bytes_copied;
-	char		the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
-	char*		the_target_file_path = the_path_buffer;
-	char*		the_target_folder_path;
+	int16_t				bytes_copied;
+	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
+	char*				the_target_file_path = the_path_buffer;
+	char*				the_target_folder_path;
+	bool				success = false;
 
 	if (the_folder == NULL)
 	{
@@ -967,22 +1043,19 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolde
 		App_Exit(ERROR_COPY_FILE_TARGET_FOLDER_WAS_NULL);	// crash early, crash often
 	}
 	
-	// NOTE 2023/01/14: b128 doesn't support subdirectories, and F256 SD card stuff is not ready yet, so look at this later. 
-	return true;
+	// LOGIC:
+	//   if a file, call routine to copy bytes of file. then call again for the info file.
+	//   if a folder:
+	//     We only have a folder object for the current source folder, we do not have one for the target
+	//     So every time we encounter a source folder, we have to generate the equivalent path for the target and store in FileMover
+	//     Then check if the folder path exists on the target volume. Call makedir to create the folder path. then copy info file bytes. 
+	//       NOTE: there is an assumption that the target folder is a real, existing path, so no need to create "up the chain". This assumption is based on how copy files works.
+	//     This routine will not attempt to delete folders and their contents if they already exist, it will happily copy files into those folders. (more windows than mac)
+	//   in either case, add the file and its info file (if any) to any open windows showing the target folder
+	//     NOTE: in case of folder, we have to copy the info file before updating the target folder chain, or info file will be placed IN the folder, rather than next to it
 	
-// 	// LOGIC:
-// 	//   if a file, call routine to copy bytes of file. then call again for the info file.
-// 	//   if a folder:
-// 	//     We only have a folder object for the current source folder, we do not have one for the target
-// 	//     So every time we encounter a source folder, we have to generate the equivalent path for the target and store in FileMover
-// 	//     Then check if the folder path exists on the target volume. Call makedir to create the folder path. then copy info file bytes. 
-// 	//       NOTE: there is an assumption that the target folder is a real, existing path, so no need to create "up the chain". This assumption is based on how copy files works.
-// 	//     This routine will not attempt to delete folders and their contents if they already exist, it will happily copy files into those folders. (more windows than mac)
-// 	//   in either case, add the file and its info file (if any) to any open windows showing the target folder
-// 	//     NOTE: in case of folder, we have to copy the info file before updating the target folder chain, or info file will be placed IN the folder, rather than next to it
-// 	
-// 	if (the_file->is_directory_)
-// 	{
+	if (the_file->is_directory_)
+	{
 // 		// handle a folder...
 // 
 // 		BPTR 			the_dir_lock;
@@ -1015,51 +1088,42 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolde
 // 		{
 // 			DEBUG_OUT(("%s %d: got a lock on folder '%s'; suggests it already exists", __func__ , __LINE__, the_target_folder_path));
 // 		}
-// 	}
-// 	else
-// 	{
-// 		// handle a file...
-// 
-// 		// update target file path without adding the source file's filename to it
+	}
+	else
+	{
+		// handle a file...
+
+		// update target file path without adding the source file's filename to it
 // 		FileMover_UpdateCurrentTargetFolderPath(App_GetFileMover(global_app), the_folder->folder_file_->file_path_);
 // 		the_target_folder_path = FileMover_GetCurrentTargetFolderPath(App_GetFileMover(global_app));
-// 		
-// 		// build a file path for target file, based on FileMover's current target folder path and source file name
-// 		General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, the_file->file_name_);
-// 
-// 		// call function to copy file bits
-// 		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_path_, the_target_file_path));
-// 		bytes_copied = FileMover_CopyFileBytes(App_GetFileMover(global_app), the_file->file_path_, the_target_file_path);
-// 	
-// 		FileMover_IncrementProcessedFileCount(App_GetFileMover(global_app));
-// 		
-// 		// for either folder or file, if there is an info file, copy that too
-// 		if (the_file->info_file_ != NULL)
-// 		{
-// 			// build a file path for target file, based on FileMover's current target folder path and source file name
-// 			the_target_folder_path = FileMover_GetCurrentTargetFolderPath(App_GetFileMover(global_app));
-// 			General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, the_file->info_file_->file_name_);
-// 
-// 			DEBUG_OUT(("%s %d: file '%s' had an info file, copying to '%s'", __func__ , __LINE__, the_file->file_path_, the_target_file_path));
-// 			bytes_copied = FileMover_CopyFileBytes(App_GetFileMover(global_app), the_file->info_file_->file_path_, the_target_file_path);
-// 	
-// 			FileMover_IncrementProcessedFileCount(App_GetFileMover(global_app));
-// 		}
-// 		else
-// 		{
-// 			//DEBUG_OUT(("%s %d: file '%s' did not have an info file, so none will be copied.", __func__ , __LINE__, the_file->file_path_));
-// 		}
-// 	}	
-// 	
-// 	// mark the file as not selected 
-// 	//File_SetSelected(the_file, false);
-// 
-// 	// add a copy of the file to any open panels match the target folder (but aren't it), then add the original to this target folder
-// 	//DEBUG_OUT(("%s %d: Adding file '%s' to any matching open windows/panels...", __func__ , __LINE__, the_file->file_name_));
-// // 	change_made = App_ModifyOpenFolders(global_app, the_target_folder, the_file, &Folder_AddNewFileAsCopy);
-// // 	change_made = Folder_AddNewFile(the_target_folder, the_file);
-// 			
-// 	return true;
+		
+		// build a file path for target file, based on FileMover's current target folder path and source file name
+		the_target_folder_path = the_target_folder->folder_file_->file_path_;
+		General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, the_file->file_name_);
+		
+		//sprintf(global_string_buff1, "tgt path='%s', tgt fldr path='%s', src fname='%s', src path='%s'", the_target_file_path, the_target_folder_path, the_file->file_name_, the_file->file_path_);
+		//Buffer_NewMessage(global_string_buff1);
+
+		// call function to copy file bits
+		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_path_, the_target_file_path));
+		Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
+		
+		bytes_copied = Folder_CopyFileBytes(the_file->file_path_, the_target_file_path);
+		
+		if (bytes_copied < 0)
+		{
+			return false;
+		}
+	}	
+	
+	// mark the file as not selected 
+	//File_SetSelected(the_file, false);
+
+	// add a copy of the file to this target folder
+	success = Folder_AddNewFile(the_target_folder, the_file);
+	Buffer_NewMessage("added copy of file object to target folder");
+			
+	return success;
 }
 
 

@@ -206,7 +206,7 @@ void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item,
 bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful, bool create_info_file);
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
-bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* the_target_folder);
+bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder);
 
 // compare 2 folder objects. When done, the original_root_folder will have been updated with removals/additions as necessary to match the updated file list
 // returns true if any changes were detected, or false if files appear to be identical

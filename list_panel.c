@@ -65,7 +65,7 @@ extern char					global_dlg_button[3][10];	// arbitrary
 
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
-extern uint8_t*		global_temp_buff_384b_2;
+extern uint8_t*		global_temp_buff_384b;
 extern uint8_t		temp_screen_buffer_char[SCREEN_TOTAL_BYTES/5];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
 extern uint8_t		temp_screen_buffer_attr[SCREEN_TOTAL_BYTES/5];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
 extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
@@ -378,22 +378,22 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 // }
 
 
-// check if the passed X coordinate is owned by this panel. returns true if x is between x_ and x_ + width_
-bool Panel_OwnsX(WB2KViewPanel* the_panel, int16_t x)
-{
-	if (the_panel == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
-	}
-
-	if (x >= the_panel->x_ && x <= (the_panel->x_ + the_panel->width_))
-	{
-		return true;
-	}
-	
-	return false;
-}
+// // check if the passed X coordinate is owned by this panel. returns true if x is between x_ and x_ + width_
+// bool Panel_OwnsX(WB2KViewPanel* the_panel, int16_t x)
+// {
+// 	if (the_panel == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
+// 	}
+// 
+// 	if (x >= the_panel->x_ && x <= (the_panel->x_ + the_panel->width_))
+// 	{
+// 		return true;
+// 	}
+// 	
+// 	return false;
+// }
 
 
 // // For mouse drag only: check to see if a folder is at the coordinates passed (in case user will drop them here)
@@ -594,7 +594,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 // 		continue;
 // 	}
 
-	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b_2);
+	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b);
 	
 	Screen_Render();	// the hex view has completely overwritten the screen
 	Panel_RenderContents(the_panel);
@@ -647,6 +647,41 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 }
 
 
+// copy the currently selected file to the other panel
+bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
+{
+	int16_t				the_current_row;
+	WB2KFileObject*		the_file;
+	bool				success;
+
+	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	
+	if (the_current_row < 0)
+	{
+		return false;
+	}
+	
+	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+
+	success = Folder_CopyFile(the_panel->root_folder_, the_file, the_other_panel->root_folder_);
+	
+// 	// renew file listing
+// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_, the_other_panel->unit_number_) == false)
+// 	{
+// 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 	Buffer_NewMessage("folder reset called ok");
+	
+	Folder_RefreshListing(the_other_panel->root_folder_);
+	Buffer_NewMessage("refresh listing called ok");
+	Panel_Init(the_other_panel);
+	Buffer_NewMessage("panel init called ok");
+	
+	return true;
+}
+
+
 // show the contents of the currently selected file as a hex dump
 bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 {
@@ -662,7 +697,7 @@ bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b_2);
+	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b);
 	
 	return success;
 }
@@ -683,7 +718,7 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 	}
 
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetTextContents(the_file, (char*)global_temp_buff_384b_2);
+	success = File_GetTextContents(the_file, (char*)global_temp_buff_384b);
 	
 	return success;
 }

@@ -70,7 +70,7 @@
 #define UI_PANEL_TAB_HEIGHT				3
 #define UI_PANEL_FILENAME_OFFSET		1	// from left edge of panel to start of filename
 #define UI_PANEL_FILESIZE_OFFSET		18	// from start of filename to start of filesize
-#define UI_PANEL_FILETYPE_OFFSET		10	// from start of filesize to start of filetype
+#define UI_PANEL_FILETYPE_OFFSET		12	// from start of filesize to start of filetype
 
 #define UI_LEFT_PANEL_TITLE_TAB_X1		0
 #define UI_LEFT_PANEL_TITLE_TAB_Y1		3
@@ -138,6 +138,9 @@ typedef struct UI_Button
 /*****************************************************************************/
 /*                       Public Function Prototypes                          */
 /*****************************************************************************/
+
+// swap the copy >>> button for copy <<< and vice versa
+void Screen_SwapCopyDirectionIndicator(void);
 
 // populate button objects, etc. no drawing.
 void Screen_InitializeUI(void);

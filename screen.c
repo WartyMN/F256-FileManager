@@ -131,6 +131,30 @@ void Screen_DrawUI(void)
 /*                        Public Function Definitions                        */
 /*****************************************************************************/
 
+// swap the copy >>> button for copy <<< and vice versa
+void Screen_SwapCopyDirectionIndicator(void)
+{
+	uint8_t		x1;
+	uint8_t		y1;
+	uint8_t		x2;
+	uint8_t		y2;
+
+	if (uibutton[BUTTON_ID_COPY].string_id_ == ID_STR_FILE_COPY_RIGHT)
+	{
+		uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_LEFT;
+	}
+	else
+	{
+		uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_RIGHT;
+	}
+
+	x1 = uibutton[BUTTON_ID_COPY].x1_;
+	y1 = uibutton[BUTTON_ID_COPY].y1_;
+	x2 = uibutton[BUTTON_ID_COPY].x2_;
+	y2 = uibutton[BUTTON_ID_COPY].y2_;
+	Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[BUTTON_ID_COPY].string_id_), MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR);
+}
+
 
 // populate button objects, etc. no drawing.
 void Screen_InitializeUI(void)

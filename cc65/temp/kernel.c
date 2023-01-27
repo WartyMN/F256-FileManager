@@ -5,10 +5,10 @@
 
 #include <stddef.h>
 #include <string.h>
-#include <dirent.h>
 #include <stdbool.h>
 
 #include "api.h"
+#include "dirent.h"  // Users are expected to "-I ." to get the local copy.
 
 // If cc65 chokes on this line, remove the third argument or upgrade.
 #pragma bss-name (push, "ZEROPAGE", "zp")
@@ -366,7 +366,7 @@ opendir (const char* name)
 struct dirent* __fastcall__ 
 readdir(DIR* dir)
 {
-    static char fname[32];  // The kernel supports up to 256.
+    static struct dirent dirent;
     
     if (!dir) {
         return NULL;
@@ -383,18 +383,35 @@ readdir(DIR* dir)
     }
     
     for(;;) {
+        
+        int len;
+        
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
         
         switch (event.type) {
         
         case EVENT(directory.VOLUME):
+            
+            dirent.d_blocks = 0;
+            dirent.d_type = 2;
+            break;
+            
+        case EVENT(directory.FILE): 
+            
+            args.common.buf = &dirent.d_blocks;
+            args.common.buflen = sizeof(dirent.d_blocks);
+            CALL(ReadExt);
+                
+            dirent.d_type = (dirent.d_blocks == 0);
+            break;
+                
         case EVENT(directory.FREE):
             // dirent doesn't care about these types of records.
             args.directory.read.stream = *(char*)dir;
             CALL(Directory.Read);
             if (!error) {
-                break;
+                continue;
             }
             // Fall through.
         
@@ -402,21 +419,21 @@ readdir(DIR* dir)
         case EVENT(directory.ERROR):
             return NULL;
         
-        case EVENT(directory.FILE): 
-            {
-                int len = event.directory.file.len;
-            
-                if (len >= sizeof(fname)) {
-                    len = sizeof(fname) - 1;
-                }
-            
-                args.common.buf = &fname;
-                args.common.buflen = len;
-                CALL(ReadData);
-                fname[len] = '\0';
-                return (struct dirent*) fname;
-            }
         }
+        
+        // Copy the name.
+        len = event.directory.file.len;
+            
+        if (len >= sizeof(dirent.d_name)) {
+            len = sizeof(dirent.d_name) - 1;
+        }
+            
+        args.common.buf = &dirent.d_name;
+        args.common.buflen = len;
+        CALL(ReadData);
+        dirent.d_name[len] = '\0';
+                
+        return &dirent;
     }
 }
     

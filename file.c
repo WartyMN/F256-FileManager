@@ -47,7 +47,7 @@ extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 extern uint8_t*		global_temp_buff_192b_1;
 extern uint8_t*		global_temp_buff_192b_2;
-extern uint8_t*		global_temp_buff_384b_2;
+extern uint8_t*		global_temp_buff_384b;
 
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
@@ -120,7 +120,7 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 	
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
-	sprintf(global_string_buff1, "%lub", the_filesize);
+	sprintf(global_string_buff1, "%4lu blocks", the_filesize);
 
 	if ( (the_file->file_size_string_ = General_StrlcpyWithAlloc(global_string_buff1, FILE_SIZE_MAX_SIZE)) == NULL)
 	{
@@ -694,7 +694,9 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 	int16_t		s_bytes_read_from_disk;
 	uint16_t	num_bytes_to_read = MEM_DUMP_BYTES_PER_ROW;
 	bool		keep_going = true;
+	uint8_t		i;
 	uint8_t		y;
+	uint8_t		cut_off_pos;
 	uint8_t		user_input;
 	FILE*		the_file_handler;
 	uint8_t*	loc_in_file = 0x000;	// will track the location within the file, so we can show to users on left side. 
@@ -758,17 +760,29 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 				keep_going = false;
 			}
 
-			sprintf(global_string_buff1, "%p: ", loc_in_file);
-			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+			sprintf(global_string_buff2, "%p: ", loc_in_file);
+			Text_DrawStringAtXY(0, y, global_string_buff2, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 		
-			sprintf(global_string_buff1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
+			sprintf(global_string_buff2, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
 				the_buffer[0], the_buffer[1], the_buffer[2], the_buffer[3], the_buffer[4], the_buffer[5], the_buffer[6], the_buffer[7], 
 				the_buffer[8], the_buffer[9], the_buffer[10], the_buffer[11], the_buffer[12], the_buffer[13], the_buffer[14], the_buffer[15]);
-
-			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff1, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+			
+			// now cut off the string if we didn't read a full line
+			if ( s_bytes_read_from_disk < num_bytes_to_read )
+			{
+				cut_off_pos = (uint8_t)s_bytes_read_from_disk;
+				cut_off_pos *= 3;	// each char represented by 2 hex digits and a space
+				global_string_buff2[cut_off_pos] = '\0';
+			}
+			
+			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff2, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 
 			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
-			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)the_buffer, MEM_DUMP_BYTES_PER_ROW);
+// 			for (i = 0; i < MEM_DUMP_BYTES_PER_ROW; i++)
+// 			{
+// 				Text_SetCharAtXY(MEM_DUMP_START_X_FOR_CHAR + i, y, the_buffer[i]);
+// 			}
+			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)the_buffer, s_bytes_read_from_disk);
 		
 			loc_in_file += MEM_DUMP_BYTES_PER_ROW;
 			++y;
@@ -786,125 +800,6 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 
 	fclose(the_file_handler);
 	
-	
-	return true;
-	
-error:
-	if (the_file_handler) fclose(the_file_handler);
-	return false;
-}
-
-
-// populate a buffer with a hex dump of the file, reading the specified number of bytes into the buffer. Display the buffer as hex and chars. Returns false on any error
-bool File_GetHexContentsOLD(WB2KFileObject* the_file, char* the_buffer)
-{
-	// LOGIC
-	//   does not care about file type: any time of file will generate a hex dump
-	//   open file for reading > get first chunk of bytes to read > terminate with \0 > display to screen > wait for user > repeat or return
-	//   return false on any error
-	
-	// LOGIC
-	//   we only have 80x25 to work with, and we need a row for "hit space for more, esc to stop"
-	//     so 24 rows * 16 bytes = 384 max bytes can be shown
-	//   we only need one buffer as we read and print to screen
-	//   we need to keep the file stream open until it is used up, or user exits loop
-
-	int16_t		s_bytes_read_from_disk;
-	uint16_t	num_bytes_to_read = MAX_MEM_DUMP_LEN;
-	FILE*		the_file_handler;
-	bool		keep_going = true;
-	uint8_t		y;
-	uint8_t		i;
-	uint8_t		user_input;
-	char*		buffer_start = the_buffer;
-	uint8_t*	loc_in_file = 0x000;	// will track the location within the file, so we can show to users on left side. 
-
-
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return false;
-	}
-
-// 	Buffer_NewMessage("starting hex read...");
-	
-	the_file_handler = fopen((char*)the_file->file_path_, "r");
-	//the_file_handler = fopen((char*)the_file->file_name_, "r");
-	
-	if (the_file_handler == NULL)
-	{
-		sprintf(global_string_buff1, "file '%s' could not be opened for hex display", the_file->file_path_);
-		Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
-		goto error;
-	}
-	// loop until file is all read/displayed, or until user says stop
-	while (keep_going == true)
-	{
-		the_buffer = buffer_start;
-		s_bytes_read_from_disk = fread(the_buffer, sizeof(char), num_bytes_to_read, the_file_handler);
-	
-		if (feof(the_file_handler))
-		{
-			sprintf(global_string_buff1, "end of file reached for file '%s'", the_file->file_name_);
-			Buffer_NewMessage(global_string_buff1);
-			keep_going = false;
-		}
-		
-		if ( s_bytes_read_from_disk < 0)
-		{
-			sprintf(global_string_buff1, "reading file '%s' resulted in return value of %i", the_file->file_name_, s_bytes_read_from_disk);
-			Buffer_NewMessage(global_string_buff1);
-			keep_going = false;
-		}
-		
-		if ( s_bytes_read_from_disk < num_bytes_to_read )
-		{
-			// we hit end of file
-			sprintf(global_string_buff1, "reading file '%s' expected %u bytes, got %i bytes", the_file->file_name_, num_bytes_to_read, s_bytes_read_from_disk);
-			Buffer_NewMessage(global_string_buff1);
-			LOG_ERR(("%s %d: reading file '%s' expected %u bytes, got %i bytes", __func__ , __LINE__, the_file->file_name_, num_bytes_to_read, s_bytes_read_from_disk));
-			keep_going = false;
-		}
-
-		y = 0;
-		Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_HEX_VIEW_INSTRUCTIONS), the_file->file_name_);
-		Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-		
-		// per-row loop
-		while (s_bytes_read_from_disk > 0)
-		{
-			sprintf(global_string_buff1, "%p: ", loc_in_file);
-			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-		
-			sprintf(global_string_buff1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
-				the_buffer[0], the_buffer[1], the_buffer[2], the_buffer[3], the_buffer[4], the_buffer[5], the_buffer[6], the_buffer[7], 
-				the_buffer[8], the_buffer[9], the_buffer[10], the_buffer[11], the_buffer[12], the_buffer[13], the_buffer[14], the_buffer[15]);
-
-			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff1, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-
-			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
-			for (i = 0; i < MEM_DUMP_BYTES_PER_ROW; i++)
-			{
-				Text_SetCharAtXY(MEM_DUMP_START_X_FOR_CHAR + i, y, the_buffer[i]);
-			}
-		
-			s_bytes_read_from_disk -= MEM_DUMP_BYTES_PER_ROW;
-			the_buffer += MEM_DUMP_BYTES_PER_ROW;
-			loc_in_file += MEM_DUMP_BYTES_PER_ROW;
-			++y;
-		}
-		
-		user_input = getchar();
-		
-		if (user_input == CH_ESC || user_input == 'q')
-		{
-			keep_going = false;
-		}		
-	}
-
-	fclose(the_file_handler);
 	
 	return true;
 	

@@ -151,6 +151,9 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel);
 // delete the currently selected file
 bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel);
 
+// copy the currently selected file to the other panel
+bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel);
+
 // show the contents of the currently selected file as a hex dump
 bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel);
 

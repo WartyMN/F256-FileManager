@@ -57,8 +57,6 @@ uint8_t		last_y;
 /*                             Global Variables                              */
 /*****************************************************************************/
 
-int8_t*	global_temp_buff_384b;
-
 extern System*			global_system;
 
 

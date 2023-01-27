@@ -56,9 +56,7 @@
 
 static WB2KFolderObject*	app_root_folder[2];
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
-static uint8_t				temp_buff_192b_1[192];
-static uint8_t				temp_buff_192b_2[192];
-static uint8_t				temp_buff_192b_3[192];
+static uint8_t				temp_buff_384b[384];	// will use for both 192 and 384 buffers (shared)
 static uint8_t				app_connected_drive_count;
 
 /*****************************************************************************/
@@ -75,12 +73,11 @@ char					global_dlg_title[36];	// arbitrary
 char					global_dlg_body_msg[70];	// arbitrary
 char					global_dlg_button[3][10];	// arbitrary
 
-uint8_t*				global_temp_buff_192b_1 = temp_buff_192b_1;
-uint8_t*				global_temp_buff_192b_2 = temp_buff_192b_2;
-uint8_t*				global_temp_buff_192b_3 = temp_buff_192b_3;
-uint8_t*				global_temp_buff_384b_2 = temp_buff_192b_2;
-char*					global_string_buff1 = (char*)temp_buff_192b_1;
-char*					global_string_buff2 = (char*)temp_buff_192b_2;
+uint8_t*				global_temp_buff_192b_1 = temp_buff_384b;
+uint8_t*				global_temp_buff_192b_2 = (temp_buff_384b + 192);
+uint8_t*				global_temp_buff_384b = temp_buff_384b;
+char*					global_string_buff1 = (char*)temp_buff_384b;
+char*					global_string_buff2 = (char*)(temp_buff_384b + 192);
 
 uint8_t					temp_screen_buffer_char[SCREEN_TOTAL_BYTES/4];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
 uint8_t					temp_screen_buffer_attr[SCREEN_TOTAL_BYTES/4];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
@@ -300,12 +297,18 @@ uint8_t App_MainLoop(void)
 				case ACTION_SWAP_ACTIVE_PANEL:
 					// mark old panel inactive, mark new panel active, set new active panel id
 					App_SwapActivePanel();
+					Screen_SwapCopyDirectionIndicator();
 					the_panel = &app_file_panel[app_active_panel_id];
 					break;
 
 				case ACTION_NEXT_DEVICE:
 					// tell panel to forget all its files, and repopulate itself from the next drive in the system. 
 					success = Panel_SwitchToNextDrive(the_panel, app_connected_drive_count - 1);
+					break;
+					
+				case ACTION_REFRESH_PANEL:
+					Folder_RefreshListing(the_panel->root_folder_);
+					Panel_Init(the_panel);			
 					break;
 					
 				case MOVE_UP:
@@ -390,6 +393,12 @@ uint8_t App_MainLoop(void)
 					//Buffer_NewMessage(global_string_buff1);
 					break;
 				
+				case ACTION_COPY:
+					success = Panel_CopyCurrentFile(the_panel, &app_file_panel[(app_active_panel_id + 1) % 2]);
+					sprintf(global_string_buff1, "copy file success = %u", success);
+					Buffer_NewMessage(global_string_buff1);
+					break;
+					
 				case ACTION_RENAME:
 					success = Panel_RenameCurrentFile(the_panel);
 					break;

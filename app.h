@@ -60,9 +60,10 @@
 #define FILE_MAX_TEXT_PREVIEW_SIZE	255		// for info panel previews, the max # of bytes to read in and display
 #define FILE_TYPE_MAX_SIZE_NAME		4	// mostly PRG/REL, but allowed for SUBD
 #define FILE_SIZE_MAX_SIZE			16	// max size of human-readable file size. eg, "255 blocks", "1,200 MB"
-#define FILE_BYTES_PER_BLOCK		256	// 1 block = 256b
+#define FILE_BYTES_PER_BLOCK		254	// 1 block = 256b but really only 254
 #define MAX_NUM_FILES_IEC			144 // The directory track should be contained totally on track 18. Sectors 1-18 contain the entries and sector 0 contains the BAM (Block Availability Map) and disk name/ID. Since the directory is only 18 sectors large (19 less one for the BAM), and each sector can contain only 8 entries (32 bytes per entry), the maximum number of directory entries is 18 * 8 = 144. http://justsolve.archiveteam.org/wiki/CBMFS
 // BUT... 1581 supported 296 entries. hmm. 
+#define FILE_COPY_BUFFER_SIZE		384	// arbitrarily set to match global temp buff 384b.
 
 
 #define DEVICE_LOWEST_DEVICE_NUM	0
@@ -166,6 +167,7 @@
 #define ACTION_VIEW_AS_TEXT			't'
 #define ACTION_RENAME				'r'
 #define ACTION_NEXT_DEVICE			'n'	// CH_F1
+#define ACTION_REFRESH_PANEL		'f'	// CH_F2
 
 #define ACTION_HELP				'?' // numpad key
 
