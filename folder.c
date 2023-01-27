@@ -958,7 +958,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
 			{
 				// this is hte internal SD card. give a more user-friendly name
-				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_SD_CARD), FILE_MAX_FILENAME_SIZE);
+				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
 			}
 			else
 			{
@@ -996,8 +996,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
 			++file_cnt;
 			
-			sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
-			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+			//Buffer_NewMessage(global_string_buff1);
 		}
 
 	}

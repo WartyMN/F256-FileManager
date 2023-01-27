@@ -64,13 +64,13 @@
 
 #define UI_PANEL_INNER_WIDTH			33
 #define UI_PANEL_OUTER_WIDTH			(UI_PANEL_INNER_WIDTH + 2)
-#define UI_PANEL_INNER_HEIGHT			44
+#define UI_PANEL_INNER_HEIGHT			43
 #define UI_PANEL_OUTER_HEIGHT			(UI_PANEL_INNER_HEIGHT + 2)
 #define UI_PANEL_TAB_WIDTH				28
 #define UI_PANEL_TAB_HEIGHT				3
 #define UI_PANEL_FILENAME_OFFSET		1	// from left edge of panel to start of filename
-#define UI_PANEL_FILESIZE_OFFSET		18	// from start of filename to start of filesize
-#define UI_PANEL_FILETYPE_OFFSET		12	// from start of filesize to start of filetype
+#define UI_PANEL_FILETYPE_OFFSET		21	// from start of filename to start of filesize
+#define UI_PANEL_FILESIZE_OFFSET		7	// from start of filesize to start of filetype
 
 #define UI_LEFT_PANEL_TITLE_TAB_X1		0
 #define UI_LEFT_PANEL_TITLE_TAB_Y1		3
@@ -79,7 +79,7 @@
 #define UI_LEFT_PANEL_TITLE_TAB_X2		(UI_LEFT_PANEL_TITLE_TAB_X1 + UI_LEFT_PANEL_TITLE_TAB_WIDTH - 1)
 #define UI_LEFT_PANEL_TITLE_TAB_Y2		(UI_LEFT_PANEL_TITLE_TAB_Y1 + UI_LEFT_PANEL_TITLE_TAB_HEIGHT - 1)
 #define UI_LEFT_PANEL_BODY_X1			0
-#define UI_LEFT_PANEL_BODY_Y1			5
+#define UI_LEFT_PANEL_BODY_Y1			6
 #define UI_LEFT_PANEL_BODY_WIDTH		UI_PANEL_OUTER_WIDTH
 #define UI_LEFT_PANEL_BODY_HEIGHT		UI_PANEL_OUTER_HEIGHT
 #define UI_LEFT_PANEL_BODY_X2			(UI_LEFT_PANEL_BODY_X1 + UI_LEFT_PANEL_BODY_WIDTH - 1)

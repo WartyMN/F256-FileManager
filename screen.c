@@ -97,6 +97,15 @@ void Screen_DrawUI(void)
 		Text_DrawBoxCoordsFancy(x1, y1, x2, y2, PANEL_FOREGROUND_COLOR, PANEL_BACKGROUND_COLOR);
 		Text_SetCharAtXY(x1, y1, SC_T_RIGHT);
 		Text_SetCharAtXY(x1 + (UI_PANEL_TAB_WIDTH - 1), y1, SC_T_UP);
+
+		// draw file list head rows
+		x1 += UI_PANEL_FILENAME_OFFSET;
+		++y1;
+		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x1 += UI_PANEL_FILETYPE_OFFSET;
+		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILETYPE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x1 += UI_PANEL_FILESIZE_OFFSET;
+		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
 	}
 	
 	// draw buttons

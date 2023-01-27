@@ -1076,12 +1076,12 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 	
 	x1 = the_file->x_;
 	x2 = the_file->x_ + (UI_PANEL_INNER_WIDTH - 1);
-	sizex = x1 + UI_PANEL_FILESIZE_OFFSET;
-	typex = sizex + UI_PANEL_FILETYPE_OFFSET;
+	typex = x1 + UI_PANEL_FILETYPE_OFFSET;
+	sizex = typex + UI_PANEL_FILESIZE_OFFSET - 1; // "bytes" is 5 in len, but we are using 6 digit size, so start one before bytes.
 	
 	if (the_file->display_row_ != -1)
 	{
-		sprintf(global_string_buff1, "%4lu", the_file->size_);
+		sprintf(global_string_buff1, "%6lu", the_file->size_);
 		y = the_file->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( x1, y, the_file->file_name_, the_color, APP_BACKGROUND_COLOR);

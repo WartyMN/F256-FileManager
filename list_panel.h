@@ -62,9 +62,7 @@ typedef struct WB2KViewPanel
 	uint8_t				y_;
 	uint8_t				width_;
 	uint8_t				height_;
-	uint8_t				num_cols_;							// for icon display, number of icon columns. for other displays, always 1
 	uint8_t				num_rows_;							// for any mode, number of rows used
-	uint8_t				required_inner_height_;				// for column mode, need to track our own inner_height requirement
 	uint8_t				content_top_;						// for column mode, need to track our own content top position
 	uint8_t				device_number_;						// For CBM, the drive #. eg, 8 or 9. 
 	uint8_t				unit_number_;						// For CBM, the unit # within the drive. eg, 0 or 1 

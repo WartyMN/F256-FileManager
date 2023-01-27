@@ -168,7 +168,6 @@ void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, u
 	the_panel->width_ = width;
 	the_panel->height_ = height;
 	the_panel->content_top_ = 0;
-	the_panel->required_inner_height_ = 0;
 	the_panel->sort_compare_function_ = (void*)&File_CompareName;
 
 	//DEBUG_OUT(("%s %d: filename='%s'", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
@@ -1061,7 +1060,7 @@ void Panel_RenderContents(WB2KViewPanel* the_panel)
 	// clear the panel. if this is a refresh, it isn't guaranteed panel UI was just drawn. eg, file was deleted. 
 	Text_FillBox(
 		the_panel->x_, the_panel->y_, 
-		the_panel->x_ + (UI_PANEL_INNER_WIDTH - 1), the_panel->y_ + (UI_PANEL_INNER_HEIGHT - 1), 
+		the_panel->x_ + (UI_PANEL_INNER_WIDTH - 1), the_panel->y_ + (UI_PANEL_INNER_HEIGHT - 2), 
 		CH_SPACE, LIST_ACTIVE_COLOR, APP_BACKGROUND_COLOR
 	);
 	
@@ -1101,8 +1100,8 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 		back_color = PANEL_BACKGROUND_COLOR;
 	}
 	
-	Text_FillBox(the_panel->x_, the_panel->y_ - 2, the_panel->x_ + (UI_PANEL_TAB_WIDTH - 3), the_panel->y_ - 2, CH_SPACE, fore_color, back_color);
-	Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 2, the_panel->root_folder_->folder_file_->file_name_, fore_color, back_color);
+	Text_FillBox(the_panel->x_, the_panel->y_ - 3, the_panel->x_ + (UI_PANEL_TAB_WIDTH - 3), the_panel->y_ - 3, CH_SPACE, fore_color, back_color);
+	Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, the_panel->root_folder_->folder_file_->file_name_, fore_color, back_color);
 }
 
 

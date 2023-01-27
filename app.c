@@ -231,14 +231,14 @@ void App_Initialize(void)
 	Panel_Initialize(
 		&app_file_panel[PANEL_ID_LEFT], 
 		app_root_folder[PANEL_ID_LEFT], 
-		(UI_LEFT_PANEL_BODY_X1 + 1), (UI_LEFT_PANEL_BODY_Y1 + 1), 
-		(UI_LEFT_PANEL_BODY_WIDTH - 2), (UI_LEFT_PANEL_BODY_HEIGHT - 2)
+		(UI_LEFT_PANEL_BODY_X1 + 1), (UI_LEFT_PANEL_BODY_Y1 + 2), 
+		(UI_LEFT_PANEL_BODY_WIDTH - 2), (UI_LEFT_PANEL_BODY_HEIGHT - 3)
 	);
 	Panel_Initialize(
 		&app_file_panel[PANEL_ID_RIGHT], 
 		app_root_folder[PANEL_ID_RIGHT], 
-		(UI_RIGHT_PANEL_BODY_X1 + 1), (UI_RIGHT_PANEL_BODY_Y1 + 1), 
-		(UI_RIGHT_PANEL_BODY_WIDTH - 2), (UI_RIGHT_PANEL_BODY_HEIGHT - 2)
+		(UI_RIGHT_PANEL_BODY_X1 + 1), (UI_RIGHT_PANEL_BODY_Y1 + 2), 
+		(UI_RIGHT_PANEL_BODY_WIDTH - 2), (UI_RIGHT_PANEL_BODY_HEIGHT - 3)
 	);
 
 	Panel_SetCurrentUnit(&app_file_panel[PANEL_ID_LEFT], app_root_folder[PANEL_ID_LEFT]->device_number_, app_root_folder[PANEL_ID_LEFT]->unit_number_);
