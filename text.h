@@ -54,19 +54,20 @@
 // C includes
 #include <stdbool.h>
 
-// cc65 includes
 
+// F256 includes
+
+
+// cc65 includes
 
 
 /*****************************************************************************/
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
-#define SCREEN_NUM_COLS					80	// physical and saved screens are all 80 columns wide in LK f256jr
-#define SCREEN_NUM_ROWS					50	// number of rows for saved screens -- not including final 10 for comms buffer
-#define SCREEN_TOTAL_BYTES				(SCREEN_NUM_COLS * SCREEN_NUM_ROWS)	// for saved screens - not including comms buffer
-#define PHYSICAL_SCREEN_NUM_ROWS		60
-#define PHYSICAL_SCREEN_TOTAL_BYTES		(SCREEN_NUM_COLS * PHYSICAL_SCREEN_NUM_ROWS)
+#define SCREEN_NUM_COLS			80	// physical screens are all 80 columns wide in f256jr
+#define SCREEN_NUM_ROWS			60
+#define SCREEN_TOTAL_BYTES		(SCREEN_NUM_COLS * SCREEN_NUM_ROWS)
 #define SCREEN_TEXT_MEMORY_LOC			0xC000	// start of text AND attribute memory for F256jr. text is is I/O page 2, attributes in I/O page 3. 
 
 #define SCREEN_FOR_TEXT_ATTR	true	///< param for functions with for_attr
@@ -135,19 +136,7 @@
 /*            Char codes for drawing elements (f256jr_std)                   */
 /*****************************************************************************/
 
-#define SC_HLINE        150
-#define SC_VLINE        130
-#define SC_ULCORNER     160
-#define SC_URCORNER     161
-#define SC_LLCORNER     162
-#define SC_LRCORNER     163
-#define SC_CHECKERED	199
-#define SC_T_DOWN		155 // T-shape pointing down
-#define SC_T_UP			157 // T-shape pointing up
-#define SC_T_LEFT		158 // T-shape pointing left
-#define SC_T_RIGHT		154 // T-shape pointing right
-#define SC_T_JUNCTION	156 // + shape meeting of 4 lines
-
+// (see f256.h)
 
 /*****************************************************************************/
 /*                               Enumerations                                */
@@ -216,9 +205,22 @@ typedef struct TextDialogTemplate
 
 // **** Block copy functions ****
 
-//! Copy a rectangular area of text or attr to or from an off-screen buffer
+//! Copy a rectangular area of text or attr to or from a linear memory buffer.
+//!   Use this if you do not have a full-sized (screen-size) off-screen buffer, but instead have a block perhaps just big enough to hold the rect.
 //! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	the_buffer: valid pointer to a block of memory big enough to store (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory.
+//! @param	the_buffer: valid pointer to a block of memory to hold (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory. This will be read from first byte to last byte, without skipping. e.g., if you want to copy a 40x5 rectangle of text from the middle of the screen to this buffer, the buffer must be 40*5=200 bytes in length, and data will be written contiguously to it. 
+//! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+//! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+//! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+//! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+//! @param	to_screen: true to copy to the screen from the buffer, false to copy from the screen to the buffer. Recommend using SCREEN_COPY_TO_SCREEN/SCREEN_COPY_FROM_SCREEN.
+//! @param	for_attr: true to work with attribute data, false to work character data. Recommend using SCREEN_FOR_TEXT_ATTR/SCREEN_FOR_TEXT_CHAR.
+//! @return	Returns false on any error/invalid input.
+bool Text_CopyMemBoxLinearBuffer(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, bool to_screen, bool for_attr);
+
+//! Copy a rectangular area of text or attr to or from an off-screen buffer of the same size as the physical screen buffer
+//! @param	the_screen: valid pointer to the target screen to operate on
+//! @param	the_buffer: valid pointer to a block of memory to hold (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory. This buffer must be the same size as the physical screen!
 //! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
 //! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
 //! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
@@ -419,6 +421,13 @@ uint8_t* Text_GetMemLocForXY(uint8_t x, uint8_t y);
 // **** "Text Window" Functions ****
 // **** Move these back into OS/f Text Library in the future!
 
+// Display a Text-based dialog box, with a title, a message body, and a place for users to input text
+// returns false on error (eg, max string len is wider than dialog body), or if user refused to enter text
+// returns true if user entered something
+// populates the passed buffer with the text the user typed
+// user hitting ESC will always cause false to be returned, regardless of keyboard shortcuts.
+int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, int8_t the_max_length);
+
 // Display a Text-based dialog box, with 1, 2, or 3 buttons, a title, and a message body
 // Supports keyboard shortcuts for each button
 // on A2560Ks, will use keyboard lighting to highlight the keyboard shortcuts
@@ -435,6 +444,14 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 bool Text_DrawWindow(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fore_color, uint8_t back_color, uint8_t text_color, char* the_header_text, char* char_save_mem, char* attr_save_mem, bool clear_first, bool enclose_header);
 
 
+
+
+// **** User Input Functions ****
+
+// get a string from the user and store in the passed buffer, drawing chars to screen as user types
+// allows a maximum of the_max_length characters.
+// returns false if no string built.
+bool Text_GetStringFromUser(char* the_buffer, int8_t the_max_length, uint8_t start_x, uint8_t start_y);
 
 
 

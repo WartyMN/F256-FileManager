@@ -36,16 +36,22 @@
 
 
 /*****************************************************************************/
+/*                           File-scoped Variables                           */
+/*****************************************************************************/
+
+static uint8_t		comm_curr_buff_row = 0;
+static char 		comm_buff[COMM_BUFF_SIZE];
+static char			comm_temp_line_buff[COMM_BUFFER_MAX_STRING_LEN];	// temp storage for strings to be displayed in buffer; allows wrapping chars to be imebedded without modifying the source string
+static char*		comm_row[COMM_BUFFER_NUM_ROWS];
+static char**		comm_row_ptr[COMM_BUFFER_NUM_ROWS];	// ptp for the comms buffer rows, to allow scrolling
+
+
+/*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
 
-uint8_t				global_curr_buff_row = 0;
 
-char 				global_comm_buff[COMM_BUFF_SIZE];
 
-char				comm_buff_temp[COMM_BUFFER_MAX_STRING_LEN];	// temp storage for strings to be displayed in buffer; allows wrapping chars to be imebedded without modifying the source string
-char*				global_comm_buffer[COMM_BUFFER_NUM_ROWS];
-char**				global_comm_buffer_line[COMM_BUFFER_NUM_ROWS];	// ptp for the comms buffer rows, to allow scrolling
 
 
 /*****************************************************************************/
@@ -74,15 +80,15 @@ void Buffer_ScrollUp(void)
 
 	last = COMM_BUFFER_NUM_ROWS - 1;
 	next_to_last = last - 1;
-	temp = *global_comm_buffer_line[last];
-	*global_comm_buffer_line[last] = *global_comm_buffer_line[0];
+	temp = *comm_row_ptr[last];
+	*comm_row_ptr[last] = *comm_row_ptr[0];
 //printf("last=%i, next_to_last=%i \n", last, next_to_last);	
 	for (i = 0; i < next_to_last; i++)
 	{
-		*global_comm_buffer_line[i] = *global_comm_buffer_line[i + 1];
+		*comm_row_ptr[i] = *comm_row_ptr[i + 1];
 	}
 	
-	*global_comm_buffer_line[next_to_last] = temp;
+	*comm_row_ptr[next_to_last] = temp;
 
 	Buffer_RefreshDisplay();
 }
@@ -115,11 +121,11 @@ void Buffer_Initialize(void)
 	// set up the comm buffer ptps
 	for (i = 0; i < COMM_BUFFER_NUM_ROWS; i++)
 	{
-		global_comm_buffer[i] = &global_comm_buff[i * (COMM_BUFFER_NUM_COLS + 1)];
-		global_comm_buffer_line[i] = &global_comm_buffer[i];
+		comm_row[i] = &comm_buff[i * (COMM_BUFFER_NUM_COLS + 1)];
+		comm_row_ptr[i] = &comm_row[i];
 	}
 	
-	global_curr_buff_row = 0;
+	comm_curr_buff_row = 0;
 }
 
 
@@ -130,7 +136,7 @@ void Buffer_Clear(void)
 
 	for (i = 0; i < COMM_BUFFER_NUM_ROWS; i++)
 	{
-		*(global_comm_buffer[i]) = 0;
+		*(comm_row[i]) = 0;
 	}
 
 	Text_FillBox(		
@@ -142,7 +148,7 @@ void Buffer_Clear(void)
 	);
 	
 	// reset the buffer lines-since-you-did-something-yourself count.
-	global_curr_buff_row = 0;
+	comm_curr_buff_row = 0;
 }
 
 
@@ -164,17 +170,17 @@ void Buffer_RefreshDisplay(void)
 	
 	for (i = 0; i < COMM_BUFFER_NUM_ROWS; i++)
 	{
-		int8_t		this_len = strlen(*global_comm_buffer_line[i]);
-//printf("'%s' \n", *global_comm_buffer_line[i]);	
+		int8_t		this_len = strlen(*comm_row_ptr[i]);
+//printf("'%s' \n", *comm_row_ptr[i]);	
 		
 		if ( this_len > COMM_BUFFER_NUM_COLS)
 		{
-			DEBUG_OUT(("%s %d: string was too long (%i vs %i): '%s'", __func__, __LINE__, COMM_BUFFER_NUM_COLS, this_len, *global_comm_buffer_line[i]));
-			*(global_comm_buffer_line[i][COMM_BUFFER_NUM_COLS]) = 0;
+			DEBUG_OUT(("%s %d: string was too long (%i vs %i): '%s'", __func__, __LINE__, COMM_BUFFER_NUM_COLS, this_len, *comm_row_ptr[i]));
+			*(comm_row_ptr[i][COMM_BUFFER_NUM_COLS]) = 0;
 		}
 		Text_DrawStringAtXY(
 			COMM_BUFFER_FIRST_COL, COMM_BUFFER_FIRST_ROW + i, 
-			*global_comm_buffer_line[i],
+			*comm_row_ptr[i],
 			BUFFER_FOREGROUND_COLOR, 
 			BUFFER_BACKGROUND_COLOR
 		);
@@ -187,16 +193,16 @@ void Buffer_NewMessage(char* the_message)
 {
 	uint8_t		the_len;
 	char*		right_margin;
-	char*		start_of_string = comm_buff_temp;
+	char*		start_of_string = comm_temp_line_buff;
 
 	//DEBUG_OUT(("%s %d: msg='%s'", __func__, __LINE__, the_message));
 	
 	// check that we haven't already displayed 3 lines worth of buffer since user last hit a key
 	// if we have, give user the blinky and wait for them to hit a key before displaying any more rows
 	// skip this though if we are in stealth mode
-	if (global_curr_buff_row >= COMM_BUFFER_NUM_ROWS)
+	if (comm_curr_buff_row >= COMM_BUFFER_NUM_ROWS)
 	{
-		global_curr_buff_row = 0;	// jan 18: without the "hit space to continue" thing, this whole thing doesn't make sense. Remove after testing.
+		comm_curr_buff_row = 0;	// jan 18: without the "hit space to continue" thing, this whole thing doesn't make sense. Remove after testing.
 	}
 
 	// check if this is longer than we can display on one line
@@ -207,13 +213,13 @@ void Buffer_NewMessage(char* the_message)
 
 	while(*start_of_string)
 	{
-		++global_curr_buff_row;
+		++comm_curr_buff_row;
 
 		if (the_len < COMM_BUFFER_NUM_COLS)
 		{
-			sprintf(*global_comm_buffer_line[0], "%-*s", COMM_BUFFER_NUM_COLS, start_of_string);
-			DEBUG_OUT(("%s %d: '%s'", __func__, __LINE__, *global_comm_buffer_line[0]));
-			//printf("'%s'", *global_comm_buffer_line[0]);
+			sprintf(*comm_row_ptr[0], "%-*s", COMM_BUFFER_NUM_COLS, start_of_string);
+			DEBUG_OUT(("%s %d: '%s'", __func__, __LINE__, *comm_row_ptr[0]));
+			//printf("'%s'", *comm_row_ptr[0]);
 			Buffer_ScrollUp();
 			return;
 		}
@@ -226,14 +232,14 @@ void Buffer_NewMessage(char* the_message)
 		}
 
 		*right_margin = '\0';
-		sprintf(*global_comm_buffer_line[0], "%-*s", COMM_BUFFER_NUM_COLS, start_of_string);
+		sprintf(*comm_row_ptr[0], "%-*s", COMM_BUFFER_NUM_COLS, start_of_string);
 		Buffer_ScrollUp();
 
 		// are we ending up with more lines than can be shown in buffer at once?
 		// skip this if we are in stealth mode
-		if (global_curr_buff_row >= COMM_BUFFER_NUM_ROWS)
+		if (comm_curr_buff_row >= COMM_BUFFER_NUM_ROWS)
 		{
-			global_curr_buff_row = 0;	// jan 18: without the "hit space to continue" thing, this whole thing doesn't make sense. Remove after testing.
+			comm_curr_buff_row = 0;	// jan 18: without the "hit space to continue" thing, this whole thing doesn't make sense. Remove after testing.
 		}
 
 		the_len -= right_margin - start_of_string + 1; // +1 is for the space

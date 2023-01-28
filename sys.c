@@ -72,7 +72,7 @@ static System	system_storage;
 System*			global_system = &system_storage;
 
 
-// F256JR colors, used for both fore- and background colors in Text mode
+// F256JR/K colors, used for both fore- and background colors in Text mode
 // in C256 & F256, these are 8 bit values; in A2560s, they are 32 bit values, and endianness matters
 static uint8_t standard_text_color_lut[64] = 
 {

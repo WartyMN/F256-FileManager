@@ -53,6 +53,9 @@
 #define PANEL_ID_RIGHT				1
 
 
+#define APP_DIALOG_WIDTH			40
+#define APP_DIALOG_HEIGHT			7
+#define APP_DIALOG_BUFF_SIZE		((APP_DIALOG_WIDTH+2) * (APP_DIALOG_HEIGHT+2))	// for the temp char and color buffs when opening a window, this is how much mem we'll reserve for each
 
 #define FILE_MAX_PATHNAME_SIZE		(2+16)	// not sure what defines this in our case. ?? current logic is 2 char drive (0:, 1:, 2:) + 16 char max file name for IEC. but fat32 supports much longer names... 
 #define FILE_MAX_FILENAME_SIZE		16	// CBM DOS defined

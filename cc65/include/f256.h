@@ -163,6 +163,27 @@ typedef uint8_t	ColorIdx;
 #define CH_SPACE		32
 
 /*****************************************************************************/
+/*                             Named Characters                              */
+/*****************************************************************************/
+
+#define SC_HLINE        150
+#define SC_VLINE        130
+#define SC_ULCORNER     160
+#define SC_URCORNER     161
+#define SC_LLCORNER     162
+#define SC_LRCORNER     163
+#define SC_ULCORNER_RND 188
+#define SC_URCORNER_RND 189
+#define SC_LLCORNER_RND 190
+#define SC_LRCORNER_RND 191
+#define SC_CHECKERED	199
+#define SC_T_DOWN		155 // T-shape pointing down
+#define SC_T_UP			157 // T-shape pointing up
+#define SC_T_LEFT		158 // T-shape pointing left
+#define SC_T_RIGHT		154 // T-shape pointing right
+#define SC_T_JUNCTION	156 // + shape meeting of 4 lines
+
+/*****************************************************************************/
 /*                               Enumerations                                */
 /*****************************************************************************/
 

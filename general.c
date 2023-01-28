@@ -130,53 +130,53 @@ extern uint8_t			zp_bank_num;
 
 // **** NUMBER<>STRING UTILITIES *****
 
-// convert a file size in bytes to a human readable format using "10 bytes", "1.4 kb", "1 MB", etc. 
-//   NOTE: formatted_file_size string must have been allocated before passing here
-void General_MakeFileSizeReadable(unsigned long size_in_bytes, char* formatted_file_size)
-{
-	//double			final_size; // no float in cc65!
-	uint32_t		final_size;
-	
-	// convert to float before doing any operations on it, to prevent integer weirdness
-	//final_size = (double)size_in_bytes;
-	final_size = size_in_bytes;
-	
-	if (size_in_bytes < 1024) // 1.0k
-	{
-		// show size in bytes, precisely
-		sprintf((char*)formatted_file_size, "%lu b", size_in_bytes);
-	}
-	else if (size_in_bytes < 10240) // 10k
-	{
-		// show size in .1k chunks (eg, 9.4k)
-		final_size /= 1024;
-		sprintf((char*)formatted_file_size, "%.1f kb", final_size);
-	}
-	else if (size_in_bytes < 1048576) // 1 MB
-	{
-		// show size in 1k chunks
-		final_size /= 1024;
-		//size_in_bytes = General_Round(final_size);
-		size_in_bytes = final_size /= 1024;
-		sprintf((char*)formatted_file_size, "%lu kb", size_in_bytes);
-	}
-	else if (size_in_bytes < 10485760) // 10MB
-	{
-		// show size in .1M chunks (eg, 1.4MB)
-		final_size /= 1048576;
-		sprintf((char*)formatted_file_size, "%.1f Mb", final_size);
-	}
-	else
-	{
-		// show size in 1M chunks (eg, 1536 MB)
-		final_size /= 1048576;
-		//size_in_bytes = General_Round(final_size);
-		size_in_bytes = final_size;
-		sprintf((char*)formatted_file_size, "%lu Mb", size_in_bytes);
-	}
-	
-	return;
-}
+// // convert a file size in bytes to a human readable format using "10 bytes", "1.4 kb", "1 MB", etc. 
+// //   NOTE: formatted_file_size string must have been allocated before passing here
+// void General_MakeFileSizeReadable(unsigned long size_in_bytes, char* formatted_file_size)
+// {
+// 	//double			final_size; // no float in cc65!
+// 	uint32_t		final_size;
+// 	
+// 	// convert to float before doing any operations on it, to prevent integer weirdness
+// 	//final_size = (double)size_in_bytes;
+// 	final_size = size_in_bytes;
+// 	
+// 	if (size_in_bytes < 1024) // 1.0k
+// 	{
+// 		// show size in bytes, precisely
+// 		sprintf((char*)formatted_file_size, "%lu b", size_in_bytes);
+// 	}
+// 	else if (size_in_bytes < 10240) // 10k
+// 	{
+// 		// show size in .1k chunks (eg, 9.4k)
+// 		final_size /= 1024;
+// 		sprintf((char*)formatted_file_size, "%.1f kb", final_size);
+// 	}
+// 	else if (size_in_bytes < 1048576) // 1 MB
+// 	{
+// 		// show size in 1k chunks
+// 		final_size /= 1024;
+// 		//size_in_bytes = General_Round(final_size);
+// 		size_in_bytes = final_size /= 1024;
+// 		sprintf((char*)formatted_file_size, "%lu kb", size_in_bytes);
+// 	}
+// 	else if (size_in_bytes < 10485760) // 10MB
+// 	{
+// 		// show size in .1M chunks (eg, 1.4MB)
+// 		final_size /= 1048576;
+// 		sprintf((char*)formatted_file_size, "%.1f Mb", final_size);
+// 	}
+// 	else
+// 	{
+// 		// show size in 1M chunks (eg, 1536 MB)
+// 		final_size /= 1048576;
+// 		//size_in_bytes = General_Round(final_size);
+// 		size_in_bytes = final_size;
+// 		sprintf((char*)formatted_file_size, "%lu Mb", size_in_bytes);
+// 	}
+// 	
+// 	return;
+// }
 
 
 
@@ -328,27 +328,27 @@ signed long General_Strlcat(char* dst, const char* src, signed long max_len)
 }
 
 
-//! Makes a case sensitive comparison of the specified number of characters of the two passed strings
-//! Stops processing once max_len has been reached, or when one of the two strings has run out of characters.
-//! http://home.snafu.de/kdschem/c.dir/strings.dir/strncmp.c
-//! TODO: compare this to other implementations, see which is faster. eg, https://opensource.apple.com/source/Libc/Libc-167/gen.subproj/i386.subproj/strncmp.c.auto.html
-//! @param	string_1: the first string to compare.
-//! @param	string_2: the second string to compare.
-//! @param	max_len: the maximum number of characters to compare. Even if both strings are larger than this number, only this many characters will be compared.
-//! @return	Returns 0 if the strings are equivalent (at least up to max_len). Returns a negative or positive if the strings are different.
-int16_t General_Strncmp(const char* string_1, const char* string_2, size_t max_len)
-{
-	register uint8_t	u;
-	
-	do ; while( (u = (uint8_t)*string_1++) && (u == (uint8_t)*string_2++) && --max_len );
-
-	if (u)
-	{
-		string_2--;
-	}
-	
-	return (u - (uint8_t)*string_2);
-}
+// //! Makes a case sensitive comparison of the specified number of characters of the two passed strings
+// //! Stops processing once max_len has been reached, or when one of the two strings has run out of characters.
+// //! http://home.snafu.de/kdschem/c.dir/strings.dir/strncmp.c
+// //! TODO: compare this to other implementations, see which is faster. eg, https://opensource.apple.com/source/Libc/Libc-167/gen.subproj/i386.subproj/strncmp.c.auto.html
+// //! @param	string_1: the first string to compare.
+// //! @param	string_2: the second string to compare.
+// //! @param	max_len: the maximum number of characters to compare. Even if both strings are larger than this number, only this many characters will be compared.
+// //! @return	Returns 0 if the strings are equivalent (at least up to max_len). Returns a negative or positive if the strings are different.
+// int16_t General_Strncmp(const char* string_1, const char* string_2, size_t max_len)
+// {
+// 	register uint8_t	u;
+// 	
+// 	do ; while( (u = (uint8_t)*string_1++) && (u == (uint8_t)*string_2++) && --max_len );
+// 
+// 	if (u)
+// 	{
+// 		string_2--;
+// 	}
+// 	
+// 	return (u - (uint8_t)*string_2);
+// }
 
 
 //! Makes a case insensitive comparison of the specified number of characters of the two passed strings
@@ -559,36 +559,36 @@ char* General_PathPart(const char* the_file_path)
 }
 
 
-//! Extract file extension into the passed char pointer, as new lowercased string pointer, if any found.
-//! @param	the_file_name: the file name to extract an extension from
-//! @param	the_extension: a pre-allocated buffer that will contain the extension, if any is detected. Must be large enough to hold the extension! No bounds checking is done. 
-//! @return	Returns false if no file extension found.
-bool General_ExtractFileExtensionFromFilename(const char* the_file_name, char* the_extension)
-{
-	// LOGIC: 
-	//   if the first char is the first dot from right, we'll count the whole thing as an extension
-	//   if no dot char, then don't set extension, and return false
-	
-    char*	dot = strrchr((char*)the_file_name, '.');
-    int16_t	i;
-
-    // (re) set the file extension to "" in case we have to return. It may have a value from whatever previous use was
-    the_extension[0] = '\0';
-
-	if(!dot)
-    {
-    	return false;
-    }
-
-	for (i = 1; dot[i]; i++)
-	{
-		the_extension[i-1] = General_ToLower(dot[i]);
-	}
-
-	the_extension[i-1] = '\0';
-
-	return true;
-}
+// //! Extract file extension into the passed char pointer, as new lowercased string pointer, if any found.
+// //! @param	the_file_name: the file name to extract an extension from
+// //! @param	the_extension: a pre-allocated buffer that will contain the extension, if any is detected. Must be large enough to hold the extension! No bounds checking is done. 
+// //! @return	Returns false if no file extension found.
+// bool General_ExtractFileExtensionFromFilename(const char* the_file_name, char* the_extension)
+// {
+// 	// LOGIC: 
+// 	//   if the first char is the first dot from right, we'll count the whole thing as an extension
+// 	//   if no dot char, then don't set extension, and return false
+// 	
+//     char*	dot = strrchr((char*)the_file_name, '.');
+//     int16_t	i;
+// 
+//     // (re) set the file extension to "" in case we have to return. It may have a value from whatever previous use was
+//     the_extension[0] = '\0';
+// 
+// 	if(!dot)
+//     {
+//     	return false;
+//     }
+// 
+// 	for (i = 1; dot[i]; i++)
+// 	{
+// 		the_extension[i-1] = General_ToLower(dot[i]);
+// 	}
+// 
+// 	the_extension[i-1] = '\0';
+// 
+// 	return true;
+// }
 
 
 // return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation

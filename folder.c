@@ -424,7 +424,7 @@ error:
 // returns false on any error
 bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number)
 {
-	WB2KFileObject**	this_file;
+// 	WB2KFileObject**	this_file;
 	char**				this_string_p;
 	char				path_buff[3];
 	
@@ -593,27 +593,27 @@ WB2KFileObject* Folder_GetFolderFile(WB2KFolderObject* the_folder)
 }
 
 
-// returns true if folder has any files/folders in it. based on curated file_count_ property, not on a live check of disk.
-bool Folder_HasChildren(WB2KFolderObject* the_folder)
-{
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-	
-	if (the_folder == NULL)
-	{
-		return false;
-	}
-
-	if (the_folder->file_count_ == 0)
-	{
-		return false;
-	}
-
-	return true;
-}
+// // returns true if folder has any files/folders in it. based on curated file_count_ property, not on a live check of disk.
+// bool Folder_HasChildren(WB2KFolderObject* the_folder)
+// {
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 	
+// 	if (the_folder == NULL)
+// 	{
+// 		return false;
+// 	}
+// 
+// 	if (the_folder->file_count_ == 0)
+// 	{
+// 		return false;
+// 	}
+// 
+// 	return true;
+// }
 
 
 // returns total number of files in this folder
@@ -642,164 +642,164 @@ int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder)
 }
 
 
-// returns true if folder has any files/folders showing as selected
-bool Folder_HasSelections(WB2KFolderObject* the_folder)
-{
-	// TODO: OPTIMIZATION - think about having dedicated loop for this check that stops on first hit. will be faster with bigger folders.
-	// TODO: OPTIMIZATION - think about tracking this as a class property instead, and update when files are selected/unselected? Not sure which would be faster. 
-	
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	if (Folder_GetCountSelectedFiles(the_folder) == 0)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-
-// returns number of currently selected files in this folder
-uint16_t Folder_GetCountSelectedFiles(WB2KFolderObject* the_folder)
-{
-	// LOGIC:
-	//   iterate through all files in the folder's list and count any that are marked as selected
-
-	uint16_t	the_count = 0;
-	WB2KList*		the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	the_item = *(the_folder->list_);
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-
-		if (this_file->selected_)
-		{
-			++the_count;
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return the_count;
-}
+// // returns true if folder has any files/folders showing as selected
+// bool Folder_HasSelections(WB2KFolderObject* the_folder)
+// {
+// 	// TODO: OPTIMIZATION - think about having dedicated loop for this check that stops on first hit. will be faster with bigger folders.
+// 	// TODO: OPTIMIZATION - think about tracking this as a class property instead, and update when files are selected/unselected? Not sure which would be faster. 
+// 	
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	if (Folder_GetCountSelectedFiles(the_folder) == 0)
+// 	{
+// 		return false;
+// 	}
+// 
+// 	return true;
+// }
 
 
-// returns the first selected file/folder in the folder.
-// use Folder_GetCountSelectedFiles() first if you need to make sure you will be getting the only selected file.
-WB2KFileObject* Folder_GetFirstSelectedFile(WB2KFolderObject* the_folder)
-{
-	// LOGIC:
-	//   iterate through all files in the folder's list and return the first file/folder marked as selected
-
-	WB2KList*		the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	the_item = *(the_folder->list_);
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-
-		if (this_file->selected_)
-		{
-			return this_file;
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return NULL;
-}
-
-
-// returns the first file/folder in the folder.
-WB2KFileObject* Folder_GetFirstFile(WB2KFolderObject* the_folder)
-{
-	WB2KList*		the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	the_item = *(the_folder->list_);
-
-	if (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-		return this_file;
-	}
-
-	return NULL;
-}
+// // returns number of currently selected files in this folder
+// uint16_t Folder_GetCountSelectedFiles(WB2KFolderObject* the_folder)
+// {
+// 	// LOGIC:
+// 	//   iterate through all files in the folder's list and count any that are marked as selected
+// 
+// 	uint16_t	the_count = 0;
+// 	WB2KList*		the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	the_item = *(the_folder->list_);
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+// 
+// 		if (this_file->selected_)
+// 		{
+// 			++the_count;
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return the_count;
+// }
 
 
-// returns the lowest or highest row number used by all the selected files in the folder
-// WARNING: will always return a number, even if no files selected, so calling function must have made it's own checks on selection where necessary
-uint16_t Folder_GetMinOrMaxSelectedRow(WB2KFolderObject* the_folder, bool find_max)
-{
-	// LOGIC:
-	//   iterate through all files in the folder's list and keep track of the lowest row # for those that are selected
+// // returns the first selected file/folder in the folder.
+// // use Folder_GetCountSelectedFiles() first if you need to make sure you will be getting the only selected file.
+// WB2KFileObject* Folder_GetFirstSelectedFile(WB2KFolderObject* the_folder)
+// {
+// 	// LOGIC:
+// 	//   iterate through all files in the folder's list and return the first file/folder marked as selected
+// 
+// 	WB2KList*		the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	the_item = *(the_folder->list_);
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+// 
+// 		if (this_file->selected_)
+// 		{
+// 			return this_file;
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return NULL;
+// }
 
-	uint16_t	boundary = 0xFFFF;
-	WB2KList*		the_item;
 
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
+// // returns the first file/folder in the folder.
+// WB2KFileObject* Folder_GetFirstFile(WB2KFolderObject* the_folder)
+// {
+// 	WB2KList*		the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	the_item = *(the_folder->list_);
+// 
+// 	if (the_item != NULL)
+// 	{
+// 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+// 		return this_file;
+// 	}
+// 
+// 	return NULL;
+// }
 
-	the_item = *(the_folder->list_);
 
-	if (find_max)
-	{
-		boundary = 0;
-	}
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-
-		if (this_file->selected_)
-		{
-			uint16_t		this;
-
-			this = this_file->row_;
-			
-			if (find_max)
-			{
-				if (this > boundary) boundary = this;
-			}
-			else
-			{
-				if (this < boundary) boundary = this;
-			}
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return boundary;
-}
+// // returns the lowest or highest row number used by all the selected files in the folder
+// // WARNING: will always return a number, even if no files selected, so calling function must have made it's own checks on selection where necessary
+// uint16_t Folder_GetMinOrMaxSelectedRow(WB2KFolderObject* the_folder, bool find_max)
+// {
+// 	// LOGIC:
+// 	//   iterate through all files in the folder's list and keep track of the lowest row # for those that are selected
+// 
+// 	uint16_t	boundary = 0xFFFF;
+// 	WB2KList*		the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	the_item = *(the_folder->list_);
+// 
+// 	if (find_max)
+// 	{
+// 		boundary = 0;
+// 	}
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+// 
+// 		if (this_file->selected_)
+// 		{
+// 			uint16_t		this;
+// 
+// 			this = this_file->row_;
+// 			
+// 			if (find_max)
+// 			{
+// 				if (this > boundary) boundary = this;
+// 			}
+// 			else
+// 			{
+// 				if (this < boundary) boundary = this;
+// 			}
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return boundary;
+// }
 
 
 // looks through all files in the file list, comparing the passed string to the filename_ of each file.
@@ -883,20 +883,18 @@ WB2KFileObject* Folder_FindFileByRow(WB2KFolderObject* the_folder, uint8_t the_r
 // populate the files in a folder by doing a directory command
 uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 {
-	uint16_t			file_cnt = 0;
-	uint8_t				the_error_code = ERROR_NO_ERROR;
-	char				the_parent_path_buffer[FILE_MAX_PATHNAME_SIZE];
-	char*				the_parent_path = the_parent_path_buffer;
-	uint16_t			path_len;
-	WB2KFileObject*		this_file;
-	char*				this_file_name;
-	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
-	char*				the_path = the_path_buffer;
-	char				extension_buffer[FILE_MAX_FILENAME_SIZE];
-	char*				the_file_extension = extension_buffer;
-	bool				file_added;
 	struct DIR*			dir;
 	struct dirent*		dirent;
+	WB2KFileObject*		this_file;
+	bool				file_added;
+	char*				this_file_name;
+	char				the_parent_path_buffer[FILE_MAX_PATHNAME_SIZE];
+	
+	uint8_t				the_error_code = ERROR_NO_ERROR;
+	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
+	char*				the_parent_path = the_parent_path_buffer;
+	char*				the_path = the_path_buffer;
+	uint16_t			file_cnt = 0;
 
 	if (the_folder == NULL)
 	{
@@ -1241,7 +1239,7 @@ bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file)
 
 // Create a new folder on disk, and a new file object for it, and assign it to this folder. 
 // if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
-bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful, bool create_info_file)
+bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful)
 {
 	// NOTE 2023/01/14: b128 doesn't support subdirectories, and F256 SD card stuff is not ready yet, so look at this later. 
 	return true;
@@ -1572,26 +1570,26 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // }
 
 
-// counts the bytes in the passed file/folder, and adds them to folder.selected_bytes_
-bool Folder_CountBytes(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed)
-{
-	WB2KFileObject*		the_file;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	the_file = (WB2KFileObject*)the_item->payload_;
-	
-// NOTE Jan 14, 2023: need to look into this. probably needs total redesign. unsure it's even needed though. maybe for FAT32 on f256.
-// 	FileMover_AddToSelectedCount(App_GetFileMover(global_app), the_file->size_);
-
-	//DEBUG_OUT(("%s %d: counted file '%s' in '%s'; selected bytes now = %lu", __func__ , __LINE__, the_file->file_name_,  the_folder->folder_file_->file_name_, FileMover_GetSelectedByteCount()));
-	
-	return true;
-}
+// // counts the bytes in the passed file/folder, and adds them to folder.selected_bytes_
+// bool Folder_CountBytes(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed)
+// {
+// 	WB2KFileObject*		the_file;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	the_file = (WB2KFileObject*)the_item->payload_;
+// 	
+// // NOTE Jan 14, 2023: need to look into this. probably needs total redesign. unsure it's even needed though. maybe for FAT32 on f256.
+// // 	FileMover_AddToSelectedCount(App_GetFileMover(global_app), the_file->size_);
+// 
+// 	//DEBUG_OUT(("%s %d: counted file '%s' in '%s'; selected bytes now = %lu", __func__ , __LINE__, the_file->file_name_,  the_folder->folder_file_->file_name_, FileMover_GetSelectedByteCount()));
+// 	
+// 	return true;
+// }
 
 
 // // processes, with recursion where necessary, the contents of a folder, using the passed function pointer to process individual files/empty folders.

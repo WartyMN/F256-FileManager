@@ -203,7 +203,7 @@ void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item,
 
 // Create a new folder on disk, and a new file object for it, and assign it to this folder. 
 // if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
-bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful, bool create_info_file);
+bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful);
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
 bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder);

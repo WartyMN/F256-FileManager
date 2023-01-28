@@ -29,7 +29,7 @@
 #include <string.h>
 
 // F256 includes
-#include <f256.h>
+#include "cc65/include/f256.h"
 
 
 
@@ -129,7 +129,7 @@ bool Text_FillMemory(bool for_attr, uint8_t the_fill)
 		Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
 	}
 
-	the_write_len = PHYSICAL_SCREEN_TOTAL_BYTES;
+	the_write_len = SCREEN_TOTAL_BYTES;
 	the_write_loc = (uint8_t*)SCREEN_TEXT_MEMORY_LOC;
 	memset(the_write_loc, the_fill, the_write_len);
 		
@@ -236,9 +236,10 @@ bool Text_FillMemoryBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height, boo
 // **** Block copy functions ****
 
 
-//! Copy a rectangular area of text or attr to or from an off-screen buffer
+//! Copy a rectangular area of text or attr to or from a linear memory buffer.
+//!   Use this if you do not have a full-sized (screen-size) off-screen buffer, but instead have a block perhaps just big enough to hold the rect.
 //! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	the_buffer: valid pointer to a block of memory big enough to store (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory.
+//! @param	the_buffer: valid pointer to a block of memory to hold (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory. This will be read from first byte to last byte, without skipping. e.g., if you want to copy a 40x5 rectangle of text from the middle of the screen to this buffer, the buffer must be 40*5=200 bytes in length, and data will be written contiguously to it. 
 //! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
 //! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
 //! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
@@ -246,7 +247,7 @@ bool Text_FillMemoryBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height, boo
 //! @param	to_screen: true to copy to the screen from the buffer, false to copy from the screen to the buffer. Recommend using SCREEN_COPY_TO_SCREEN/SCREEN_COPY_FROM_SCREEN.
 //! @param	for_attr: true to work with attribute data, false to work character data. Recommend using SCREEN_FOR_TEXT_ATTR/SCREEN_FOR_TEXT_CHAR.
 //! @return	Returns false on any error/invalid input.
-bool Text_CopyMemBox(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, bool to_screen, bool for_attr)
+bool Text_CopyMemBoxLinearBuffer(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, bool to_screen, bool for_attr)
 {
 	uint8_t*		the_vram_loc;
 	uint8_t*		the_buffer_loc;
@@ -267,7 +268,7 @@ bool Text_CopyMemBox(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, ui
 		
 	// get initial read/write locs
 	initial_offset = (SCREEN_NUM_COLS * y1) + x1;
-	the_buffer_loc = the_buffer + initial_offset;
+	the_buffer_loc = the_buffer;
 	the_write_len = x2 - x1 + 1;
 
 	the_vram_loc = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
@@ -287,7 +288,7 @@ bool Text_CopyMemBox(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, ui
 			memcpy(the_buffer_loc, the_vram_loc, the_write_len);
 		}
 		
-		the_buffer_loc += SCREEN_NUM_COLS;
+		the_buffer_loc += the_write_len;
 		the_vram_loc += SCREEN_NUM_COLS;
 	}
 		
@@ -295,6 +296,67 @@ bool Text_CopyMemBox(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, ui
 
 	return true;
 }
+
+
+// //! Copy a rectangular area of text or attr to or from an off-screen buffer of the same size as the physical screen buffer
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	the_buffer: valid pointer to a block of memory to hold (or alternatively act as the source of) the character or attribute data for the specified rectangle of screen memory. This buffer must be the same size as the physical screen!
+// //! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	to_screen: true to copy to the screen from the buffer, false to copy from the screen to the buffer. Recommend using SCREEN_COPY_TO_SCREEN/SCREEN_COPY_FROM_SCREEN.
+// //! @param	for_attr: true to work with attribute data, false to work character data. Recommend using SCREEN_FOR_TEXT_ATTR/SCREEN_FOR_TEXT_CHAR.
+// //! @return	Returns false on any error/invalid input.
+// bool Text_CopyMemBox(uint8_t* the_buffer, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, bool to_screen, bool for_attr)
+// {
+// 	uint8_t*		the_vram_loc;
+// 	uint8_t*		the_buffer_loc;
+// 	uint8_t			the_write_len;
+// 	int16_t			initial_offset;
+// 
+// 	// LOGIC: 
+// 	//   On F256jr, the write len and write locs are same for char and attr memory, difference is IO page 2 or 3
+// 
+// 	if (for_attr)
+// 	{
+// 		Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
+// 	}
+// 	else
+// 	{
+// 		Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
+// 	}
+// 		
+// 	// get initial read/write locs
+// 	initial_offset = (SCREEN_NUM_COLS * y1) + x1;
+// 	the_buffer_loc = the_buffer + initial_offset;
+// 	the_write_len = x2 - x1 + 1;
+// 
+// 	the_vram_loc = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
+// 	
+// 	// do copy one line at a time	
+// 
+// //DEBUG_OUT(("%s %d: vramloc=%p, buffer=%p, bufferloc=%p, to_screen=%i, the_write_len=%i", the_vram_loc, the_buffer, the_buffer_loc, to_screen, the_write_len));
+// 
+// 	for (; y1 <= y2; y1++)
+// 	{
+// 		if (to_screen)
+// 		{
+// 			memcpy(the_vram_loc, the_buffer_loc, the_write_len);
+// 		}
+// 		else
+// 		{
+// 			memcpy(the_buffer_loc, the_vram_loc, the_write_len);
+// 		}
+// 		
+// 		the_buffer_loc += SCREEN_NUM_COLS;
+// 		the_vram_loc += SCREEN_NUM_COLS;
+// 	}
+// 		
+// 	Sys_RestoreIOPage();
+// 
+// 	return true;
+// }
 
 
 
@@ -889,8 +951,8 @@ bool Text_DrawWindow(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t for
 	if (attr_save_mem != NULL && char_save_mem != NULL)
 	{
 		// copy to storage
-		Text_CopyMemBox((uint8_t*)char_save_mem, x1, y1, x2, y2, SCREEN_COPY_FROM_SCREEN, SCREEN_FOR_TEXT_CHAR);
-		Text_CopyMemBox((uint8_t*)attr_save_mem, x1, y1, x2, y2, SCREEN_COPY_FROM_SCREEN, SCREEN_FOR_TEXT_ATTR);
+		Text_CopyMemBoxLinearBuffer((uint8_t*)char_save_mem, x1, y1, x2, y2, SCREEN_COPY_FROM_SCREEN, SCREEN_FOR_TEXT_CHAR);
+		Text_CopyMemBoxLinearBuffer((uint8_t*)attr_save_mem, x1, y1, x2, y2, SCREEN_COPY_FROM_SCREEN, SCREEN_FOR_TEXT_ATTR);
 	}
 	
 	// optionally clear the background text and chars
@@ -935,7 +997,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 {
 	uint8_t			btn_width[3];
 	uint8_t			avail_width;
-	uint8_t			avail_height;
+// 	uint8_t			avail_height;
 	uint8_t			btn_x;
 	uint8_t			btn_y;
 	uint8_t			player_input;
@@ -965,7 +1027,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 	
 	// available (body) height is defined by by the space under the enclosed header (-3), and over the buttons (-4)
 	//   bottom row takes 1, buttons take 1, and there is one row of padding above and below the buttons
-	avail_height = the_dialog_template->height_ - 7;
+// 	avail_height = the_dialog_template->height_ - 7;
 	
 	for (i = 0; i < the_dialog_template->num_buttons_; i++)
 	{
@@ -1058,12 +1120,12 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 
 	// restore whatever had been under the text window
 	// copy from storage
-	Text_CopyMemBox((uint8_t*)char_save_mem, 
+	Text_CopyMemBoxLinearBuffer((uint8_t*)char_save_mem, 
 		x1, y1, 
 		x2, y2, 
 		SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR
 	);
-	Text_CopyMemBox((uint8_t*)attr_save_mem, 
+	Text_CopyMemBoxLinearBuffer((uint8_t*)attr_save_mem, 
 		x1, y1, 
 		x2, y2, 
 		SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR
@@ -1073,6 +1135,325 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 }
 
 
+// Display a Text-based dialog box, with a title, a message body, and a place for users to input text
+// returns false on error (eg, max string len is wider than dialog body), or if user refused to enter text
+// returns true if user entered something
+// populates the passed buffer with the text the user typed
+// user hitting ESC will always cause false to be returned, regardless of keyboard shortcuts.
+int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, int8_t the_max_length)
+{
+	uint8_t			avail_width;
+// 	uint8_t			avail_height;
+	uint8_t			input_x;
+	uint8_t			input_y;
+	uint8_t			x1 = the_dialog_template->x_;
+	uint8_t			y1 = the_dialog_template->y_;
+	uint8_t			x2 = x1 + the_dialog_template->width_;
+	uint8_t			y2 = y1 + the_dialog_template->height_;
+	bool			the_result = false;
+	
+	// ** Validity checks
+	
+	// this function requires both header text and body text
+	if (the_dialog_template->title_text_ == NULL || the_dialog_template->body_text_ == NULL)
+	{
+		return the_result;
+	}
+	
+	avail_width = the_dialog_template->width_ - 2; // account for draw characters on edges
+	
+	// available (body) height is defined by by the space under the enclosed header (-3), and over the buttons (-4)
+	//   bottom row takes 1, buttons take 1, and there is one row of padding above and below the buttons
+// 	avail_height = the_dialog_template->height_ - 7;
+	
+	if (the_max_length > avail_width)
+	{
+		return the_result;
+	}
+	
+	
+	// ** create the window itself, with its title
+	
+	// LOGIC:
+	//   this is hard coded to use a specific color combination
+	//   hardcoded also to always enclose the title in lines, and to clear the background first
+	if (Text_DrawWindow( 
+		x1, y1, 
+		x2, y2,
+		DIALOG_ACCENT_COLOR, DIALOG_BACKGROUND_COLOR, DIALOG_FOREGROUND_COLOR, 
+		the_dialog_template->title_text_, 
+		char_save_mem, attr_save_mem, 
+		PARAM_CLEAR_FIRST, 
+		PARAM_ENCLOSE_HEADER
+		) == false)
+	{
+		return the_result;
+	}
+	
+	// ** draw the body text -- F256 f/manager version: not spending memory on text wrapping, so only 1 line of text supported!
+	Text_DrawStringAtXY(
+		the_dialog_template->x_ + 1, the_dialog_template->y_ + 3, 
+		the_dialog_template->body_text_,
+		DIALOG_FOREGROUND_COLOR, DIALOG_BACKGROUND_COLOR
+	);	
+	
+	// ** draw the buttons
+	// go backwards from 3rd button (rightmost) to first button (leftmost)
+	// build in 1 space to right of each button
+	// if affirmative, draw in green. if non-affirmative, draw in red
+	
+	input_y = y2 - 2; // -2: 1 for bottom line char, 1 for a spacer below button
+	input_x = x1 + 1; // +1: get past box char
+
+	// **get player input
+	the_result = Text_GetStringFromUser(the_buffer, the_max_length, input_x, input_y);
+
+	// restore whatever had been under the text window
+	// copy from storage
+	Text_CopyMemBoxLinearBuffer((uint8_t*)char_save_mem, 
+		x1, y1, 
+		x2, y2, 
+		SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR
+	);
+	Text_CopyMemBoxLinearBuffer((uint8_t*)attr_save_mem, 
+		x1, y1, 
+		x2, y2, 
+		SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR
+	);
+	
+	return the_result;
+}
+
+
+
+
+
+
+// **** User Input Functions ****
+
+// get a string from the user and store in the passed buffer, drawing chars to screen as user types
+// allows a maximum of the_max_length characters. Buffer must allow for max_length chars + a terminator!
+// returns false if no string built.
+bool Text_GetStringFromUser(char* the_buffer, int8_t the_max_length, uint8_t start_x, uint8_t start_y)
+{
+	char*		original_string = the_buffer;
+	char*		the_user_input = the_buffer;
+	int8_t		x = start_x;
+	int8_t		characters_remaining;
+	int8_t		curr_pos;	// the cursor position within the string
+	uint8_t		curr_len;	// the current length of the string
+	uint8_t		i;
+	uint8_t		the_char;
+	uint8_t		the_cursor_char_code = SC_CHECKERED;
+	uint8_t		fore_cursor = COLOR_BRIGHT_YELLOW;
+	uint8_t		fore_text = COLOR_BRIGHT_WHITE;
+	uint8_t		background = COLOR_BLACK;
+	
+	//DEBUG_OUT(("%s %d: entered; the_max_length=%i", __func__, __LINE__, the_max_length));
+
+	Text_FillBox(
+		start_x, start_y,
+		start_x + the_max_length, start_y, 
+		CH_SPACE, fore_text, background
+	);
+
+	// return false if the_max_length is so small we can't make a string
+	if (the_max_length < 1)
+	{
+		return false;
+	}
+
+	if (the_max_length == 1)
+	{
+		the_user_input[0] = '\0';
+		return false;
+	}
+
+	characters_remaining = the_max_length;
+	curr_pos = 0;
+	
+	// if the passed buffer is not empty, write it out so users can edit. typical use case: rename a file. 
+	curr_len = General_Strnlen(the_buffer, the_max_length);
+	
+	if (curr_len > 0 && curr_len < the_max_length)
+	//if (the_buffer[0] != '\0')
+	{
+		Text_DrawStringAtXY(x, start_y, the_buffer, fore_text, background);
+		x += curr_len;
+		characters_remaining -= curr_len;
+		the_user_input += curr_len;
+		curr_pos = curr_len; // ie, 1 past the end of the string
+	}
+	
+
+	// have cursor blink while here
+	//Sys_EnableTextModeCursor(true);	// NOTE: on f256jr, this would work. would also need to set dc14-dc17 as cursor moves. skipping because already have working cursor.
+
+	Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+	//gotoxy(x, SPLASH_GET_NAME_INPUT_Y);
+	
+	while ( (the_char = getchar() ) != CH_ENTER)
+	{
+		//DEBUG_OUT(("%s %d: input=%x ('%c')", __func__, __LINE__, the_char, the_char));
+		
+		if (the_char == CH_DEL)
+		{
+			//if (the_user_input != original_string) // original string was starting point of name string, so this prevents us from trying to delete past start
+			if (curr_pos > 0) // prevents us from trying to delete past start
+			{
+				// if we are at end of string, turn cur character to terminator.
+				// if not at end, shift all chars to left 1 spot
+				if (curr_pos < curr_len)
+				{
+					for (i = curr_pos - 1 ; i < curr_len; i++)
+					{
+						the_buffer[i] = the_buffer[i+1];
+					}
+					
+					the_buffer[i] = '\0';
+					Text_DrawStringAtXY(start_x, start_y, the_buffer, fore_text, background);
+					Text_SetCharAtXY(start_x + (curr_len - 1), start_y, CH_SPACE); // erase the last char in the string
+				}
+				else
+				{
+					*the_user_input = '\0';
+					Text_SetCharAtXY(x, start_y, CH_SPACE);
+				}
+			
+				// do visuals
+				--x;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+				//gotoxy(x, SPLASH_GET_NAME_INPUT_Y);
+
+				--the_user_input;
+				--curr_pos;
+				
+				// we just went back in the string, so from the new point, we have more chars available
+				--curr_len;
+				++characters_remaining;
+			}
+			else
+			{
+				// we backed up as far as the original string (in other words, nothing)
+				if (x > start_x)
+				{
+					Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+					//gotoxy(x, SPLASH_GET_NAME_INPUT_Y);
+				}
+
+				x = start_x;
+			}
+		}
+		else if (the_char == CH_CURS_UP)
+		{
+			// place cursor at start of string
+			if (x != start_x)
+			{
+				Text_SetCharAtXY(x, start_y, *the_user_input);
+				x = start_x;
+				curr_pos = 0;
+				the_user_input = the_buffer;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+			}			
+		}
+		else if (the_char == CH_CURS_DOWN)
+		{
+			// place cursor at end of string
+			if (curr_pos < curr_len)
+			{
+				Text_SetCharAtXY(x, start_y, *the_user_input);
+				x = start_x + curr_len;
+				curr_pos = curr_len;
+				the_user_input = the_buffer + curr_len;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+			}			
+		}
+		else if (the_char == CH_CURS_RIGHT)
+		{
+			if (curr_pos < curr_len)
+			{
+				// user had cursored left, and is now cursoring right
+				Text_SetCharAtXY(x, start_y, *the_user_input);
+				++the_user_input;
+				++x;
+				++curr_pos;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);				
+			}
+			else
+			{
+				// player is at the end of the string, we don't want them to cursor further right
+				// do nothing
+			}
+		}
+		else if (the_char == CH_CURS_LEFT)
+		{
+			if (curr_pos > 0)
+			{
+				// user is cursoring towards beginning of string, but isn't there yet
+				if (curr_pos < curr_len)
+				{
+					Text_SetCharAtXY(x, start_y, *the_user_input);
+				}
+				else
+				{
+					Text_SetCharAtXY(x, start_y, CH_SPACE);
+				}
+
+				--the_user_input;
+				--x;
+				--curr_pos;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);				
+			}
+			else
+			{
+				// player is at the start of the string, we don't want them to cursor further left
+				// do nothing
+			}
+		}
+		else
+		{
+			// NOTE: c64 / CBM DOS apparently allows all chars to be used, so no filter is used here
+			
+			*the_user_input = the_char;
+			//DEBUG_OUT(("%s %d: the_user_input='%s', chrs remain=%u", __func__, __LINE__, the_user_input, characters_remaining));
+			
+			// if in middle of string, overwrite what was there, move cursor to right. 
+			// if at end of string, and haven't hit max yet, show new char and move to right
+			if (characters_remaining)
+			{
+				if (curr_pos == curr_len)
+				{
+					--characters_remaining;
+					++curr_len;
+				}
+
+				Text_SetCharAtXY(x, start_y, the_char);
+				++the_user_input;
+				++x;
+				++curr_pos;
+				Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+			}
+// 			else
+// 			{
+// 				// no space to display more, so don't show the character the user typed.
+// 				Text_SetCharAtXY(x, start_y, the_cursor_char_code);
+// 				//gotoxy(x, SPLASH_GET_NAME_INPUT_Y);
+// 			}
+		}
+	}
+
+	// user hit enter - make sure we terminate the string at the end, not where the cursor may be
+	the_user_input = the_buffer + curr_len;
+	*the_user_input = '\0';
+
+	// did user end up entering anything?
+	if (curr_len == 0)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 
 

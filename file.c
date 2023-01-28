@@ -187,7 +187,7 @@ error:
 WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 {
 	WB2KFileObject*		the_duplicate_file;
-	bool				date_ok;
+// 	bool				date_ok;
 	
 	if (the_original_file == NULL)
 	{
@@ -288,8 +288,7 @@ error:
 // frees all allocated memory associated with the passed file object, and the object itself
 void File_Destroy(WB2KFileObject** the_file)
 {
-	int16_t	 i;
-	
+
 	if (*the_file == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
@@ -318,13 +317,6 @@ void File_Destroy(WB2KFileObject** the_file)
 // 		(*the_file)->datetime_.dat_StrTime = NULL;
 // 	}
 // 	
-// 	for (i = PANEL_LIST_NAME_COL_NUM; i < PANEL_LIST_NUM_COLS; i++)
-// 	{
-// 		if ((*the_file)->label_[i] != NULL)
-// 		{
-// 			Label_Destroy(&(*the_file)->label_[i]);
-// 		}
-// 	}
 
 	if ((*the_file)->file_name_ != NULL)
 	{
@@ -532,31 +524,31 @@ char* File_GetFileNameString(WB2KFileObject* the_file)
 // }
 
 
-// allocates and returns a copy of the file size as human readable string (for use with list mode headers or with info panel, etc.)
-char* File_GetFileSizeStringCopy(WB2KFileObject* the_file)
-{
-	char*	the_filesize;
-
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	// readable filesize
-	if ( (the_filesize = (char *)calloc(FILE_TYPE_MAX_SIZE_NAME + 1, sizeof(char)) ) == NULL)
-	{
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_filesize	%p	size	%i", __func__ , __LINE__, the_filesize, FILE_TYPE_MAX_SIZE_NAME + 1));
-	
-	General_MakeFileSizeReadable(the_file->size_, the_filesize);
-
-	return the_filesize;
-	
-error:
-	return NULL;
-}
+// // allocates and returns a copy of the file size as human readable string (for use with list mode headers or with info panel, etc.)
+// char* File_GetFileSizeStringCopy(WB2KFileObject* the_file)
+// {
+// 	char*	the_filesize;
+// 
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	// readable filesize
+// 	if ( (the_filesize = (char *)calloc(FILE_TYPE_MAX_SIZE_NAME + 1, sizeof(char)) ) == NULL)
+// 	{
+// 		goto error;
+// 	}
+// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_filesize	%p	size	%i", __func__ , __LINE__, the_filesize, FILE_TYPE_MAX_SIZE_NAME + 1));
+// 	
+// 	General_MakeFileSizeReadable(the_file->size_, the_filesize);
+// 
+// 	return the_filesize;
+// 	
+// error:
+// 	return NULL;
+// }
 
 
 // returns the filetype id
@@ -694,7 +686,6 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 	int16_t		s_bytes_read_from_disk;
 	uint16_t	num_bytes_to_read = MEM_DUMP_BYTES_PER_ROW;
 	bool		keep_going = true;
-	uint8_t		i;
 	uint8_t		y;
 	uint8_t		cut_off_pos;
 	uint8_t		user_input;
@@ -778,10 +769,6 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff2, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 
 			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
-// 			for (i = 0; i < MEM_DUMP_BYTES_PER_ROW; i++)
-// 			{
-// 				Text_SetCharAtXY(MEM_DUMP_START_X_FOR_CHAR + i, y, the_buffer[i]);
-// 			}
 			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)the_buffer, s_bytes_read_from_disk);
 		
 			loc_in_file += MEM_DUMP_BYTES_PER_ROW;
@@ -956,6 +943,9 @@ error:
 // renames a file and its info file, if present
 bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* new_file_path)
 {
+	char	temp_buff[80];
+	int8_t	result_code;
+	
 	// LOGIC:
 	//   remake file path using new name and old file path, then call Rename()
 
@@ -965,29 +955,33 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 		return false;
 	}
 
-// jan 19, 2023: not ready yet in lib.
-// 	if ( rename( the_file->file_path_, new_file_path ) == 0)
-// 	{
-// 		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, the_file->file_name_));
-// 		goto error;
-// 	}
-// 	else
-// 	{
-// 		//DEBUG_OUT(("%s %d: Rename action succeeded; new_file_name='%s', pre-rename file name='%s'", __func__ , __LINE__, new_file_name, the_file->file_name_));
-// 		//DEBUG_OUT(("%s %d: Rename action succeeded; new_file_path='%s', pre-rename file path='%s'", __func__ , __LINE__, new_file_path, the_file->file_path_));
-// 		
-// 		if (File_UpdateFileName(the_file, new_file_name) == false)
-// 		{
-// 			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file name", __func__ , __LINE__, new_file_name));
-// 			goto error;
-// 		}
-// 		
-// 		if (File_UpdateFilePath(the_file, new_file_path) == false)
-// 		{
-// 			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file path", __func__ , __LINE__, new_file_path));
-// 			goto error;
-// 		}
-// 	}
+	//sprintf(temp_buff, "old path: '%s', new path: '%s'", the_file->file_path_, new_file_path);
+	//Buffer_NewMessage((char*)&temp_buff);
+	
+	if ( (result_code = rename( the_file->file_path_, new_file_path )) < 0)
+	{
+		//sprintf(temp_buff, "rename returned err code %i", result_code);
+		//Buffer_NewMessage((char*)&temp_buff);
+		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, the_file->file_name_));
+		goto error;
+	}
+	else
+	{
+		//DEBUG_OUT(("%s %d: Rename action succeeded; new_file_name='%s', pre-rename file name='%s'", __func__ , __LINE__, new_file_name, the_file->file_name_));
+		//DEBUG_OUT(("%s %d: Rename action succeeded; new_file_path='%s', pre-rename file path='%s'", __func__ , __LINE__, new_file_path, the_file->file_path_));
+		
+		if (File_UpdateFileName(the_file, new_file_name) == false)
+		{
+			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file name", __func__ , __LINE__, new_file_name));
+			goto error;
+		}
+		
+		if (File_UpdateFilePath(the_file, new_file_path) == false)
+		{
+			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file path", __func__ , __LINE__, new_file_path));
+			goto error;
+		}
+	}
 
 	return true;
 	

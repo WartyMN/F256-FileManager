@@ -66,8 +66,8 @@ extern char					global_dlg_button[3][10];	// arbitrary
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 extern uint8_t*		global_temp_buff_384b;
-extern uint8_t		temp_screen_buffer_char[SCREEN_TOTAL_BYTES/5];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
-extern uint8_t		temp_screen_buffer_attr[SCREEN_TOTAL_BYTES/5];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
+extern uint8_t		temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
+extern uint8_t		temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
 extern int8_t		global_connected_unit[DEVICE_MAX_DEVICE_COUNT];		// will be 0 or 1 if connected, or -1 if not. paired with global_connected_device.
 
@@ -252,30 +252,30 @@ void Panel_ToggleActiveState(WB2KViewPanel* the_panel)
 // **** GETTERS *****
 
 
-// returns true if the folder in the panel has any currently selected files/folders
-bool Panel_HasSelections(WB2KViewPanel* the_panel)
-{
-	if (the_panel == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
-	}
-	
-	return Folder_HasSelections(the_panel->root_folder_);
-}
+// // returns true if the folder in the panel has any currently selected files/folders
+// bool Panel_HasSelections(WB2KViewPanel* the_panel)
+// {
+// 	if (the_panel == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
+// 	}
+// 	
+// 	return Folder_HasSelections(the_panel->root_folder_);
+// }
 
 
-// returns number of currently selected files in this panel
-uint16_t Panel_GetCountSelectedFiles(WB2KViewPanel* the_panel)
-{
-	if (the_panel == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
-	}
-	
-	return Folder_GetCountSelectedFiles(the_panel->root_folder_);
-}
+// // returns number of currently selected files in this panel
+// uint16_t Panel_GetCountSelectedFiles(WB2KViewPanel* the_panel)
+// {
+// 	if (the_panel == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
+// 	}
+// 	
+// 	return Folder_GetCountSelectedFiles(the_panel->root_folder_);
+// }
 
 
 // return the root folder
@@ -570,7 +570,8 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	int16_t				the_current_row;
 	WB2KFileObject*		the_file;
 	bool				success;
-	int8_t				the_player_choice;
+	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE];
+	char*				the_path = the_path_buffer;
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -581,22 +582,43 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 
-// 	global_dlg.title_text_ = STR_MSG_TINKER_START_TITLE;
-// 	global_dlg.body_text_ = STR_MSG_TINKER_START_BODY;
-// 	global_dlg.btn_label_[0] = STR_MSG_TINKER_START_NO;
-// 	global_dlg.btn_label_[1] = STR_MSG_TINKER_START_YES;
-// 
-// 	the_player_choice = Text_DisplayDialog(&tinker_end_dlg, char_save_mem);
-// 
-// 	if (the_player_choice != 1)
-// 	{
-// 		continue;
-// 	}
+	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), the_file->file_name_);
+	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
 
-	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b);
+	// copy the current file name into the edit buffer so user can edit
+	General_Strlcpy(global_string_buff2, the_file->file_name_, FILE_MAX_FILENAME_SIZE);
 	
-	Screen_Render();	// the hex view has completely overwritten the screen
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, FILE_MAX_FILENAME_SIZE);
+
+	// did user enter a name?
+	if (success == false)
+	{
+		return false;
+	}
+
+	General_Strlcpy(the_path, the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
+	General_Strlcat(the_path, global_string_buff2, FILE_MAX_PATHNAME_SIZE);
+	//sprintf(global_string_buff1, "new path='%s'", the_path);
+	//Buffer_NewMessage(global_string_buff1);
+	//sprintf(global_string_buff1, "new filename='%s'", global_string_buff2);
+	//Buffer_NewMessage(global_string_buff2);
+	strcpy(global_string_buff1, global_string_buff2); // get a copy of the filename because it won't be available after rename
+	
+	success = File_Rename(the_file, global_string_buff2, the_path);
+	
+	if (success == false)
+	{
+		return false;
+	}
+	
+	// renew file listing
 	Panel_RenderContents(the_panel);
+// 	Folder_RefreshListing(the_panel->root_folder_);
+// 	Panel_Init(the_panel);
+	
+// 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, the_file->file_name_);
+// 	Buffer_NewMessage(global_string_buff2);
 	
 	return success;
 }
@@ -619,7 +641,8 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 
-	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_MSG_CONFIRM_DELETION), 36);
+	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), the_file->file_name_);
+	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
 	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
 	General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
@@ -631,6 +654,8 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
+	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_DELETE_SUCCESS), the_file->file_name_); // get a copy of the filename because it won't be available after deletion
+	
 	success = File_Delete(the_file, NULL);
 	
 	if (success == false)
@@ -641,6 +666,9 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	// renew file listing
 	Folder_RefreshListing(the_panel->root_folder_);
 	Panel_Init(the_panel);
+
+	// now send the message
+	Buffer_NewMessage(global_string_buff1);
 	
 	return success;
 }

@@ -79,8 +79,8 @@ uint8_t*				global_temp_buff_384b = temp_buff_384b;
 char*					global_string_buff1 = (char*)temp_buff_384b;
 char*					global_string_buff2 = (char*)(temp_buff_384b + 192);
 
-uint8_t					temp_screen_buffer_char[SCREEN_TOTAL_BYTES/4];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
-uint8_t					temp_screen_buffer_attr[SCREEN_TOTAL_BYTES/4];	// WARNING HBD: dialog can't be set bigger than 50x24 (eg)!
+uint8_t					temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
+uint8_t					temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern char*			global_string[NUM_STRINGS];
 
@@ -180,18 +180,18 @@ void App_Initialize(void)
 	
 	if (app_connected_drive_count < 1)
 	{
-		Buffer_NewMessage("No drives detected. How is that even possible? how did you load this software?");
+		//Buffer_NewMessage("No drives detected. How is that even possible? how did you load this software?");
 		App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
 	}
 
 	if ( (root_folder_file_left = File_New("", "0:", true, 0, 1, 0, 0, 0) ) == NULL)
 	{
-		Buffer_NewMessage("error creating left folder file object");
+// 		Buffer_NewMessage("error creating left folder file object");
 	}
 
 	if ( (root_folder_file_right = File_New("", "1:", true, 1, 1, 1, 0, 0) ) == NULL)
 	{
-		Buffer_NewMessage("error creating right folder file object");
+// 		Buffer_NewMessage("error creating right folder file object");
 	}
 
 
@@ -201,7 +201,7 @@ void App_Initialize(void)
 	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
-		Buffer_NewMessage("error creating left folder object");
+// 		Buffer_NewMessage("error creating left folder object");
 	}
 
 	app_file_panel[PANEL_ID_LEFT].drive_index_ = the_drive_index;
@@ -212,7 +212,7 @@ void App_Initialize(void)
 	{
 		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 		{
-			Buffer_NewMessage("error creating right folder object");
+// 			Buffer_NewMessage("error creating right folder object");
 		}
 
 		app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
@@ -222,7 +222,7 @@ void App_Initialize(void)
 	{
 		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_left, true, app_root_folder[PANEL_ID_LEFT]->device_number_, app_root_folder[PANEL_ID_LEFT]->unit_number_) ) == NULL)
 		{
-			Buffer_NewMessage("error creating right folder object");
+// 			Buffer_NewMessage("error creating right folder object");
 		}
 
 		app_file_panel[PANEL_ID_RIGHT].drive_index_ = -1;
@@ -246,10 +246,10 @@ void App_Initialize(void)
 	app_file_panel[PANEL_ID_LEFT].active_ = true;	// we always start out with left panel being the active one
 	app_file_panel[PANEL_ID_RIGHT].active_ = false;	// we always start out with left panel being the active one
 
-	global_dlg.x_ = (80-30)/2;
+	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
 	global_dlg.y_ = 16;
-	global_dlg.width_ = 30;
-	global_dlg.height_ = 7;
+	global_dlg.width_ = APP_DIALOG_WIDTH;
+	global_dlg.height_ = APP_DIALOG_HEIGHT;
 	global_dlg.num_buttons_ = 2;
 	global_dlg.btn_shortcut_[0] = CH_ESC; // OSF_CH_ESC;
 	global_dlg.btn_shortcut_[1] = CH_ENTER;
@@ -261,7 +261,7 @@ void App_Initialize(void)
 	global_dlg.btn_label_[0] = global_dlg_button[0];
 	global_dlg.btn_label_[1] = global_dlg_button[1];
 
-	Buffer_NewMessage("Initialization complete.");
+	//Buffer_NewMessage("Initialization complete.");
 }
 
 
@@ -395,8 +395,8 @@ uint8_t App_MainLoop(void)
 				
 				case ACTION_COPY:
 					success = Panel_CopyCurrentFile(the_panel, &app_file_panel[(app_active_panel_id + 1) % 2]);
-					sprintf(global_string_buff1, "copy file success = %u", success);
-					Buffer_NewMessage(global_string_buff1);
+					//sprintf(global_string_buff1, "copy file success = %u", success);
+					//Buffer_NewMessage(global_string_buff1);
 					break;
 					
 				case ACTION_RENAME:
@@ -423,7 +423,7 @@ uint8_t App_MainLoop(void)
 				default:
 					//sprintf(global_string_buff1, "didn't know key %u", user_input);
 					//Buffer_NewMessage(global_string_buff1);
-					DEBUG_OUT(("%s %d: didn't know key %u", __func__, __LINE__, user_input));
+					//DEBUG_OUT(("%s %d: didn't know key %u", __func__, __LINE__, user_input));
 					//fatal(user_input);
 					user_input = ACTION_INVALID_INPUT;
 					break;
@@ -447,13 +447,13 @@ uint8_t App_MainLoop(void)
 // display error message, wait for user to confirm, and exit
 void App_Exit(uint8_t the_error_number)
 {
-	sprintf(global_string_buff1, "exit code: %u. Hit any key to continue.", the_error_number);
+	sprintf(global_string_buff1, "exit code: %u", the_error_number);
 	Buffer_NewMessage(global_string_buff1);
 	
 	// turn cursor back on
 	Sys_EnableTextModeCursor(true);
 
-	getchar();
+	//getchar();
 	
 	exit(0);	
 }

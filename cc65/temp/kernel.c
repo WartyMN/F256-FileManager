@@ -489,20 +489,26 @@ remove(const char* name)
     return 0;
 }
 
+// returns negative number in any error situation. 
+// TODO: document error codes?
 int __fastcall__ 
 rename(const char* name, const char *to)
 {
-    char drive, stream;
+    char drive, stream, todrive;
     
     name = path_without_drive(name, &drive);
-    args.file.delete.drive = drive;
+    to = path_without_drive(to, &todrive);
+    if (todrive != drive) {	// if user passes a rename path that isn't on the same drive: no soup for you.
+    	return -1;
+    }
+	args.file.delete.drive = drive;
     args.common.buf = name;
     args.common.buflen = strlen(name);
     args.common.ext = to;
     args.common.extlen = strlen(to);
     stream = CALL(File.Rename);
     if (error) {
-        return -1;
+        return -2;
     }
     
     for(;;) {
@@ -512,7 +518,7 @@ rename(const char* name, const char *to)
             break;
         }
         if (event.type == EVENT(file.ERROR)) {
-            return -1;
+            return -3;
         }
     }
     

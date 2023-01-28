@@ -79,7 +79,7 @@ void Screen_DrawUI(void)
 	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	
 	// draw the title bar at top. 3x80
-	Text_CopyMemBox((uint8_t*)&app_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR); // NOTE: this only works because copying from "start of screen" at app_titlebar.
+	Text_CopyMemBoxLinearBuffer((uint8_t*)&app_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 // 	Text_FillBoxAttrOnly(0, 1, 79, 1, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
