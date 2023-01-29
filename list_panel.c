@@ -169,6 +169,7 @@ void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, u
 	the_panel->width_ = width;
 	the_panel->height_ = height;
 	the_panel->content_top_ = 0;
+	the_panel->num_rows_ = 0;
 	the_panel->sort_compare_function_ = (void*)&File_CompareName;
 
 	//DEBUG_OUT(("%s %d: filename='%s'", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
@@ -1064,6 +1065,7 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 	// if there are no files in the folder the panel is showing, we can stop here
 	if (num_files == 0)
 	{
+		the_panel->num_rows_ = 0;
 		LOG_INFO(("%s %d: this folder ('%s') shows a file count of 0", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
 		return;
 	}

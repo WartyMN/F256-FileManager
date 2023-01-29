@@ -108,13 +108,12 @@ void Screen_DrawUI(void)
 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
 	}
 	
-	// draw buttons
-	for (i = 0; i < NUM_BUTTONS; i++)
+	// draw permanently enabled buttons. 
+	// see Screen_DrawFileMenuItems() for the file menu items - they need to be redrawn during main loop
+	for (i = FIRST_PERMSTATE_BUTTON; i <= LAST_PERMSTATE_BUTTON; i++)
 	{
 		x1 = uibutton[i].x1_;
 		y1 = uibutton[i].y1_;
-		x2 = uibutton[i].x2_;
-		y2 = uibutton[i].y2_;
 		Text_DrawHLine(UI_MIDDLE_AREA_START_X, y1, UI_MIDDLE_AREA_WIDTH, CH_SPACE, MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR, CHAR_AND_ATTR);
 		Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[i].string_id_), MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR);
 	}
@@ -138,13 +137,34 @@ void Screen_DrawUI(void)
 /*                        Public Function Definitions                        */
 /*****************************************************************************/
 
+// redraw file menu buttons in activated/inactivated state as appropriate
+// device buttons are always activated, so are only drawn once
+void Screen_DrawFileMenuItems(bool as_active)
+{
+	uint8_t		i;
+	uint8_t		x1;
+	uint8_t		y1;
+	uint8_t		text_color;
+
+	text_color = (as_active == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
+	
+	// draw buttons
+	for (i = FIRST_ACTIVATING_BUTTON; i <= LAST_ACTIVATING_BUTTON; i++)
+	{
+		//text_color = (uibutton[i].active_ == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
+		x1 = uibutton[i].x1_;
+		y1 = uibutton[i].y1_;
+		Text_DrawHLine(UI_MIDDLE_AREA_START_X, y1, UI_MIDDLE_AREA_WIDTH, CH_SPACE, text_color, MENU_BACKGROUND_COLOR, CHAR_AND_ATTR);
+		Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[i].string_id_), text_color, MENU_BACKGROUND_COLOR);
+	}
+}
+
+
 // swap the copy >>> button for copy <<< and vice versa
 void Screen_SwapCopyDirectionIndicator(void)
 {
 	uint8_t		x1;
 	uint8_t		y1;
-	uint8_t		x2;
-	uint8_t		y2;
 
 	if (uibutton[BUTTON_ID_COPY].string_id_ == ID_STR_FILE_COPY_RIGHT)
 	{
@@ -157,8 +177,6 @@ void Screen_SwapCopyDirectionIndicator(void)
 
 	x1 = uibutton[BUTTON_ID_COPY].x1_;
 	y1 = uibutton[BUTTON_ID_COPY].y1_;
-	x2 = uibutton[BUTTON_ID_COPY].x2_;
-	y2 = uibutton[BUTTON_ID_COPY].y2_;
 	Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[BUTTON_ID_COPY].string_id_), MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR);
 }
 
@@ -184,86 +202,59 @@ void Screen_InitializeUI(void)
 
 	// set up the buttons - file actions
 	uibutton[BUTTON_ID_COPY].id_ = BUTTON_ID_COPY;
-	uibutton[BUTTON_ID_COPY].x1_ = 35;
+	uibutton[BUTTON_ID_COPY].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_COPY].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y;
-	uibutton[BUTTON_ID_COPY].x2_ = 44;
-	uibutton[BUTTON_ID_COPY].y2_ = (6 + 0);
-	uibutton[BUTTON_ID_COPY].width_ = 10;
 	uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_RIGHT;
-	uibutton[BUTTON_ID_COPY].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_COPY].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_DELETE].id_ = BUTTON_ID_DELETE;
-	uibutton[BUTTON_ID_DELETE].x1_ = 35;
+	uibutton[BUTTON_ID_DELETE].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_DELETE].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 1;
-	uibutton[BUTTON_ID_DELETE].x2_ = 44;
-	uibutton[BUTTON_ID_DELETE].y2_ = (9);
-	uibutton[BUTTON_ID_DELETE].width_ = 10;
 	uibutton[BUTTON_ID_DELETE].string_id_ = ID_STR_FILE_DELETE;
-	uibutton[BUTTON_ID_DELETE].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_DELETE].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_DUPLICATE].id_ = BUTTON_ID_DUPLICATE;
-	uibutton[BUTTON_ID_DUPLICATE].x1_ = 35;
+	uibutton[BUTTON_ID_DUPLICATE].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_DUPLICATE].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 2;
-	uibutton[BUTTON_ID_DUPLICATE].x2_ = 44;
-	uibutton[BUTTON_ID_DUPLICATE].y2_ = (12 + 0);
-	uibutton[BUTTON_ID_DUPLICATE].width_ = 10;
 	uibutton[BUTTON_ID_DUPLICATE].string_id_ = ID_STR_FILE_DUP;
-	uibutton[BUTTON_ID_DUPLICATE].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_DUPLICATE].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_RENAME].id_ = BUTTON_ID_RENAME;
-	uibutton[BUTTON_ID_RENAME].x1_ = 35;
+	uibutton[BUTTON_ID_RENAME].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_RENAME].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 3;
-	uibutton[BUTTON_ID_RENAME].x2_ = 44;
-	uibutton[BUTTON_ID_RENAME].y2_ = (15 + 0);
-	uibutton[BUTTON_ID_RENAME].width_ = 10;
 	uibutton[BUTTON_ID_RENAME].string_id_ = ID_STR_FILE_RENAME;
-	uibutton[BUTTON_ID_RENAME].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_RENAME].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_TEXT_VIEW].id_ = BUTTON_ID_TEXT_VIEW;
-	uibutton[BUTTON_ID_TEXT_VIEW].x1_ = 35;
+	uibutton[BUTTON_ID_TEXT_VIEW].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_TEXT_VIEW].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 4;
-	uibutton[BUTTON_ID_TEXT_VIEW].x2_ = 44;
-	uibutton[BUTTON_ID_TEXT_VIEW].y2_ = (18 + 0);
-	uibutton[BUTTON_ID_TEXT_VIEW].width_ = 10;
 	uibutton[BUTTON_ID_TEXT_VIEW].string_id_ = ID_STR_FILE_TEXT_PREVIEW;
-	uibutton[BUTTON_ID_TEXT_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_TEXT_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_HEX_VIEW].id_ = BUTTON_ID_HEX_VIEW;
-	uibutton[BUTTON_ID_HEX_VIEW].x1_ = 35;
+	uibutton[BUTTON_ID_HEX_VIEW].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_HEX_VIEW].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 5;
-	uibutton[BUTTON_ID_HEX_VIEW].x2_ = 44;
-	uibutton[BUTTON_ID_HEX_VIEW].y2_ = (21 + 0);
-	uibutton[BUTTON_ID_HEX_VIEW].width_ = 10;
 	uibutton[BUTTON_ID_HEX_VIEW].string_id_ = ID_STR_FILE_HEX_PREVIEW;
-	uibutton[BUTTON_ID_HEX_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_HEX_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
 
 	// set up the buttons - device actions
 	uibutton[BUTTON_ID_NEXT_DEVICE].id_ = BUTTON_ID_NEXT_DEVICE;
-	uibutton[BUTTON_ID_NEXT_DEVICE].x1_ = 35;
+	uibutton[BUTTON_ID_NEXT_DEVICE].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_NEXT_DEVICE].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y;
-	uibutton[BUTTON_ID_NEXT_DEVICE].x2_ = 44;
-	uibutton[BUTTON_ID_NEXT_DEVICE].y2_ = (9);
-	uibutton[BUTTON_ID_NEXT_DEVICE].width_ = 10;
 	uibutton[BUTTON_ID_NEXT_DEVICE].string_id_ = ID_STR_DEV_NEXT;
-	uibutton[BUTTON_ID_NEXT_DEVICE].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_NEXT_DEVICE].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_REFRESH].id_ = BUTTON_ID_REFRESH;
-	uibutton[BUTTON_ID_REFRESH].x1_ = 35;
+	uibutton[BUTTON_ID_REFRESH].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_REFRESH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 1;
-	uibutton[BUTTON_ID_REFRESH].x2_ = 44;
-	uibutton[BUTTON_ID_REFRESH].y2_ = (6 + 0);
-	uibutton[BUTTON_ID_REFRESH].width_ = 10;
 	uibutton[BUTTON_ID_REFRESH].string_id_ = ID_STR_DEV_REFRESH_LISTING;
-	uibutton[BUTTON_ID_REFRESH].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_REFRESH].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_FORMAT].id_ = BUTTON_ID_FORMAT;
-	uibutton[BUTTON_ID_FORMAT].x1_ = 35;
+	uibutton[BUTTON_ID_FORMAT].x1_ = UI_MIDDLE_AREA_START_X;
 	uibutton[BUTTON_ID_FORMAT].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 2;
-	uibutton[BUTTON_ID_FORMAT].x2_ = 44;
-	uibutton[BUTTON_ID_FORMAT].y2_ = (12 + 0);
-	uibutton[BUTTON_ID_FORMAT].width_ = 10;
 	uibutton[BUTTON_ID_FORMAT].string_id_ = ID_STR_DEV_FORMAT;
-	uibutton[BUTTON_ID_FORMAT].state_ = UI_BUTTON_STATE_DISABLED;
+	//uibutton[BUTTON_ID_FORMAT].state_ = UI_BUTTON_STATE_DISABLED;
 }
 
 

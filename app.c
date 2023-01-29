@@ -275,6 +275,7 @@ uint8_t App_MainLoop(void)
 	uint8_t				user_input;
 	bool				exit_main_loop = false;
 	bool				success;
+	bool				file_menu_active;
 	WB2KViewPanel*		the_panel;
 	
 	// main loop
@@ -291,11 +292,105 @@ uint8_t App_MainLoop(void)
 
 		do
 		{
+			// LOGIC:
+			//   enable/disable menu buttons -- 
+			//   our rule is simple: if active panel has 1 or more files, 1 must be selected, so all file menu items are active
+			//   have separate switches for when file menu is active/inactive
+			
+			// redraw any menu buttons that could change (file menu only at this point)
+			file_menu_active = (the_panel->num_rows_ > 0);
+			Screen_DrawFileMenuItems(file_menu_active);
+
 			user_input = getchar();
 
 			//sprintf(global_string_buff1, "user input: %u", user_input);
 			//Buffer_NewMessage(global_string_buff1);
 	
+			// first switch: for file menu only, and skip if file menu is inactive
+			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
+			//   note: we also put the sort commands here because it doesn't make sense to sort if no files
+			if (file_menu_active)
+			{
+				switch (user_input)
+				{
+					case ACTION_SORT_BY_NAME:
+						//DEBUG_OUT(("%s %d: Sort by name", __func__ , __LINE__));
+						the_panel->sort_compare_function_ = (void*)&File_CompareName;
+						Panel_SortFiles(the_panel);
+						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_NAME));
+						break;
+
+	// 				case ACTION_SORT_BY_DATE:
+	// 					//DEBUG_OUT(("%s %d: Sort by date", __func__ , __LINE__));
+	// 					the_panel->sort_compare_function_ = (void*)&File_CompareDate;
+	// 					Panel_SortFiles(the_panel);
+	// 					Buffer_NewMessage("Files now sorted by date.");
+						break;
+	// 
+					case ACTION_SORT_BY_SIZE:
+						//DEBUG_OUT(("%s %d: Sort by size", __func__ , __LINE__));
+						the_panel->sort_compare_function_ = (void*)&File_CompareSize;
+						Panel_SortFiles(the_panel);
+						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_SIZE));
+						break;
+			
+					case ACTION_SORT_BY_TYPE:
+						//DEBUG_OUT(("%s %d: Sort by type", __func__ , __LINE__));
+						the_panel->sort_compare_function_ = (void*)&File_CompareFileTypeID;
+						Panel_SortFiles(the_panel);
+						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_TYPE));
+						break;
+			
+					case ACTION_VIEW_AS_HEX:
+						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
+						success = Panel_ViewCurrentFileAsHex(the_panel);	
+						Screen_Render();	// the hex view has completely overwritten the screen
+						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
+						Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
+						//sprintf(global_string_buff1, "view as hex success = %u", success);
+						//Buffer_NewMessage(global_string_buff1);
+						break;
+				
+					case ACTION_VIEW_AS_TEXT:
+						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
+						success = Panel_ViewCurrentFileAsText(the_panel);	
+						Screen_Render();	// the hex view has completely overwritten the screen
+						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
+						Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
+						//sprintf(global_string_buff1, "view as text success = %u", success);
+						//Buffer_NewMessage(global_string_buff1);
+						break;
+				
+					case ACTION_COPY:
+						success = Panel_CopyCurrentFile(the_panel, &app_file_panel[(app_active_panel_id + 1) % 2]);
+						//sprintf(global_string_buff1, "copy file success = %u", success);
+						//Buffer_NewMessage(global_string_buff1);
+						break;
+				
+					case ACTION_DUPLICATE:
+						success = Panel_CopyCurrentFile(the_panel, the_panel);	// to duplicate, we just pass same panel as target.
+						//sprintf(global_string_buff1, "copy file success = %u", success);
+						//Buffer_NewMessage(global_string_buff1);
+						break;
+					
+					case ACTION_RENAME:
+						success = Panel_RenameCurrentFile(the_panel);
+						break;
+				
+					case ACTION_DELETE:
+					case ACTION_DELETE_ALT:
+						if ( (success = Panel_DeleteCurrentFile(the_panel)) == false )
+						{
+							Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_FAILURE));
+						}
+						break;
+
+					default:
+						// no need to do any default action: we WANT it to fall through to next switch if none of above happened.
+						break;
+				}
+			}
+			
 			switch (user_input)
 			{
 				case ACTION_SWAP_ACTIVE_PANEL:
@@ -357,78 +452,6 @@ uint8_t App_MainLoop(void)
 						the_panel = &app_file_panel[app_active_panel_id];
 					}
 					break;
-
-				case ACTION_SORT_BY_NAME:
-					//DEBUG_OUT(("%s %d: Sort by name", __func__ , __LINE__));
-					the_panel->sort_compare_function_ = (void*)&File_CompareName;
-					Panel_SortFiles(the_panel);
-					Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_NAME));
-					break;
-
-// 				case ACTION_SORT_BY_DATE:
-// 					//DEBUG_OUT(("%s %d: Sort by date", __func__ , __LINE__));
-// 					the_panel->sort_compare_function_ = (void*)&File_CompareDate;
-// 					Panel_SortFiles(the_panel);
-// 					Buffer_NewMessage("Files now sorted by date.");
-					break;
-// 
-				case ACTION_SORT_BY_SIZE:
-					//DEBUG_OUT(("%s %d: Sort by size", __func__ , __LINE__));
-					the_panel->sort_compare_function_ = (void*)&File_CompareSize;
-					Panel_SortFiles(the_panel);
-					Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_SIZE));
-					break;
-			
-				case ACTION_SORT_BY_TYPE:
-					//DEBUG_OUT(("%s %d: Sort by type", __func__ , __LINE__));
-					the_panel->sort_compare_function_ = (void*)&File_CompareFileTypeID;
-					Panel_SortFiles(the_panel);
-					Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_TYPE));
-					break;
-			
-				case ACTION_VIEW_AS_HEX:
-					//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
-					success = Panel_ViewCurrentFileAsHex(the_panel);	
-					Screen_Render();	// the hex view has completely overwritten the screen
-					Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
-					Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
-					//sprintf(global_string_buff1, "view as hex success = %u", success);
-					//Buffer_NewMessage(global_string_buff1);
-					break;
-				
-				case ACTION_VIEW_AS_TEXT:
-					//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
-					success = Panel_ViewCurrentFileAsText(the_panel);	
-					Screen_Render();	// the hex view has completely overwritten the screen
-					Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
-					Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
-					//sprintf(global_string_buff1, "view as text success = %u", success);
-					//Buffer_NewMessage(global_string_buff1);
-					break;
-				
-				case ACTION_COPY:
-					success = Panel_CopyCurrentFile(the_panel, &app_file_panel[(app_active_panel_id + 1) % 2]);
-					//sprintf(global_string_buff1, "copy file success = %u", success);
-					//Buffer_NewMessage(global_string_buff1);
-					break;
-				
-				case ACTION_DUPLICATE:
-					success = Panel_CopyCurrentFile(the_panel, the_panel);	// to duplicate, we just pass same panel as target.
-					//sprintf(global_string_buff1, "copy file success = %u", success);
-					//Buffer_NewMessage(global_string_buff1);
-					break;
-					
-				case ACTION_RENAME:
-					success = Panel_RenameCurrentFile(the_panel);
-					break;
-				
-				case ACTION_DELETE:
-				case ACTION_DELETE_ALT:
-					if ( (success = Panel_DeleteCurrentFile(the_panel)) == false )
-					{
-						Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_FAILURE));
-					}
-					break;
 					
 				case ACTION_QUIT:
 					exit_main_loop = true;
@@ -442,7 +465,6 @@ uint8_t App_MainLoop(void)
 					//fatal(user_input);
 					user_input = ACTION_INVALID_INPUT;
 					break;
-
 			}
 		} while (user_input == ACTION_INVALID_INPUT);				
 	} // while for exit loop

@@ -44,9 +44,15 @@
 #define BUTTON_ID_RENAME			3
 #define BUTTON_ID_TEXT_VIEW			4
 #define BUTTON_ID_HEX_VIEW			5
+
 #define BUTTON_ID_NEXT_DEVICE		6
 #define BUTTON_ID_REFRESH			7
 #define BUTTON_ID_FORMAT			8
+
+#define FIRST_ACTIVATING_BUTTON		BUTTON_ID_COPY
+#define LAST_ACTIVATING_BUTTON		BUTTON_ID_HEX_VIEW
+#define FIRST_PERMSTATE_BUTTON		BUTTON_ID_NEXT_DEVICE
+#define LAST_PERMSTATE_BUTTON		BUTTON_ID_FORMAT
 
 #define DEVICE_ID_UNSET				-1
 #define DEVICE_ID_ERROR				-2
@@ -62,7 +68,7 @@
 #define UI_MIDDLE_AREA_DEV_MENU_Y		(UI_MIDDLE_AREA_START_Y + 0)
 #define UI_MIDDLE_AREA_DEV_CMD_Y		(UI_MIDDLE_AREA_DEV_MENU_Y + 3)
 
-#define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DEV_CMD_Y + 6)
+#define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DEV_CMD_Y + 4)
 #define UI_MIDDLE_AREA_FILE_CMD_Y		(UI_MIDDLE_AREA_FILE_MENU_Y + 3)
 
 #define UI_PANEL_INNER_WIDTH			33
@@ -131,11 +137,8 @@ typedef struct UI_Button
 	uint8_t		id_;
 	uint8_t		x1_;
 	uint8_t		y1_;
-	uint8_t		x2_;
-	uint8_t		y2_;
-	uint8_t		width_;
 	uint8_t		string_id_;
-	uint8_t		state_;	// 0-disabled, 1-not selected, 2-selected
+	bool		active_;	// 0-disabled/inactive, 1-enabled/active
 } UI_Button;
 
 /*****************************************************************************/
@@ -151,6 +154,9 @@ void Screen_InitializeUI(void);
 // set up screen variables and draw screen for first time
 void Screen_Render(void);
 
+// redraw file menu buttons in activated/inactivated state as appropriate
+// device buttons are always activated, so are only drawn once
+void Screen_DrawFileMenuItems(bool as_active);
 
 
 
