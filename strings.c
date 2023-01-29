@@ -21,7 +21,7 @@ char* global_string[NUM_STRINGS]= {
      (char*)"C <<<<<<<<",
      (char*)"C >>>>>>>>",
      (char*)"X Delete",
-     (char*)"  Duplicat",
+     (char*)"D Duplicat",
      (char*)"R Rename",
      (char*)"T Txt View",
      (char*)"H Hex View",
