@@ -98,14 +98,14 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 
 	if ( the_file->file_name_ == NULL)
 	{
-		Buffer_NewMessage("could not allocate memory for the file name");
+		//Buffer_NewMessage("could not allocate memory for the file name");
 		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
 		goto error;
 	}
 
 	if ( (the_file->file_path_ = General_StrlcpyWithAlloc(the_file_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
-		Buffer_NewMessage("could not allocate memory for the path name");
+		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
 		goto error;
 	}
@@ -1094,13 +1094,13 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 }
 
 
-// helper function called by List class's print function: prints one file entry
-void File_Print(void* the_payload)
-{
-	WB2KFileObject*		this_file = (WB2KFileObject*)(the_payload);
-
-	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", this_file->file_name_, this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
-}
+// // helper function called by List class's print function: prints one file entry
+// void File_Print(void* the_payload)
+// {
+// 	WB2KFileObject*		this_file = (WB2KFileObject*)(the_payload);
+// 
+// 	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", this_file->file_name_, this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
+// }
 
 
 // ***** comparison functions used to compare to list items with Wb2KFileObject payloads

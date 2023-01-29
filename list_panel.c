@@ -27,6 +27,7 @@
 #include "list_panel.h"
 #include "screen.h"
 #include "strings.h"
+#include "kernel.h" // most kernel calls are covered by stdio.h etc, but mkfs was not, so added this header file
 //#include "mouse.h"
 
 // C includes
@@ -293,6 +294,54 @@ WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel)
 
 
 // **** OTHER FUNCTIONS *****
+
+
+// format the specified drive
+// DANGER WILL ROBINSON!
+bool Panel_FormatDrive(WB2KViewPanel* the_panel)
+{
+	bool				name_entered;
+	int8_t				result_code;
+	int8_t				the_player_choice;
+	char				the_name_buffer[FILE_MAX_FILENAME_SIZE];
+	char*				the_name = the_name_buffer;
+	
+	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_FORMAT_TITLE), 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
+	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
+	General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
+
+	the_player_choice = Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+
+	if (the_player_choice != 1)
+	{
+		return false;
+	}
+
+	// leaving dialog title still at format?, pull it up again with text input field so user can enter new disk name
+	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
+
+	name_entered = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, FILE_MAX_FILENAME_SIZE);
+
+	// did user enter a name?
+	if (name_entered == false)
+	{
+		return false;
+	}
+
+	Buffer_NewMessage(General_GetString(ID_STR_MSG_FORMATTING));
+	
+	if ( (result_code = mkfs(global_string_buff2, the_panel->device_number_)) < 0)
+	{		
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
+		LOG_INFO(("%s %d: Kernel reported error formatting drive %u: %i", __func__ , __LINE__, the_panel->device_number_, result_code));
+		return false;
+	}
+
+	Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
+	
+	return true;
+}
 
 
 // initialize a new panel and get directory listing or info view data
@@ -701,9 +750,9 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 // 	Buffer_NewMessage("folder reset called ok");
 	
 	Folder_RefreshListing(the_other_panel->root_folder_);
-	Buffer_NewMessage("refresh listing called ok");
+	//Buffer_NewMessage("refresh listing called ok");
 	Panel_Init(the_other_panel);
-	Buffer_NewMessage("panel init called ok");
+	//Buffer_NewMessage("panel init called ok");
 	
 	return true;
 }
@@ -834,53 +883,53 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 }
 
 
-// de-select all files
-bool Panel_UnSelectAllFiles(WB2KViewPanel* the_panel)
-{
-	// LOGIC:
-	//   iterate through all files in the folder's list
-	//   for any file that is listed as selected, instruct it to de-select itself
-	//   NOTE: this_filetype is used purely to double-check that we have a valid list node. Remove that code if/when I figure out how to only get valid list nodes
-
-	WB2KList*		the_item;
-	uint16_t	x_bound;
-
-	if (the_panel == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
-	}
-
-	if (the_panel->root_folder_ == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object had a null root folder", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_ROOT_FOLDER_WAS_NULL); // crash early, crash often
-	}
-
-	x_bound = the_panel->x_ + the_panel->width_;
-
-	the_item = *(the_panel->root_folder_->list_);
-
-	if (the_item == NULL)
-	{
-		return false;
-	}
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject* this_file = (WB2KFileObject*)(the_item->payload_);
-		//printf("Folder_UnSelectAllFiles: file %s selected=%i\n", this_file->file_name_, this_file->selected_);
-
-		if (File_MarkUnSelected(this_file, the_panel->y_) == false)
-		{
-			// the passed file was null. do anything?
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return true;
-}
+// // de-select all files
+// bool Panel_UnSelectAllFiles(WB2KViewPanel* the_panel)
+// {
+// 	// LOGIC:
+// 	//   iterate through all files in the folder's list
+// 	//   for any file that is listed as selected, instruct it to de-select itself
+// 	//   NOTE: this_filetype is used purely to double-check that we have a valid list node. Remove that code if/when I figure out how to only get valid list nodes
+// 
+// 	WB2KList*		the_item;
+// 	uint16_t	x_bound;
+// 
+// 	if (the_panel == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
+// 	}
+// 
+// 	if (the_panel->root_folder_ == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object had a null root folder", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_ROOT_FOLDER_WAS_NULL); // crash early, crash often
+// 	}
+// 
+// 	x_bound = the_panel->x_ + the_panel->width_;
+// 
+// 	the_item = *(the_panel->root_folder_->list_);
+// 
+// 	if (the_item == NULL)
+// 	{
+// 		return false;
+// 	}
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject* this_file = (WB2KFileObject*)(the_item->payload_);
+// 		//printf("Folder_UnSelectAllFiles: file %s selected=%i\n", this_file->file_name_, this_file->selected_);
+// 
+// 		if (File_MarkUnSelected(this_file, the_panel->y_) == false)
+// 		{
+// 			// the passed file was null. do anything?
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return true;
+// }
 
 
 // // Performs an "Open" action on any files in the panel that are marked as selected

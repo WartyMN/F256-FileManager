@@ -310,6 +310,15 @@ uint8_t App_MainLoop(void)
 					Folder_RefreshListing(the_panel->root_folder_);
 					Panel_Init(the_panel);			
 					break;
+				
+				case ACTION_FORMAT_DISK:
+					success = Panel_FormatDrive(the_panel);
+					if (success)
+					{
+						Folder_RefreshListing(the_panel->root_folder_);
+						Panel_Init(the_panel);			
+					}
+					break;
 					
 				case MOVE_UP:
 				case MOVE_UP_ALT:

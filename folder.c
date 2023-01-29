@@ -1008,7 +1008,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	// debug
 // 	List_Print(the_folder->list_, &File_Print);
 // 	DEBUG_OUT(("%s %d: Total bytes %lu", __func__ , __LINE__, the_folder->total_bytes_));
-	Folder_Print(the_folder);
+// 	Folder_Print(the_folder);
 	
 	return (the_error_code);
 	
@@ -2033,16 +2033,16 @@ void Folder_RefreshListing(WB2KFolderObject* the_folder)
 
 // TEMPORARY DEBUG FUNCTIONS
 
-// helper function called by List class's print function: prints folder total bytes, and calls print on each file
-void Folder_Print(void* the_payload)
-{
-	WB2KFolderObject*		the_folder = (WB2KFolderObject*)(the_payload);
-
-	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
-	DEBUG_OUT(("|File                              |S|Size (bytes)|Date      |Time    |"));
-	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
-	List_Print(the_folder->list_, &File_Print);
-	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
-	DEBUG_OUT(("Total bytes %lu", the_folder->total_bytes_));
-}
-
+// // helper function called by List class's print function: prints folder total bytes, and calls print on each file
+// void Folder_Print(void* the_payload)
+// {
+// 	WB2KFolderObject*		the_folder = (WB2KFolderObject*)(the_payload);
+// 
+// 	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
+// 	DEBUG_OUT(("|File                              |S|Size (bytes)|Date      |Time    |"));
+// 	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
+// 	List_Print(the_folder->list_, &File_Print);
+// 	DEBUG_OUT(("+----------------------------------+-+------------+----------+--------+"));
+// 	DEBUG_OUT(("Total bytes %lu", the_folder->total_bytes_));
+// }
+// 

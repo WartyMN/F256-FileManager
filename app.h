@@ -173,6 +173,7 @@
 #define ACTION_RENAME				'r'
 #define ACTION_NEXT_DEVICE			'n'	// CH_F1
 #define ACTION_REFRESH_PANEL		'f'	// CH_F2
+#define ACTION_FORMAT_DISK			'`'	// CH_F3
 
 #define ACTION_HELP				'?' // numpad key
 

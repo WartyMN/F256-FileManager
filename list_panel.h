@@ -125,6 +125,10 @@ WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel);
 // **** OTHER FUNCTIONS *****
 
 
+// format the specified drive
+// DANGER WILL ROBINSON!
+bool Panel_FormatDrive(WB2KViewPanel* the_panel);
+
 // initialize a new panel and get directory listing or info view data
 bool Panel_Init(WB2KViewPanel* the_panel);
 

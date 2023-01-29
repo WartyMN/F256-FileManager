@@ -524,3 +524,35 @@ rename(const char* name, const char *to)
     
     return 0;
 }
+
+
+// wrapper to mkfs
+//   pass the name you want for the formatted disk/SD card in name, and the drive number (0-2) in the drive param.
+//   do NOT prepend the path onto name. 
+// return negative number on any error
+int __fastcall__
+mkfs(const char* name, const char drive)
+{
+	char stream;
+	
+	args.file.delete.drive = drive;
+    args.common.buf = name;
+    args.common.buflen = strlen(name);
+    stream = CALL(FileSystem.MkFS);
+    if (error) {
+        return -2;
+    }
+    
+    for(;;) {
+        event.type = 0;
+        asm("jsr %w", VECTOR(NextEvent));
+        if (event.type == EVENT(fs.CREATED)) {
+            break;
+        }
+        if (event.type == EVENT(fs.ERROR)) {
+            return -3;
+        }
+    }
+    
+    return 0;	
+}
