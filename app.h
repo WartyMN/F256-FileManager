@@ -57,8 +57,8 @@
 #define APP_DIALOG_HEIGHT			7
 #define APP_DIALOG_BUFF_SIZE		((APP_DIALOG_WIDTH+2) * (APP_DIALOG_HEIGHT+2))	// for the temp char and color buffs when opening a window, this is how much mem we'll reserve for each
 
-#define FILE_MAX_PATHNAME_SIZE		(2+16)	// not sure what defines this in our case. ?? current logic is 2 char drive (0:, 1:, 2:) + 16 char max file name for IEC. but fat32 supports much longer names... 
-#define FILE_MAX_FILENAME_SIZE		16	// CBM DOS defined
+#define FILE_MAX_FILENAME_SIZE		(16+1)	// CBM DOS defined
+#define FILE_MAX_PATHNAME_SIZE		(2+FILE_MAX_FILENAME_SIZE)	// not sure what defines this in our case. ?? current logic is 2 char drive (0:, 1:, 2:) + 16 char max file name for IEC. but fat32 supports much longer names... 
 #define FILE_MAX_APPFILE_INFO_SIZE	255		// for info panel display about mime/app type, the max # of bytes to display
 #define FILE_MAX_TEXT_PREVIEW_SIZE	255		// for info panel previews, the max # of bytes to read in and display
 #define FILE_TYPE_MAX_SIZE_NAME		4	// mostly PRG/REL, but allowed for SUBD

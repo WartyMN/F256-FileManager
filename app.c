@@ -407,6 +407,12 @@ uint8_t App_MainLoop(void)
 					//sprintf(global_string_buff1, "copy file success = %u", success);
 					//Buffer_NewMessage(global_string_buff1);
 					break;
+				
+				case ACTION_DUPLICATE:
+					success = Panel_CopyCurrentFile(the_panel, the_panel);	// to duplicate, we just pass same panel as target.
+					//sprintf(global_string_buff1, "copy file success = %u", success);
+					//Buffer_NewMessage(global_string_buff1);
+					break;
 					
 				case ACTION_RENAME:
 					success = Panel_RenameCurrentFile(the_panel);
@@ -414,11 +420,7 @@ uint8_t App_MainLoop(void)
 				
 				case ACTION_DELETE:
 				case ACTION_DELETE_ALT:
-					if ( (success = Panel_DeleteCurrentFile(the_panel)) )
-					{
-						Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_SUCCESS));
-					}
-					else
+					if ( (success = Panel_DeleteCurrentFile(the_panel)) == false )
 					{
 						Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_FAILURE));
 					}

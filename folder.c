@@ -101,8 +101,8 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 	
 	if (the_source_handle == NULL)
 	{
-		sprintf(global_string_buff1, "source file '%s' could not be opened", the_source_file_path);
-		Buffer_NewMessage(global_string_buff1);
+		//sprintf(global_string_buff1, "source file '%s' could not be opened", the_source_file_path);
+		//Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for copying", __func__ , __LINE__, the_source_file_path));
 		goto error;
 	}
@@ -113,8 +113,8 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 	
 		if (the_target_handle == NULL)
 		{
-			sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
-			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
+			//Buffer_NewMessage(global_string_buff1);
 			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
 			goto error;
 		}
@@ -126,14 +126,14 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 	
 			if ( bytes_read < 0)
 			{
-				Buffer_NewMessage("bytes_read < 0");
+				//Buffer_NewMessage("bytes_read < 0");
 				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, bytes_read));
 				goto error;
 			}
 	
 			if ( bytes_read == 0)
 			{
-				Buffer_NewMessage("bytes_read == 0 (end of file)");
+				//Buffer_NewMessage("bytes_read == 0 (end of file)");
 				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
 				keep_going = false;
 			}
@@ -182,8 +182,8 @@ void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
 	while (the_item != NULL)
 	{
 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
-Buffer_NewMessage(global_string_buff1);	
+		// sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
+		// Buffer_NewMessage(global_string_buff1);	
 		
 		File_Destroy(&this_file);
 		++num_nodes;
@@ -490,7 +490,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 
 	if ( (the_folder->folder_file_->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
-		Buffer_NewMessage("could not allocate memory for the path name");
+		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
 		goto error;
 	}
@@ -500,7 +500,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
-		Buffer_NewMessage("could not allocate memory for the path name");
+		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
 		goto error;
 	}
@@ -935,8 +935,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	//dir = opendir(".");
 	if (! dir) {
 		//sprintf(global_string_buff1, "opendir failed. filepath='%s'. errno=%u", the_folder->folder_file_->file_path_, errno);
-		sprintf(global_string_buff1, "opendir failed. filepath='%s'", the_folder->folder_file_->file_path_);
-		Buffer_NewMessage(global_string_buff1);
+		//sprintf(global_string_buff1, "opendir failed. filepath='%s'", the_folder->folder_file_->file_path_);
+		//Buffer_NewMessage(global_string_buff1);
 		return ERROR_COULD_NOT_OPEN_DIR;
 	}
     while ( (dirent = readdir(dir)) != NULL )
@@ -1024,11 +1024,18 @@ error:
 bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder)
 {
 	int16_t				bytes_copied;
+	uint8_t				name_uniqueifier;
+	uint8_t				name_len;
+	uint8_t				tries = 0;
+	uint8_t				max_tries = (10*FILE_MAX_FILENAME_SIZE);
+	char				filename_buffer[(FILE_MAX_FILENAME_SIZE*2)] = "";	// allow 2x size of buffer so we can snip off first by just advancing pointer
 	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
+	char*				new_filename = filename_buffer;
 	char*				the_target_file_path = the_path_buffer;
 	char*				the_target_folder_path;
 	bool				success = false;
-
+	WB2KList*			the_target_file_item;
+	
 	if (the_folder == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
@@ -1095,10 +1102,59 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // 		FileMover_UpdateCurrentTargetFolderPath(App_GetFileMover(global_app), the_folder->folder_file_->file_path_);
 // 		the_target_folder_path = FileMover_GetCurrentTargetFolderPath(App_GetFileMover(global_app));
 		
+		// check if the new file path is the same as the old: would be the case in a 'duplicate this file' situation
+		// if so, figure out a compliant name that is unique. in fact, don't compare to the file at all, compare to entire folder!
+		strcpy(new_filename, the_file->file_name_);
+		name_uniqueifier = 48; // start artificially high so it resets to 48. 
+		
+		while ( (the_target_file_item = Folder_FindListItemByFileName(the_target_folder, new_filename)) != NULL && tries < max_tries)
+		{		
+			// there is a file in this folder with the same name. 
+			// make name unique, then proceed with copy
+			// we have limited filesize to work with. if under limit, add '1'. if at limit, remove right-most character?
+			
+			name_len = strlen(new_filename);
+			
+			if (name_len < (FILE_MAX_FILENAME_SIZE-1) && name_uniqueifier > 57)
+			{
+				name_uniqueifier = 48; // ascii 48, a 0 char. 
+				new_filename[name_len] = name_uniqueifier;
+				new_filename[name_len+1] = '\0';
+			}
+			else if (name_uniqueifier > 57)
+			{
+				// name is already at max, and we have cycled through digits (or haven't started yet)
+				// snip off leading char and try again
+				++new_filename;
+				name_uniqueifier = 48; // ascii 48, a 0 char. 
+				new_filename[name_len] = name_uniqueifier;
+				new_filename[name_len+1] = '\0';
+			}
+			else
+			{
+				// we are somewhere 1-9, replace last digit
+				new_filename[name_len-1] = name_uniqueifier;
+				++name_uniqueifier;
+			}
+			
+			++tries;
+		}
+
+		//sprintf(global_string_buff1, "new='%s', tries=%u", new_filename, tries);
+		//Buffer_NewMessage(global_string_buff1);
+		
+		if (the_target_file_item != NULL)
+		{
+			// couldn't get a unique name
+			//Buffer_NewMessage("couldn't make unique name");
+			return false;
+		}
+		
 		// build a file path for target file, based on FileMover's current target folder path and source file name
 		the_target_folder_path = the_target_folder->folder_file_->file_path_;
-		General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, the_file->file_name_);
+		General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, new_filename);
 		
+		//sprintf(global_string_buff1, "tgt path='%s', tgt file='%s'", the_target_file_path, new_filename);
 		//sprintf(global_string_buff1, "tgt path='%s', tgt fldr path='%s', src fname='%s', src path='%s'", the_target_file_path, the_target_folder_path, the_file->file_name_, the_file->file_path_);
 		//Buffer_NewMessage(global_string_buff1);
 
@@ -1119,7 +1175,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 
 	// add a copy of the file to this target folder
 	success = Folder_AddNewFile(the_target_folder, the_file);
-	Buffer_NewMessage("added copy of file object to target folder");
+	//Buffer_NewMessage("added copy of file object to target folder");
 			
 	return success;
 }

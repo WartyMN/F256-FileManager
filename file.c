@@ -625,14 +625,14 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 	
 			if ( s_bytes_read_from_disk < 0)
 			{
-				Buffer_NewMessage("s_bytes_read_from_disk < 0");
+				//Buffer_NewMessage("s_bytes_read_from_disk < 0");
 				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
 				goto error;
 			}
 	
 			if ( s_bytes_read_from_disk == 0)
 			{
-				Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
+				//Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
 				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
 				keep_going = false;
 			}
@@ -705,7 +705,7 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 	
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
+		sprintf(global_string_buff1, "file '%s' could not be opened for hex display", the_file->file_path_);
 		Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
 		goto error;
@@ -731,14 +731,14 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 	
 			if ( s_bytes_read_from_disk < 0)
 			{
-				Buffer_NewMessage("s_bytes_read_from_disk < 0");
+				//Buffer_NewMessage("s_bytes_read_from_disk < 0");
 				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
 				goto error;
 			}
 	
 			if ( s_bytes_read_from_disk == 0)
 			{
-				Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
+				//Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
 				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
 				keep_going = false;
 			}
@@ -873,8 +873,7 @@ bool File_Delete(WB2KFileObject* the_file, void* not_needed)
 		return false;
 	}
 
-	if (remove(the_file->file_path_) == 0)
-	//if (remove(the_file->file_name_) < 0)
+	if (remove(the_file->file_path_) < 0)
 	{
 		LOG_ERR(("%s %d: not able to delete file '%s' @ '%s'", __func__ , __LINE__, the_file->file_name_, the_file->file_path_));
 		goto error;

@@ -354,28 +354,12 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
 	}
-	
-	if (!the_panel)
-	{
-		return false;
-	}
-	
-	// tell cc65 we want to work with the drive associated with the panel
-	//_curunit = the_panel->cur_unit_;
-// 	if (the_panel->cur_unit_ == 9)
-// 	{
-// 		chdir("9");
-// 	}
-// 	else
-// 	{
-// 		chdir("8");
-// 	}
-	
+		
 	// have root folder populate its list of files
 	if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
 	{		
 		LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
-		Panel_RenderContents(the_panel);	// force it to clear out list
+		Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
 		return false;
 	}
 
@@ -676,10 +660,12 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 // delete the currently selected file
 bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 {
-	int16_t				the_current_row;
 	WB2KFileObject*		the_file;
-	bool				success;
+	int16_t				the_current_row;
 	int8_t				the_player_choice;
+	bool				success;
+	char				delete_file_name_buff[FILE_MAX_FILENAME_SIZE];
+	char*				delete_file_name = delete_file_name_buff;
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -689,8 +675,9 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-
-	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), the_file->file_name_);
+	strcpy(delete_file_name, the_file->file_name_);
+	
+	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), delete_file_name);
 	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
 	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
@@ -703,8 +690,6 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_DELETE_SUCCESS), the_file->file_name_); // get a copy of the filename because it won't be available after deletion
-	
 	success = File_Delete(the_file, NULL);
 	
 	if (success == false)
@@ -717,6 +702,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	Panel_Init(the_panel);
 
 	// now send the message
+	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_DELETE_SUCCESS), delete_file_name);
 	Buffer_NewMessage(global_string_buff1);
 	
 	return success;
@@ -740,6 +726,15 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 
 	success = Folder_CopyFile(the_panel->root_folder_, the_file, the_other_panel->root_folder_);
+	
+	if (success)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
+	}
+	else
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
+	}
 	
 // 	// renew file listing
 // 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_, the_other_panel->unit_number_) == false)
