@@ -1174,7 +1174,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 	//File_SetSelected(the_file, false);
 
 	// add a copy of the file to this target folder
-	success = Folder_AddNewFile(the_target_folder, the_file);
+	success = Folder_AddNewFileAsCopy(the_target_folder, the_file);
 	//Buffer_NewMessage("added copy of file object to target folder");
 			
 	return success;
