@@ -170,6 +170,10 @@ void App_Initialize(void)
 	Buffer_Initialize();
 	Buffer_Clear();
 
+	// show app name, version, and credit
+	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
+	Buffer_NewMessage(global_string_buff1);
+	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));
 
 	// scan which devices are connected, so we know what panels can access
 	Buffer_NewMessage(General_GetString(ID_STR_MSG_SCANNING));
@@ -489,6 +493,7 @@ int main(void)
 	
 	Screen_InitializeUI();
 	Screen_Render();
+
 	App_Initialize();
 	
 	Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
