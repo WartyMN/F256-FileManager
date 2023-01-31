@@ -109,7 +109,18 @@ echo "\n**************************\nCC65 tasks complete\n***********************
 
 ## end test stuff
 
+## ftp it to the linux box
+sftp micahbly@10.0.0.122 <<EOF
+cd Documents
+put fmanager.rom
+exit
+EOF
 
+## upload it to F256 via fnxmgr
+ssh micahbly@10.0.0.122 <<EOF
+cd /home/micahbly/Documents/GitHub/C256Mgr
+python3 FoenixMgr/fnxmgr.py --binary /home/micahbly/Documents/fmanager.rom --address 2000
+EOF
 
 #run executable in VICE
 #$EMULATOR $BUILD_DIR/basic.rom@b $BUILD_DIR/hello.rom@3000

@@ -165,6 +165,8 @@ void App_Initialize(void)
 	uint8_t				the_drive_index = 0;
 	WB2KFileObject*		root_folder_file_left;
 	WB2KFileObject*		root_folder_file_right;
+	char				drive_path[3];
+	char*				the_drive_path = drive_path;
 
 	// initialize the comm buffer
 	Buffer_Initialize();
@@ -182,55 +184,63 @@ void App_Initialize(void)
 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SHOW_DRIVE_COUNT), app_connected_drive_count);
 	Buffer_NewMessage(global_string_buff1);
 	
+	// if no drives connected, there's nothing for us to do. just quit. 
 	if (app_connected_drive_count < 1)
 	{
 		//Buffer_NewMessage("No drives detected. How is that even possible? how did you load this software?");
 		App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
 	}
 
-	if ( (root_folder_file_left = File_New("", "0:", true, 0, 1, 0, 0, 0) ) == NULL)
+
+	// set up the left panel pointing to the lowest available device
+	
+	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
+
+	if ( (root_folder_file_left = File_New("", the_drive_path, true, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
 	{
 // 		Buffer_NewMessage("error creating left folder file object");
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
 	}
 
-	if ( (root_folder_file_right = File_New("", "1:", true, 1, 1, 1, 0, 0) ) == NULL)
-	{
-// 		Buffer_NewMessage("error creating right folder file object");
-	}
-
-
-	//WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_device_num, uint8_t the_unit_num, uint8_t the_row);
-	
 	app_active_panel_id = PANEL_ID_LEFT;
 	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
 // 		Buffer_NewMessage("error creating left folder object");
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
 	}
 
 	app_file_panel[PANEL_ID_LEFT].drive_index_ = the_drive_index;
-	++the_drive_index;
-	
-	// set the 2nd panel to the next device, unless there is only 1 device. in that case, have same device on both sides. 
-	if (the_drive_index <= app_connected_drive_count)
-	{
-		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
-		{
-// 			Buffer_NewMessage("error creating right folder object");
-		}
 
-		app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
-		++the_drive_index;
+
+	// set up the right panel pointing to the next lowest available device (will be same if only 1 device)
+	
+	++the_drive_index;
+
+	// set the 2nd panel to the next device, unless there is only 1 device. in that case, have same device on both sides. 
+	if (the_drive_index >= app_connected_drive_count)
+	{
+		--the_drive_index;
 	}
 	else
 	{
-		if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_left, true, app_root_folder[PANEL_ID_LEFT]->device_number_, app_root_folder[PANEL_ID_LEFT]->unit_number_) ) == NULL)
-		{
-// 			Buffer_NewMessage("error creating right folder object");
-		}
-
-		app_file_panel[PANEL_ID_RIGHT].drive_index_ = -1;
+		sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 	}
+
+	if ( (root_folder_file_right = File_New("", the_drive_path, true, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
+	{
+// 		Buffer_NewMessage("error creating right folder file object");
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
+	}
+	
+	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
+	{
+// 		Buffer_NewMessage("error creating right folder object");
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT);
+	}
+
+	app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
+	
 	
 	Panel_Initialize(
 		&app_file_panel[PANEL_ID_LEFT], 
