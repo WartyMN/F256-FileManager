@@ -51,7 +51,9 @@ char* global_string[NUM_STRINGS]= {
      (char*)"SEQ",
      (char*)" d ",
      (char*)"oth",
-     (char*)"Fatal error, program cannot continue. Error %u",
+     (char*)"Fatal error %u",
+     (char*)"We don't need no stinkin' error messages",
+     (char*)"No connected devices were detected. f/manager has died of loneliness. Bye!",
      (char*)"The disk is full",
      (char*)"A disk error occurred",
      (char*)"Error: Could not open file",
@@ -63,6 +65,4 @@ char* global_string[NUM_STRINGS]= {
      (char*)"Editor: BBEdit (the greatest of them all)",
      (char*)"This program is open source, using GPL 3 license. Please share improvements!",
      (char*)"https://github.com/WartyMN/F256jr-FileManager/",
-     (char*)"Thanks to Steve Gray, Jim Brain, the godz on CBM-Hackers, and everyone who",
-     (char*)"keeps these old machines going!",
 };

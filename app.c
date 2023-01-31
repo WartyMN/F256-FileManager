@@ -177,6 +177,22 @@ void App_Initialize(void)
 	Buffer_NewMessage(global_string_buff1);
 	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));
 
+	// set up the dialog template we'll use throughout the app
+	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
+	global_dlg.y_ = 16;
+	global_dlg.width_ = APP_DIALOG_WIDTH;
+	global_dlg.height_ = APP_DIALOG_HEIGHT;
+	global_dlg.num_buttons_ = 2;
+	global_dlg.btn_shortcut_[0] = CH_ESC; // OSF_CH_ESC;
+	global_dlg.btn_shortcut_[1] = CH_ENTER;
+	global_dlg.btn_is_affirmative_[0] = false;
+	global_dlg.btn_is_affirmative_[1] = true;
+
+	global_dlg.title_text_ = global_dlg_title;
+	global_dlg.body_text_ = global_dlg_body_msg;
+	global_dlg.btn_label_[0] = global_dlg_button[0];
+	global_dlg.btn_label_[1] = global_dlg_button[1];
+
 	// scan which devices are connected, so we know what panels can access
 	Buffer_NewMessage(General_GetString(ID_STR_MSG_SCANNING));
 	app_connected_drive_count = App_ScanDevices();
@@ -187,7 +203,7 @@ void App_Initialize(void)
 	// if no drives connected, there's nothing for us to do. just quit. 
 	if (app_connected_drive_count < 1)
 	{
-		//Buffer_NewMessage("No drives detected. How is that even possible? how did you load this software?");
+		Buffer_NewMessage(General_GetString(ID_STR_MSG_NO_DRIVES_AVAILABLE));
 		App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
 	}
 
@@ -259,21 +275,6 @@ void App_Initialize(void)
 	Panel_SetCurrentUnit(&app_file_panel[PANEL_ID_RIGHT], app_root_folder[PANEL_ID_RIGHT]->device_number_, app_root_folder[PANEL_ID_RIGHT]->unit_number_);
 	app_file_panel[PANEL_ID_LEFT].active_ = true;	// we always start out with left panel being the active one
 	app_file_panel[PANEL_ID_RIGHT].active_ = false;	// we always start out with left panel being the active one
-
-	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
-	global_dlg.y_ = 16;
-	global_dlg.width_ = APP_DIALOG_WIDTH;
-	global_dlg.height_ = APP_DIALOG_HEIGHT;
-	global_dlg.num_buttons_ = 2;
-	global_dlg.btn_shortcut_[0] = CH_ESC; // OSF_CH_ESC;
-	global_dlg.btn_shortcut_[1] = CH_ENTER;
-	global_dlg.btn_is_affirmative_[0] = false;
-	global_dlg.btn_is_affirmative_[1] = true;
-
-	global_dlg.title_text_ = global_dlg_title;
-	global_dlg.body_text_ = global_dlg_body_msg;
-	global_dlg.btn_label_[0] = global_dlg_button[0];
-	global_dlg.btn_label_[1] = global_dlg_button[1];
 
 	//Buffer_NewMessage("Initialization complete.");
 }
@@ -491,16 +492,26 @@ uint8_t App_MainLoop(void)
 /*****************************************************************************/
 
 
-// display error message, wait for user to confirm, and exit
+// if ending on error: display error message, wait for user to confirm, and exit
+// if no error, just exit
 void App_Exit(uint8_t the_error_number)
 {
-	sprintf(global_string_buff1, "exit code: %u", the_error_number);
-	Buffer_NewMessage(global_string_buff1);
+	int8_t		the_player_choice;
+	
+	if (the_error_number != ERROR_NO_ERROR)
+	{
+		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_FATAL_ERROR), the_error_number);
+		General_Strlcpy((char*)&global_dlg_title, global_string_buff1, MAX_STRING_COMP_LEN);
+		General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_MSG_FATAL_ERROR_BODY), APP_DIALOG_WIDTH);
+		General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_OK), 10);
+		
+		global_dlg.num_buttons_ = 2;
+		
+		Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+	}
 	
 	// turn cursor back on
 	Sys_EnableTextModeCursor(true);
-
-	//getchar();
 	
 	exit(0);	
 }
