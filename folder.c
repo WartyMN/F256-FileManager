@@ -882,20 +882,19 @@ WB2KFileObject* Folder_FindFileByRow(WB2KFolderObject* the_folder, uint8_t the_r
 
 // populate the files in a folder by doing a directory command
 uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
-{
-	struct DIR*			dir;
-	struct dirent*		dirent;
-	WB2KFileObject*		this_file;
+{	
 	bool				file_added;
-	char*				this_file_name;
 	char				the_parent_path_buffer[FILE_MAX_PATHNAME_SIZE];
-	
-	uint8_t				the_error_code = ERROR_NO_ERROR;
 	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
 	char*				the_parent_path = the_parent_path_buffer;
 	char*				the_path = the_path_buffer;
+	char*				this_file_name;
+	struct DIR*			dir;
+	struct dirent*		dirent;
+	uint8_t				the_error_code = ERROR_NO_ERROR;
 	uint16_t			file_cnt = 0;
-
+	WB2KFileObject*		this_file;
+	
 	if (the_folder == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));

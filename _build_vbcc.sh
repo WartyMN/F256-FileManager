@@ -110,14 +110,16 @@ echo "\n**************************\nCC65 tasks complete\n***********************
 ## end test stuff
 
 ## ftp it to the linux box
-sftp micahbly@10.0.0.122 <<EOF
+//sftp micahbly@10.0.0.122 <<EOF
+sftp micahbly@192.168.12.128 <<EOF
 cd Documents
 put fmanager.rom
 exit
 EOF
 
 ## upload it to F256 via fnxmgr
-ssh micahbly@10.0.0.122 <<EOF
+#ssh micahbly@10.0.0.122 <<EOF
+ssh micahbly@192.168.12.128 <<EOF
 cd /home/micahbly/Documents/GitHub/C256Mgr
 python3 FoenixMgr/fnxmgr.py --binary /home/micahbly/Documents/fmanager.rom --address 2000
 EOF

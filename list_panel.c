@@ -38,7 +38,8 @@
 #include <device.h>
 #include <cc65.h>
 #include <dirent.h>
-//#include <unistd.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 // F256 includes
 #include <f256.h>
@@ -349,17 +350,21 @@ bool Panel_FormatDrive(WB2KViewPanel* the_panel)
 bool Panel_Init(WB2KViewPanel* the_panel)
 {
 	uint8_t		the_error_code;
-	
+	//char	temp_buff[60];
+
 	if (the_panel == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
 	}
-		
+	
 	// have root folder populate its list of files
 	if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
 	{		
 		LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
+		//sprintf(temp_buff, "pop err %u", the_error_code);
+		//Buffer_NewMessage(temp_buff);
+		
 		Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
 		return false;
 	}
@@ -1116,7 +1121,7 @@ void Panel_ClearDisplay(WB2KViewPanel* the_panel)
 	//   for panel in a backdrop window, just set entire thing to a simple pattern
 	//   for panel in a regular window, set everything to background color
 	
-	Text_FillBox(the_panel->x_ + 1, the_panel->y_ + 1, the_panel->x_ + the_panel->width_, the_panel->y_ + the_panel->height_, CH_SPACE, LIST_ACTIVE_COLOR, APP_BACKGROUND_COLOR);
+	Text_FillBox(the_panel->x_ + 0, the_panel->y_ + 0, the_panel->x_ + the_panel->width_ - 1, the_panel->y_ + the_panel->height_ - 1, CH_SPACE, LIST_ACTIVE_COLOR, APP_BACKGROUND_COLOR);
 	
 	return;
 

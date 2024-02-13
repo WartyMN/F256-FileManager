@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "api.h"
 #include "dirent.h"  // Users are expected to "-I ." to get the local copy.
@@ -32,6 +34,9 @@ extern struct event_t event;
 extern struct call_args args;
 #pragma zpsym ("args")
 
+
+#define MAX_DRIVES 8
+
 // Just hard-coded for now.
 #define MAX_ROW 60
 #define MAX_COL 80
@@ -39,6 +44,13 @@ extern struct call_args args;
 static char row = 0;
 static char col = 0;
 static char *line = (char*) 0xc000;
+
+ 
+void
+kernel_init(void)
+{
+    args.events.event = &event;
+}
 
 static void
 cls()
@@ -156,7 +168,7 @@ path_without_drive(const char *path, char *drive)
         
     return (path + 2);
 }
- 
+
 int
 open(const char *fname, int mode, ...)
 {
@@ -182,14 +194,13 @@ open(const char *fname, int mode, ...)
     for(;;) {
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
-        if (event.type == EVENT(file.OPENED)) {
+        switch (event.type) {
+        case EVENT(file.OPENED):
             return ret;
-        }
-        if (event.type == EVENT(file.NOT_FOUND)) {
+        case EVENT(file.NOT_FOUND):
+        case EVENT(file.ERROR):
             return -1;
-        }
-        if (event.type == EVENT(file.ERROR)) {
-            return -1;
+        default: continue;
         }
     }
 }
@@ -218,7 +229,8 @@ kernel_read(int fd, void *buf, uint16_t nbytes)
     for(;;) {
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
-        if (event.type == EVENT(file.DATA)) {
+        switch (event.type) {
+        case EVENT(file.DATA):
             args.common.buf = buf;
             args.common.buflen = event.file.data.delivered;
             asm("jsr %w", VECTOR(ReadData));
@@ -226,12 +238,12 @@ kernel_read(int fd, void *buf, uint16_t nbytes)
                 return 256;
             }
             return event.file.data.delivered;
-        }
-        if (event.type == EVENT(file.EOF)) {
+        case EVENT(file.EOF):
             return 0;
-        }
-        if (event.type == EVENT(file.ERROR)) {
+        case EVENT(file.ERROR):
             return -1;
+        default: 
+        	continue;
         }
     }
 }
@@ -278,7 +290,7 @@ kernel_write(uint8_t fd, void *buf, uint8_t nbytes)
 }
 
 int 
-write(int fd, void *buf, uint16_t nbytes)
+write(int fd, const void *buf, uint16_t nbytes)
 {
     uint8_t  *data = buf;
     int      total = 0;
@@ -315,11 +327,24 @@ write(int fd, void *buf, uint16_t nbytes)
     return total;
 }
 
-void
+int
 close(int fd)
 {
     args.file.close.stream = fd;
     asm("jsr %w", VECTOR(File.Close));
+    for(;;) {
+        event.type = 0;
+        asm("jsr %w", VECTOR(NextEvent));
+        switch (event.type) {
+        case EVENT(file.CLOSED):
+                return 0;
+        case EVENT(file.ERROR):
+                return -1;
+        default: continue;
+        }
+    }
+    
+    return 0;
 }
 
 
@@ -327,50 +352,59 @@ close(int fd)
 ////////////////////////////////////////
 // dirent
 
-static char dir_stream;
+static char dir_stream[MAX_DRIVES];
 
 DIR* __fastcall__ 
 opendir (const char* name)
 {
     char drive, stream;
-    
-    if (dir_stream) {
-        return NULL;  // Only one at a time.
-    }
+
+// out(name[0]);
+// out(name[1]);
+// out(name[2]);
     
     name = path_without_drive(name, &drive);
+out(48+drive);
+// out(48+(uint8_t)strlen(name));
+   
+    if (dir_stream[drive]) {
+out(64);
+        return NULL;  // Only one at a time.
+    }
     
     args.directory.open.drive = drive;
     args.common.buf = name;
     args.common.buflen = strlen(name);
+out(48+(uint8_t)args.common.buflen);
     stream = CALL(Directory.Open);
     if (error) {
+out(66); // B
         return NULL;
     }
+out(67); // C
     
     for(;;) {
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
         if (event.type == EVENT(directory.OPENED)) {
+out(68); // D
             break;
         }
         if (event.type == EVENT(directory.ERROR)) {
+out(69); // E
             return NULL;
         }
     }
     
-    dir_stream = stream;
-    return (DIR*) &dir_stream;
+    dir_stream[drive] = stream;
+out(70); // F
+    return (DIR*) &dir_stream[drive];
 }
 
 struct dirent* __fastcall__ 
 readdir(DIR* dir)
 {
     static struct dirent dirent;
-    
-    if (!dir) {
-        return NULL;
-    }
     
     if (!dir) {
         return NULL;
@@ -384,7 +418,7 @@ readdir(DIR* dir)
     
     for(;;) {
         
-        int len;
+        unsigned len;
         
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
@@ -402,7 +436,6 @@ readdir(DIR* dir)
             args.common.buf = &dirent.d_blocks;
             args.common.buflen = sizeof(dirent.d_blocks);
             CALL(ReadExt);
-                
             dirent.d_type = (dirent.d_blocks == 0);
             break;
                 
@@ -418,19 +451,21 @@ readdir(DIR* dir)
         case EVENT(directory.EOF):
         case EVENT(directory.ERROR):
             return NULL;
-        
+            
+        default: continue;
         }
         
         // Copy the name.
         len = event.directory.file.len;
-            
         if (len >= sizeof(dirent.d_name)) {
             len = sizeof(dirent.d_name) - 1;
         }
             
-        args.common.buf = &dirent.d_name;
-        args.common.buflen = len;
-        CALL(ReadData);
+        if (len > 0) {
+            args.common.buf = &dirent.d_name;
+            args.common.buflen = len;
+            CALL(ReadData);
+        }
         dirent.d_name[len] = '\0';
                 
         return &dirent;
@@ -456,6 +491,7 @@ closedir (DIR* dir)
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
         if (event.type == EVENT(directory.CLOSED)) {
+            *(char*)dir = 0;
             return 0;
         }
     }
@@ -489,26 +525,26 @@ remove(const char* name)
     return 0;
 }
 
-// returns negative number in any error situation. 
-// TODO: document error codes?
 int __fastcall__ 
 rename(const char* name, const char *to)
 {
-    char drive, stream, todrive;
+    char drive, stream, dest;
     
     name = path_without_drive(name, &drive);
-    to = path_without_drive(to, &todrive);
-    if (todrive != drive) {	// if user passes a rename path that isn't on the same drive: no soup for you.
-    	return -1;
+    to = path_without_drive(to, &dest);
+    if (dest != drive) {    
+        // rename across drives is not supported.
+        return -1;
     }
-	args.file.delete.drive = drive;
+    
+    args.file.delete.drive = drive;
     args.common.buf = name;
     args.common.buflen = strlen(name);
     args.common.ext = to;
     args.common.extlen = strlen(to);
     stream = CALL(File.Rename);
     if (error) {
-        return -2;
+        return -1;
     }
     
     for(;;) {
@@ -518,7 +554,7 @@ rename(const char* name, const char *to)
             break;
         }
         if (event.type == EVENT(file.ERROR)) {
-            return -3;
+            return -1;
         }
     }
     

@@ -1197,11 +1197,6 @@ int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char
 		DIALOG_FOREGROUND_COLOR, DIALOG_BACKGROUND_COLOR
 	);	
 	
-	// ** draw the buttons
-	// go backwards from 3rd button (rightmost) to first button (leftmost)
-	// build in 1 space to right of each button
-	// if affirmative, draw in green. if non-affirmative, draw in red
-	
 	input_y = y2 - 2; // -2: 1 for bottom line char, 1 for a spacer below button
 	input_x = x1 + 1; // +1: get past box char
 

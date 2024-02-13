@@ -599,7 +599,7 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 	
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
+		//sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
 		Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
 		goto error;
@@ -942,7 +942,7 @@ error:
 // renames a file and its info file, if present
 bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* new_file_path)
 {
-	char	temp_buff[80];
+	//char	temp_buff[80];
 	int8_t	result_code;
 	
 	// LOGIC:

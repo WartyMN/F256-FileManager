@@ -143,6 +143,7 @@ int8_t	App_ScanDevices(void)
 	for (device = DEVICE_LOWEST_DEVICE_NUM; device <= DEVICE_HIGHEST_DEVICE_NUM; device++)
 	{
 		sprintf(the_drive_path, "%u:", device);
+//	Buffer_NewMessage(the_drive_path);
 		dir = opendir(the_drive_path);
 
 		if (dir)
@@ -151,8 +152,20 @@ int8_t	App_ScanDevices(void)
 			global_connected_device[drive_num] = device;
 			global_connected_unit[drive_num] = unit;
 			++drive_num;
-			closedir(dir);
+			
+			if (closedir(dir) == -1)
+			{
+				//Buffer_NewMessage("clsdir fail");
+			}
+		//sprintf(the_drive_path, "device was ok. device=%u, unit=%u", device, unit);
+		//Buffer_NewMessage(the_drive_path);
+			//sprintf(global_string_buff1, "%u: open ok", device);
 		}
+// 		else
+// 		{
+// 			sprintf(global_string_buff1, "%u: open F", device);
+// 		}
+// 			Buffer_NewMessage(global_string_buff1);
 	}
 	
 	return drive_num;
@@ -214,7 +227,6 @@ void App_Initialize(void)
 
 	if ( (root_folder_file_left = File_New("", the_drive_path, true, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
 	{
-// 		Buffer_NewMessage("error creating left folder file object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
 	}
 
@@ -222,7 +234,6 @@ void App_Initialize(void)
 	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
-// 		Buffer_NewMessage("error creating left folder object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
 	}
 
@@ -245,19 +256,17 @@ void App_Initialize(void)
 
 	if ( (root_folder_file_right = File_New("", the_drive_path, true, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
 	{
-// 		Buffer_NewMessage("error creating right folder file object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
 	}
 	
 	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
-// 		Buffer_NewMessage("error creating right folder object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT);
 	}
 
 	app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
-	
-	
+
+
 	Panel_Initialize(
 		&app_file_panel[PANEL_ID_LEFT], 
 		app_root_folder[PANEL_ID_LEFT], 
@@ -313,9 +322,6 @@ uint8_t App_MainLoop(void)
 			Screen_DrawFileMenuItems(file_menu_active);
 
 			user_input = getchar();
-
-			//sprintf(global_string_buff1, "user input: %u", user_input);
-			//Buffer_NewMessage(global_string_buff1);
 	
 			// first switch: for file menu only, and skip if file menu is inactive
 			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
@@ -496,8 +502,6 @@ uint8_t App_MainLoop(void)
 // if no error, just exit
 void App_Exit(uint8_t the_error_number)
 {
-	int8_t		the_player_choice;
-	
 	if (the_error_number != ERROR_NO_ERROR)
 	{
 		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_FATAL_ERROR), the_error_number);
