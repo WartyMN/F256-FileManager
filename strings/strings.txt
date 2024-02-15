@@ -22,43 +22,47 @@
 20	8	R Rename
 21	10	T Txt View
 22	10	H Hex View
-23	8	FILENAME
-24	4	TYPE
-25	5	BYTES
-26	22	Scanning for drives...
-27	15	%u drives found
-28	20	Files sorted by name
-29	20	Files sorted by size
-30	20	Files sorted by type
-31	13	Formatting...
-32	10	Copying...
-33	11	Deleting...
-34	20	Reading directory...
-35	17	File '%s' deleted
-36	25	File '%s' renamed to '%s'
-37	21	Unable to delete file
-38	4	Done
-39	6	(More)
-40	11	Hit any key
-41	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-42	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-43	3	DIR
-44	3	PRG
-45	3	REL
-46	3	SEQ
-47	3	 d 
-48	3	oth
-49	14	Fatal error %u
-50	40	We don't need no stinkin' error messages
-51	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-52	16	The disk is full
-53	21	A disk error occurred
-54	26	Error: Could not open file
-55	31	Error: Could not list directory
-56	9	f/Manager
-57	32	f/Manager F256, version %u.%u.%u
-58	24	Copyright 2024 Micah Bly
-59	20	Cross-compiler: cc65
-60	41	Editor: BBEdit (the greatest of them all)
-61	76	This program is open source, using GPL 3 license. Please share improvements!
-62	46	https://github.com/WartyMN/F256jr-FileManager/
+23	6	L Load
+24	8	FILENAME
+25	4	DAYS
+26	4	TYPE
+27	5	BYTES
+28	22	Scanning for drives...
+29	15	%u drives found
+30	20	Files sorted by name
+31	20	Files sorted by size
+32	20	Files sorted by type
+33	13	Formatting...
+34	10	Copying...
+35	11	Deleting...
+36	20	Reading directory...
+37	17	File '%s' deleted
+38	25	File '%s' renamed to '%s'
+39	21	Unable to delete file
+40	4	Done
+41	6	(More)
+42	11	Hit any key
+43	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+44	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
+45	3	DIR
+46	3	PRG
+47	3	REL
+48	3	SEQ
+49	3	 d 
+50	3	oth
+51	3	exe
+52	3	fnt
+53	14	Fatal error %u
+54	40	We don't need no stinkin' error messages
+55	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+56	16	The disk is full
+57	21	A disk error occurred
+58	26	Error: Could not open file
+59	31	Error: Could not list directory
+60	9	f/Manager
+61	32	f/Manager F256, version %u.%u.%u
+62	24	Copyright 2024 Micah Bly
+63	20	Cross-compiler: cc65
+64	41	Editor: BBEdit (the greatest of them all)
+65	76	This program is open source, using GPL 3 license. Please share improvements!
+66	46	https://github.com/WartyMN/F256jr-FileManager/

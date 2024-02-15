@@ -507,8 +507,18 @@ uint8_t App_MainLoop(void)
 					break;
 					
 				case ACTION_QUIT:
-					exit_main_loop = true;
-					continue;
+					General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_ARE_YOU_SURE), COMM_BUFFER_MAX_STRING_LEN);
+					General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_QUIT_CONFIRM), APP_DIALOG_WIDTH);
+					General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
+					General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
+					
+					global_dlg.num_buttons_ = 2;
+					
+					if (Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr) > 0)
+					{
+						exit_main_loop = true;
+						continue;
+					}
 					break;
 
 				default:
