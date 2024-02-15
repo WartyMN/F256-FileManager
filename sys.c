@@ -28,7 +28,7 @@
 #include <string.h>
 
 // cc65 includes
-#include <f256.h>
+#include "f256.h"
 
 
 /*****************************************************************************/
@@ -255,7 +255,8 @@ bool Sys_AutoDetectMachine(void)
 	
 	//asm("stp");
 // 	the_machine_id = (R8(MACHINE_ID_REGISTER) & MACHINE_MODEL_MASK);
-	the_machine_id = (R8(MACHINE_ID_REGISTER));
+// 	the_machine_id = (R8(MACHINE_ID_REGISTER) & MACHINE_MODEL_MASK);
+	the_machine_id = MACHINE_F256_JR; // emulator might not have machine_id_register set, I'm only seeing a 0 there. 
 // 	the_machine_id = MACHINE_F256_JR; // emulator might not have machine_id_register set, I'm only seeing a 0 there. 
 	DEBUG_OUT(("%s %d: the_machine_id=%u, gabe raw value=%u", __func__, __LINE__, the_machine_id, R8(MACHINE_ID_REGISTER)));
 	

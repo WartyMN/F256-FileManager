@@ -60,6 +60,11 @@
 
 #define FOLDER_MAX_TRIES_AT_FOLDER_CREATION		128		// arbitrary, for use with Folder_CreateNewFolder; stop at "unnamed folder 128"
 
+#define _CBM_T_REG      0x10U   /* Bit set for regular files */
+#define _CBM_T_HEADER   0x05U   /* Disk header / title */
+#define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
+
+
 
 /*****************************************************************************/
 /*                               Enumerations                                */

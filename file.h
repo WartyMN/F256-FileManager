@@ -31,14 +31,14 @@
 
 #include "app.h"
 
-#include <f256.h>
+#include "f256.h"
 
 /*****************************************************************************/
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
-#define NEW_FILE_IS_FOLDER			true	// File_New() parameter
-#define NEW_FILE_IS_NOT_FOLDER		false	// File_New() parameter
+#define PARAM_FILE_IS_FOLDER			true	// File_New() parameter
+#define PARAM_FILE_IS_NOT_FOLDER		false	// File_New() parameter
 
 
 

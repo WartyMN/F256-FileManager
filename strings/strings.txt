@@ -1,0 +1,64 @@
+#string ID	Length	String
+0	30	Are you sure you want to exit?
+1	13	Are you sure?
+2	16	Rename file '%s'
+3	17	Delete file '%s'?
+4	22	Erase and format disk?
+5	3	Yes
+6	2	No
+7	2	OK
+8	6	Cancel
+9	15	Enter new name:
+10	10	  DEVICE  
+11	7	 N Next
+12	10	 F Refresh
+13	9	 ` Format
+14	9	(SD Card)
+15	10	   FILE   
+16	10	C <<<<<<<<
+17	10	C >>>>>>>>
+18	8	X Delete
+19	10	D Duplicat
+20	8	R Rename
+21	10	T Txt View
+22	10	H Hex View
+23	8	FILENAME
+24	4	TYPE
+25	5	BYTES
+26	22	Scanning for drives...
+27	15	%u drives found
+28	20	Files sorted by name
+29	20	Files sorted by size
+30	20	Files sorted by type
+31	13	Formatting...
+32	10	Copying...
+33	11	Deleting...
+34	20	Reading directory...
+35	17	File '%s' deleted
+36	25	File '%s' renamed to '%s'
+37	21	Unable to delete file
+38	4	Done
+39	6	(More)
+40	11	Hit any key
+41	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+42	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
+43	3	DIR
+44	3	PRG
+45	3	REL
+46	3	SEQ
+47	3	 d 
+48	3	oth
+49	14	Fatal error %u
+50	40	We don't need no stinkin' error messages
+51	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+52	16	The disk is full
+53	21	A disk error occurred
+54	26	Error: Could not open file
+55	31	Error: Could not list directory
+56	9	f/Manager
+57	32	f/Manager F256, version %u.%u.%u
+58	24	Copyright 2024 Micah Bly
+59	20	Cross-compiler: cc65
+60	41	Editor: BBEdit (the greatest of them all)
+61	76	This program is open source, using GPL 3 license. Please share improvements!
+62	46	https://github.com/WartyMN/F256jr-FileManager/

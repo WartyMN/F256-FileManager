@@ -19,6 +19,8 @@
 #include "app.h"
 #include "comm_buffer.h"
 #include "general.h"
+#include "memory.h"
+#include "sys.h"
 #include "text.h"
 #include "strings.h"
 
@@ -28,7 +30,7 @@
 #include <string.h>
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 
@@ -56,6 +58,13 @@ static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] =
 /*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
+
+extern char*				global_string[NUM_STRINGS];
+
+extern uint8_t				zp_bank_num;
+extern uint8_t				io_bank_value_kernel;	// stores value for the physical bank pointing to C000-DFFF whenever we change it, so we can restore it.
+
+#pragma zpsym ("zp_bank_num");
 
 
 /*****************************************************************************/
@@ -264,4 +273,77 @@ void Screen_Render(void)
 	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Screen_DrawUI();
 }
+
+
+// load strings into memory and set up string pointers
+void App_LoadStrings(void)
+{
+	bool		more_to_get = true;
+	uint8_t		the_id;
+	uint8_t		str_length;
+	uint8_t		strings_found = 0;
+	uint8_t*	the_buff = (uint8_t*)0xC000;	// mapped to I/O bank Address, but we will map out I/O when this needs to be accessed;
+
+	//DEBUG_OUT(("%s %d: entered", __func__, __LINE__));
+
+	// f256jr:
+	//   until load is available, I am going to be side-loading directly into physical memory with the emulator's command line
+	//   all strings will be in 1 dedicated ram bank (8k)
+	//   for now, rather than read length and id (without putting them in the buffer), I'll be loading the whole file
+	//   this function will be about scanning what has already been loaded, and setting up the string pointers, rather than about loading
+	
+	// OLD NOTE:
+	// logic:
+	//  - string files are set up as id->len->the string. string len is limited to 255.
+	//  - we will read 2 bytes to get id and length
+	//  - will then read 'length' worth of bytes into the global_string_buff
+	//  - will then write a null on the end of that storage loc.
+	//  - will then point the next global_string[] pointer to the starting write addr
+	//  - then loop around until all strings read in.
+
+	// map the string buffer into CPU memory space
+	zp_bank_num = STRING_STORAGE_VALUE;
+	io_bank_value_kernel = Memory_SwapInNewBank(BANK_IO);
+
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	Sys_DisableIOBank();
+
+	while (more_to_get && strings_found < NUM_STRINGS)
+	{
+		the_id = *the_buff;
+		//DEBUG_OUT(("%s %d: the_id=%u, the_buff=%p", __func__, __LINE__, the_id, the_buff));
+		the_buff[0] = 0;	// overwrite ID spot with a NULL, as separator between strings
+		++the_buff;
+		
+		if (the_id >= NUM_STRINGS)
+		{
+			more_to_get = false;
+			break;
+		}
+
+		str_length = *the_buff++;
+		//DEBUG_OUT(("%s %d: the_id=%u, len=%u", __func__, __LINE__, the_id, str_length));
+		
+		// remember where we put this string
+		global_string[the_id] = (char*)the_buff;
+
+		// move the read buffer to end of the string just read in
+		the_buff += str_length;
+		++strings_found;
+	}
+
+	// write out a null at end of all strings, to terminate the last one
+	++the_buff;
+	the_buff[0] = 0;
+	
+	// prepare for end of map generation mode by re-enabling the I/O page, which unmaps the dungeon map screen from 6502 RAM space
+	Sys_DisableIOBank();
+
+	zp_bank_num = io_bank_value_kernel;
+	Memory_SwapInNewBank(BANK_IO);
+
+	asm("CLI"); // restore interrupts
+}
+
+
 

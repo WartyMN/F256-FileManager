@@ -92,6 +92,16 @@ uint8_t __fastcall__ Memory_GetMappedBankNum(void);
 // that is a simple to the f256jr emulator to write the string at the debug buffer out to the console
 void __fastcall__ Memory_DebugOut(void);
 
+// call to a routine in memory.asm that copies specified number of bytes from src to dst
+// set zp_to_addr, zp_from_addr, zp_copy_len before calling.
+// credit: http://6502.org/source/general/memory_move.html
+// void __fastcall__ Memory_Copy(void);
+
+// call to a routine in memory.asm that copies specified number of bytes from src to dst
+// set zp_to_addr, zp_from_addr, zp_copy_len before calling.
+// this version uses the F256's DMA capabilities to copy, so addresses can be 24 bit (system memory, not CPU memory)
+// in other words, no need to page either dst or src into CPU space
+// void __fastcall__ Memory_CopyWithDMA(void);
 
 
 #endif /* MEMORY_H_ */

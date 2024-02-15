@@ -16,6 +16,7 @@
 #include "comm_buffer.h"
 #include "app.h"
 #include "general.h"
+#include "strings.h"
 #include "text.h"
 
 // C includes
@@ -25,7 +26,7 @@
 #include <string.h>
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 
@@ -34,6 +35,8 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
+#define ROW_HIT_SPACE		COMM_BUFFER_LAST_ROW
+#define COL_HIT_SPACE		(COMM_BUFFER_LAST_COL - 11) // long enough for "hit any key"
 
 /*****************************************************************************/
 /*                           File-scoped Variables                           */
@@ -68,6 +71,26 @@ void Buffer_ScrollUp(void);
 /*****************************************************************************/
 
 
+
+
+// shows a blinking thing at end of buffer and waits for user to hit the spacebar
+// use case: call every time 3 lines are displayed between user action inputs, to give user a chance to read everything
+void Buffer_GetUserToHitKey(void)
+{
+	uint8_t	the_char;
+
+	// draw a 'hit space' message just above the buffer. this line is guaranteed not to be used by dungeon
+	Text_DrawStringAtXY(COL_HIT_SPACE, ROW_HIT_SPACE, General_GetString(ID_STR_MSG_HIT_ANY_KEY), COLOR_BRIGHT_GREEN, COLOR_BLACK);	
+	
+	do
+	{
+		the_char = getchar();
+	}
+	while (the_char != 32);
+
+	// undraw it
+	Text_DrawStringAtXY(COL_HIT_SPACE, ROW_HIT_SPACE, General_GetString(ID_STR_MSG_HIT_ANY_KEY), COLOR_BLACK, COLOR_BLACK);	
+}
 
 
 // pushes lines "up" by 1, so that line 3 becomes line 2, line 1 becomes line 3
@@ -202,6 +225,7 @@ void Buffer_NewMessage(char* the_message)
 	// skip this though if we are in stealth mode
 	if (comm_curr_buff_row >= COMM_BUFFER_NUM_ROWS)
 	{
+		Buffer_GetUserToHitKey();
 		comm_curr_buff_row = 0;	// jan 18: without the "hit space to continue" thing, this whole thing doesn't make sense. Remove after testing.
 	}
 

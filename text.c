@@ -29,7 +29,7 @@
 #include <string.h>
 
 // F256 includes
-#include "cc65/include/f256.h"
+#include "f256.h"
 
 
 
@@ -1103,7 +1103,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 	{
 		player_input = getchar();
 		
-		if (player_input == CH_ESC)
+		if (player_input == CH_ESC || player_input == CH_RUNSTOP)
 		{
 			break;
 		}

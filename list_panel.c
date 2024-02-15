@@ -42,7 +42,7 @@
 #include <fcntl.h>
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 
@@ -209,6 +209,8 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	the_panel->device_number_ = the_new_device;
 	the_panel->unit_number_ = the_new_unit;
 
+	App_LoadOverlay(OVERLAY_FOLDER);
+
 	if (Folder_Reset(the_panel->root_folder_, the_new_device, the_new_unit) == false)
 	{
 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
@@ -359,6 +361,8 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 	}
 	
 	// have root folder populate its list of files
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
 	{		
 		LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
@@ -612,6 +616,8 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE];
 	char*				the_path = the_path_buffer;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (the_current_row < 0)
@@ -673,6 +679,8 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	char				delete_file_name_buff[FILE_MAX_FILENAME_SIZE];
 	char*				delete_file_name = delete_file_name_buff;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (the_current_row < 0)
@@ -722,6 +730,8 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	WB2KFileObject*		the_file;
 	bool				success;
 
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (the_current_row < 0)
@@ -766,6 +776,8 @@ bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 	WB2KFileObject*		the_file;
 	bool				success;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (the_current_row < 0)
@@ -787,6 +799,8 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 	WB2KFileObject*		the_file;
 	bool				success;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (the_current_row < 0)
@@ -807,6 +821,8 @@ bool Panel_SelectPrevFile(WB2KViewPanel* the_panel)
 {
 	int16_t		the_current_row;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
 	if (--the_current_row < 0)
@@ -824,6 +840,8 @@ bool Panel_SelectNextFile(WB2KViewPanel* the_panel)
 {
 	int16_t		the_current_row;
 	uint16_t	the_file_count;
+	
+	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	the_file_count = Folder_GetCountFiles(the_panel->root_folder_);
@@ -848,6 +866,8 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 
 	uint8_t		content_top = the_panel->content_top_;
 	bool		success;
+	
+	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	if (the_panel == NULL)
 	{
@@ -1056,6 +1076,8 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 	//   when scrolled down, any file's that have scrolled up out of the panel will have y positions < top of panel
 	//   negative positions will happen for longer directories. 
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	num_files = Folder_GetCountFiles(the_panel->root_folder_);
 
 	// see how many rows and V space we need by taking # of files (do NOT include space for a header row: that row is part of different spacer)
@@ -1066,6 +1088,8 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, max_rows));
 	}
 	
+			sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
+			Buffer_NewMessage(global_string_buff1);
 
 	// if there are no files in the folder the panel is showing, we can stop here
 	if (num_files == 0)
@@ -1196,7 +1220,12 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 	//   after sort, the files will visually be in the right order, but current row won't necessarily match up any more
 	//   so we get a reference the current file, then sort, then get that file's (possibly) new row number, and use it for current row
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+
+			sprintf(global_string_buff1, "the_current_row=%u", the_current_row);
+			Buffer_NewMessage(global_string_buff1);
 	
 	if (the_current_row >= 0)
 	{
@@ -1224,6 +1253,8 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 bool Panel_ReSelectCurrentFile(WB2KViewPanel* the_panel)
 {
 	int16_t		the_current_row;
+	
+	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	

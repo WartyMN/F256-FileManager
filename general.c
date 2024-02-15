@@ -18,6 +18,7 @@
 // project includes
 #include "general.h"
 #include "app.h"
+#include "folder.h"	// only need for the CBM file type definitions
 #include "strings.h"
 #include "memory.h"
 #include "sys.h"
@@ -35,7 +36,7 @@
 //#include <math.h>
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 
@@ -50,19 +51,22 @@
 /*                          File-scoped Variables                            */
 /*****************************************************************************/
 
-static uint8_t			general_string_merge_buff_192b[192];
+//static uint8_t			general_string_merge_buff_192b[192];
 
 
 /*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
 
+
+uint8_t*				interbank_temp = (uint8_t*)STORAGE_INTERBANK_BUFFER;	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
+
 extern char*			global_string[NUM_STRINGS];
 extern uint8_t*			global_temp_buff_192b_1;
 extern uint8_t*			global_temp_buff_192b_2;
 
-extern uint8_t			zp_bank_num;
 
+extern uint8_t			zp_bank_num;
 #pragma zpsym ("zp_bank_num");
 
 // logging related: only do if debugging is active
@@ -185,13 +189,52 @@ extern uint8_t			zp_bank_num;
 
 // **** MISC STRING UTILITIES *****
 
-// return the global string for the passed ID
-// the string is copied into a temp buffer, and that is returned, to protect the original string
+// retrieves a string from extended memory and stashes in the first page of STORAGE_DOS_BOOT_BUFFER for the calling program to retrieve
+// returns a pointer to the string (pointer will always be to STORAGE_DOS_BOOT_BUFFER)
 char* General_GetString(uint8_t the_string_id)
 {
-	strcpy((char*)general_string_merge_buff_192b, global_string[the_string_id]);
+	uint8_t		old_bank_under_io;
 
-	return (char*)general_string_merge_buff_192b;
+	// Disable the I/O page so we can get to RAM under it
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	Sys_DisableIOBank();
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	
+	// map the string bank into CPU memory space
+	zp_bank_num = STRING_STORAGE_VALUE;
+	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
+
+	// DEBUG
+	//if (the_string_id == ID_STR_MONSTER_7 || the_string_id == ID_STR_MSG_BADGE_EARNED || the_string_id == ID_STR_CURIO_AMMO)
+// 	if (the_string_id == ID_STR_STAFF_UNKNOWN)
+// 	{
+// 		General_PrintBufferCharacters((uint8_t*)global_string[the_string_id], 2000);
+// 	}
+	
+	// copy the string to buffer in MAIN space (we'll copy a whole page, because cheaper than checking len of string (??)
+	//DEBUG_OUT(("%s %d: str id=%u, global_string[id]=%p, interbank_temp=%p", __func__, __LINE__, the_string_id, global_string[the_string_id], interbank_temp));
+	//memcpy(interbank_temp, global_string[the_string_id], 255);
+	strcpy((char*)interbank_temp, global_string[the_string_id]);
+
+// 	// Get IO bank pointing back to Vicky registers, to protect kernel code from being overwritten
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 
+// 	asm("CLI"); // restore interrupts
+// 
+// 	// remap the space under IO bank to whatever had been there before (probably kernel)
+// 	zp_bank_num = old_bank_under_io;
+// 	Memory_SwapInNewBank(BANK_IO);
+
+
+	
+	Memory_RestorePreviousBank(BANK_IO);
+	asm("CLI"); // restore interrupts
+	
+	// Re-enable the I/O page, which unmaps the string bank from 6502 RAM space
+	Sys_RestoreIOPage();
+
+	
+	return (char*)interbank_temp;
 }
 
 
@@ -609,9 +652,9 @@ char* General_GetFileTypeString(uint8_t cbm_filetype_id)
 // 		case _CBM_T_REL:
 // 			return General_GetString(ID_STR_FILETYPE_REL);
 // 		
-// 		case _CBM_T_DEL:
-// 		case _CBM_T_DIR:
-// 			return General_GetString(ID_STR_FILETYPE_SUBDIR);
+//		case _CBM_T_DEL:
+		case _CBM_T_DIR:
+			return General_GetString(ID_STR_FILETYPE_DIR);
 		
 		default:
 			return General_GetString(ID_STR_FILETYPE_OTHER);

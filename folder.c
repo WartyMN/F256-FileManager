@@ -29,10 +29,10 @@
 #include <errno.h>
 #include <device.h>
 //#include <dirent.h>
-#include "cc65/temp/dirent.h"
+#include "dirent.h"
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 
@@ -926,8 +926,6 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	// reset panel's file count, as we will be starting over from zero
 	the_folder->file_count_ = 0;
 
-#define _CBM_T_HEADER   0x05U   /* Disk header / title */
-
     /* print directory listing */
 
 	dir = opendir(the_folder->folder_file_->file_path_);
@@ -944,36 +942,11 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
         if (_DE_ISDIR(dirent->d_type))
         {
-			the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
-			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
-			
-			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISDIR", dirent->d_name);
-			//Buffer_NewMessage(global_string_buff1);
-		}
-        else if (_DE_ISLBL(dirent->d_type))
-        {
-			if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
-			{
-				// this is hte internal SD card. give a more user-friendly name
-				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
-			}
-			else
-			{
-				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
-			}
-			
-			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
-			
-			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
-			//Buffer_NewMessage(global_string_buff1);
-		}
-        else if (_DE_ISREG(dirent->d_type))
-        {
 			this_file_name = dirent->d_name;
 			General_Strlcpy(the_path, the_parent_path, FILE_MAX_PATHNAME_SIZE);
 			General_Strlcat(the_path, this_file_name, FILE_MAX_PATHNAME_SIZE);
 
-			this_file = File_New(this_file_name, the_path, false, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), 1, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+			this_file = File_New(this_file_name, the_path, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
 
 			if (this_file == NULL)
 			{
@@ -993,6 +966,60 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
 			++file_cnt;
 			
+// 			sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
+// 			Buffer_NewMessage(global_string_buff1);
+		}
+        else if (_DE_ISLBL(dirent->d_type))
+        {
+			if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
+			{
+				// this is the internal SD card. give a more user-friendly name
+				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
+			}
+			else if (dirent->d_name[1] == NO_DISK_PRESENT_FILE_NAME)
+			{
+				sprintf(global_string_buff1, "A file with name reported as asc 30 detected, assume means no disk in drive");
+				Buffer_NewMessage(global_string_buff1);
+				continue;
+			}
+			else
+			{
+				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
+			}
+			
+			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
+			
+// 			sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
+// 			Buffer_NewMessage(global_string_buff1);
+		}
+        else if (_DE_ISREG(dirent->d_type))
+        {
+			this_file_name = dirent->d_name;
+			General_Strlcpy(the_path, the_parent_path, FILE_MAX_PATHNAME_SIZE);
+			General_Strlcat(the_path, this_file_name, FILE_MAX_PATHNAME_SIZE);
+
+			this_file = File_New(this_file_name, the_path, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+
+			if (this_file == NULL)
+			{
+				LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
+				the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
+				goto error;
+			}
+
+			// Add this file to the list of files
+			file_added = Folder_AddNewFile(the_folder, this_file);
+
+			// if this is first file in scan, preselect it
+			if (file_cnt == 0)
+			{
+				this_file->selected_ = true;
+			}
+	
+			++file_cnt;
+			
+// 			sprintf(global_string_buff1, "file '%s' identified by _DE_ISREG", dirent->d_name);
+// 			Buffer_NewMessage(global_string_buff1);
 			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
 			//Buffer_NewMessage(global_string_buff1);
 		}
@@ -1184,7 +1211,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed)
 {
 	WB2KFileObject*		the_file;
-	bool				result_doesnt_matter;
+	//bool				result_doesnt_matter;
 
 	if (the_folder == NULL)
 	{
@@ -1388,7 +1415,7 @@ bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, b
 // 	the_datetime = General_GetCurrentDateStampWithAlloc();
 // 	
 // 	// make WB2K file object for the folder that now exists on disk
-// 	the_file = File_New(the_target_file_name, the_target_folder_path, the_folder->folder_file_->device_name_, NEW_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
+// 	the_file = File_New(the_target_file_name, the_target_folder_path, the_folder->folder_file_->device_name_, PARAM_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
 // 
 // 	LOG_ALLOC(("%s %d:	__ALLOC__	the_datetime	%p	size	%i", __func__ , __LINE__, the_datetime, sizeof(struct DateStamp)));
 // 	free(the_datetime);

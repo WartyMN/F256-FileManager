@@ -18,12 +18,17 @@
 	.export	_Memory_SwapInNewBank
 	.export	_Memory_RestorePreviousBank
 	.export _Memory_GetMappedBankNum
+;	.export _Memory_Copy
+;	.export _Memory_CopyWithDMA
 	.export _Memory_DebugOut
 
 ; ZP_LK exports:
 	.exportzp	_zp_bank_slot
 	.exportzp	_zp_bank_num
 	.exportzp	_zp_old_bank_num
+;	.exportzp	_zp_to_addr
+;	.exportzp	_zp_from_addr
+;	.exportzp	_zp_copy_len
 	.exportzp	_zp_x
 	.exportzp	_zp_y
 	.exportzp	_zp_screen_id
@@ -65,6 +70,22 @@ GETIN				= $ffe4	;// Editor ROM routine to wait for a key to be pressed
 ;zp_temp_4			= zp_temp_3 + 1
 ;zp_other_byte		= zp_temp_4 + 1
 
+; F256 DMA addresses and bit values
+
+DMA_CTRL = $DF00		; DMA Control Register
+DMA_CTRL_START = $80	; Start the DMA operation
+DMA_CTRL_FILL = $04		; Do a FILL operation (if off, will do COPY)
+DMA_CTRL_2D = $02		; Use 2D copy/fill
+DMA_CTRL_ENABLE = $01	; Enable the DMA engine
+
+DMA_STATUS = $DF01		; DMA status register (Read Only)
+DMA_STAT_BUSY = $80		; DMA engine is busy with an operation
+
+DMA_FILL_VAL = $DF01	; Byte value to use for fill operations
+DMA_SRC_ADDR = $DF04	; Source address (system bus - 3 byte)
+DMA_DST_ADDR = $DF08	; Destination address (system bus - 3 byte)
+DMA_COUNT = $DF0C		; Number of bytes to fill or copy
+
 
 screen_id_player		= 0
 screen_id_help			= 1
@@ -82,6 +103,9 @@ screen_id_tinker		= 8
 _zp_bank_slot:			.res 1;
 _zp_bank_num:			.res 1;
 _zp_old_bank_num:		.res 1;
+;_zp_to_addr:			.res 3
+;_zp_from_addr:			.res 3
+;_zp_copy_len:			.res 3
 _zp_x:					.res 1;
 _zp_y:					.res 1;
 _zp_screen_id:			.res 1;
@@ -252,6 +276,114 @@ _global_string_buffer2:			.res 2;
 	RTS
 
 .endproc
+
+
+
+
+; ---------------------------------------------------------------
+; void __fastcall__ Memory_Copy(void)
+; ---------------------------------------------------------------
+;// call to a routine in memory.asm that copies specified number of bytes from src to dst
+;// set zp_to_addr, zp_from_addr, zp_copy_len before calling.
+;// credit: http://6502.org/source/general/memory_move.html
+
+
+;.segment	"OVERLAY_NOTICE_BOARD"
+;
+;.proc	_Memory_Copy: near
+;
+;.segment	"OVERLAY_NOTICE_BOARD"
+;
+;MOVEUP:  LDX _zp_copy_len		; the last byte must be moved first
+;         CLC         			; start at the final pages of FROM and TO
+;         TXA
+;         ADC _zp_from_addr+1
+;         STA _zp_from_addr+1
+;         CLC
+;         TXA
+;         ADC _zp_to_addr+1
+;         STA _zp_to_addr+1
+;         INX         			; allows the use of BNE after the DEX below
+;         LDY _zp_copy_len+1
+;         BEQ MU3
+;         DEY          			; move bytes on the last page first
+;         BEQ MU2
+;MU1:     LDA (_zp_from_addr),Y
+;         STA (_zp_to_addr),Y
+;         DEY
+;         BNE MU1
+;MU2:     LDA (_zp_from_addr),Y 	; handle Y = 0 separately
+;         STA (_zp_to_addr),Y
+;MU3:     DEY
+;         DEC _zp_from_addr+1   	; move the next page (if any)
+;         DEC _zp_to_addr+1
+;         DEX
+;         BNE MU1
+;         RTS
+;
+;.endproc
+
+
+
+
+; ---------------------------------------------------------------
+; void __fastcall__ Memory_CopyWithDMA(void)
+; ---------------------------------------------------------------
+;// call to a routine in memory.asm that copies specified number of bytes from src to dst
+;// set zp_to_addr, zp_from_addr, zp_copy_len before calling.
+;// this version uses the F256's DMA capabilities to copy, so addresses can be 24 bit (system memory, not CPU memory)
+;// in other words, no need to page either dst or src into CPU space
+
+
+;.segment	"OVERLAY_NOTICE_BOARD"
+;
+;.proc	_Memory_CopyWithDMA: near
+;
+;.segment	"OVERLAY_NOTICE_BOARD"
+;
+;			; Enable the DMA engine and set it up for a (1D) copy operation:
+;			LDA #DMA_CTRL_ENABLE
+;			STA DMA_CTRL
+;
+;			;Source address (3 byte):
+;			LDA #_zp_from_addr
+;			STA DMA_SRC_ADDR
+;			LDA #_zp_from_addr+1
+;			STA DMA_SRC_ADDR+1
+;			LDA #_zp_from_addr+2
+;			AND #$03
+;			STA DMA_SRC_ADDR+2
+;
+;			;Destination address (3 byte):
+;			LDA #_zp_to_addr
+;			STA DMA_DST_ADDR
+;			LDA #_zp_to_addr+2
+;			STA DMA_DST_ADDR+1
+;			LDA #_zp_to_addr+3
+;			AND #$03
+;			STA DMA_DST_ADDR+2
+;
+;			; Num bytes to copy
+;			LDA #_zp_copy_len
+;			STA DMA_COUNT
+;			LDA #_zp_copy_len+1
+;			STA DMA_COUNT+1
+;			LDA #_zp_copy_len+2
+;			STA DMA_COUNT+2
+;
+;			; flip the START flag to trigger the DMA operation and wait for it to complete:
+;			LDA DMA_CTRL
+;			ORA #DMA_CTRL_START
+;			STA DMA_CTRL
+;wait_dma:	LDA DMA_STATUS
+;			AND #DMA_STAT_BUSY
+;			CMP #DMA_STAT_BUSY		; Wait until DMA is not busy
+;			BEQ wait_dma
+;			STZ DMA_CTRL			; Turn off the DMA engine
+;
+;			RTS
+;.endproc
+
 
 
 

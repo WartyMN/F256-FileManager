@@ -22,6 +22,7 @@
 #include "list_panel.h"
 #include "folder.h"
 #include "general.h"
+#include "memory.h"
 #include "text.h"
 #include "screen.h"
 #include "strings.h"
@@ -37,8 +38,10 @@
 #include <device.h>
 //#include <unistd.h>
 #include <cc65.h>
-#include <dirent.h>
-#include <f256.h>
+#include "dirent.h"
+#include "f256.h"
+#include "api.h"
+#include "kernel.h"
 
 
 
@@ -82,8 +85,33 @@ char*					global_string_buff2 = (char*)(temp_buff_384b + 192);
 uint8_t					temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 uint8_t					temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
-extern char*			global_string[NUM_STRINGS];
+extern uint8_t				zp_bank_num;
 
+extern void _OVERLAY_1_LOAD__[], 	_OVERLAY_1_SIZE__[];
+extern void _OVERLAY_2_LOAD__[],	_OVERLAY_2_SIZE__[];
+// extern void _OVERLAY_CREATE_MAP_LOAD__[], 	_OVERLAY_CREATE_MAP_SIZE__[];
+// extern void _OVERLAY_CREATE_LEVEL_LOAD__[],	_OVERLAY_CREATE_LEVEL_SIZE__[];
+// extern void _OVERLAY_COMBAT_LOAD__[],		_OVERLAY_COMBAT_SIZE__[];
+// extern void _OVERLAY_INVENTORY_LOAD__[], 	_OVERLAY_INVENTORY_SIZE__[];
+// extern void _OVERLAY_GAMEOVER_LOAD__[],		_OVERLAY_GAMEOVER_SIZE__[];
+// extern void _OVERLAY_NOTICE_BOARD_LOAD__[], _OVERLAY_NOTICE_BOARD_SIZE__[];
+// extern void _OVERLAY_CREATE_CAVERN_LOAD__[],_OVERLAY_CREATE_CAVERN_SIZE__[];
+
+Overlay overlay[NUM_OVERLAYS] =
+{
+	{OVERLAY_1_SLOT, OVERLAY_1_VALUE},
+	{OVERLAY_2_SLOT, OVERLAY_2_VALUE},
+	{OVERLAY_3_SLOT, OVERLAY_3_VALUE},
+	{OVERLAY_4_SLOT, OVERLAY_4_VALUE},
+	{OVERLAY_5_SLOT, OVERLAY_5_VALUE},
+	{OVERLAY_6_SLOT, OVERLAY_6_VALUE},
+	{OVERLAY_7_SLOT, OVERLAY_7_VALUE},
+	{OVERLAY_8_SLOT, OVERLAY_8_VALUE},
+	{OVERLAY_9_SLOT, OVERLAY_9_VALUE},
+};
+
+
+#pragma zpsym ("zp_bank_num");
 
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
@@ -106,7 +134,6 @@ int8_t	App_ScanDevices(void);
 /*****************************************************************************/
 
 
-
 // swap the active panels. 
 void App_SwapActivePanel(void)
 {
@@ -116,8 +143,8 @@ void App_SwapActivePanel(void)
 	Panel_ToggleActiveState(&app_file_panel[PANEL_ID_RIGHT]);
 	++app_active_panel_id;
 	app_active_panel_id = app_active_panel_id % 2;
-	//sprintf(global_string_buff1, "active panel set to %u", app_active_panel_id);
-	//Buffer_NewMessage(global_string_buff1);
+// 	sprintf(global_string_buff1, "active panel set to %u", app_active_panel_id);
+// 	Buffer_NewMessage(global_string_buff1);
 }
 
 
@@ -181,8 +208,6 @@ void App_Initialize(void)
 	char				drive_path[3];
 	char*				the_drive_path = drive_path;
 
-	// initialize the comm buffer
-	Buffer_Initialize();
 	Buffer_Clear();
 
 	// show app name, version, and credit
@@ -232,8 +257,11 @@ void App_Initialize(void)
 
 	app_active_panel_id = PANEL_ID_LEFT;
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
+		Buffer_NewMessage("error creating left folder file object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
 	}
 
@@ -258,6 +286,8 @@ void App_Initialize(void)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
 	}
+
+	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, true, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{
@@ -319,6 +349,7 @@ uint8_t App_MainLoop(void)
 			
 			// redraw any menu buttons that could change (file menu only at this point)
 			file_menu_active = (the_panel->num_rows_ > 0);
+			App_LoadOverlay(OVERLAY_SCREEN);
 			Screen_DrawFileMenuItems(file_menu_active);
 
 			user_input = getchar();
@@ -361,6 +392,7 @@ uint8_t App_MainLoop(void)
 					case ACTION_VIEW_AS_HEX:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
 						success = Panel_ViewCurrentFileAsHex(the_panel);	
+						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
 						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
 						Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
@@ -371,6 +403,7 @@ uint8_t App_MainLoop(void)
 					case ACTION_VIEW_AS_TEXT:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
 						success = Panel_ViewCurrentFileAsText(the_panel);	
+						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
 						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
 						Panel_RenderContents(&app_file_panel[PANEL_ID_RIGHT]);
@@ -413,6 +446,7 @@ uint8_t App_MainLoop(void)
 				case ACTION_SWAP_ACTIVE_PANEL:
 					// mark old panel inactive, mark new panel active, set new active panel id
 					App_SwapActivePanel();
+					App_LoadOverlay(OVERLAY_SCREEN);
 					Screen_SwapCopyDirectionIndicator();
 					the_panel = &app_file_panel[app_active_panel_id];
 					break;
@@ -423,6 +457,7 @@ uint8_t App_MainLoop(void)
 					break;
 					
 				case ACTION_REFRESH_PANEL:
+					App_LoadOverlay(OVERLAY_FOLDER);
 					Folder_RefreshListing(the_panel->root_folder_);
 					Panel_Init(the_panel);			
 					break;
@@ -431,6 +466,7 @@ uint8_t App_MainLoop(void)
 					success = Panel_FormatDrive(the_panel);
 					if (success)
 					{
+						App_LoadOverlay(OVERLAY_FOLDER);
 						Folder_RefreshListing(the_panel->root_folder_);
 						Panel_Init(the_panel);			
 					}
@@ -498,6 +534,14 @@ uint8_t App_MainLoop(void)
 /*****************************************************************************/
 
 
+// Brings the requested overlay into memory
+void App_LoadOverlay(uint8_t the_overlay_id)
+{
+	zp_bank_num = overlay[the_overlay_id].lut_value_;
+	Memory_SwapInNewBank(overlay[the_overlay_id].lut_slot_);
+}
+
+
 // if ending on error: display error message, wait for user to confirm, and exit
 // if no error, just exit
 void App_Exit(uint8_t the_error_number)
@@ -525,19 +569,29 @@ void App_Exit(uint8_t the_error_number)
 
 int main(void)
 {
+	kernel_init();
 
-	// open log file, if debugging flags were passed
-	#ifdef LOG_LEVEL_5
-		General_LogInitialize();
-	#endif
+// 	// open log file, if debugging flags were passed
+// 	#ifdef LOG_LEVEL_5
+// 		General_LogInitialize();
+// 	#endif
 	
 	if (Sys_InitSystem() == false)
 	{
 		//asm("JMP ($FFFC)");
 		exit(0);
 	}
-	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
 	
+	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
+
+	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
+	Buffer_Initialize();
+	
+	// set up pointers to string data that is in EM
+	App_LoadOverlay(OVERLAY_SCREEN);
+	App_LoadStrings();
+	
+	// Initialize screen structures and do first draw
 	Screen_InitializeUI();
 	Screen_Render();
 

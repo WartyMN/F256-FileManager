@@ -158,6 +158,8 @@ void Screen_Render(void);
 // device buttons are always activated, so are only drawn once
 void Screen_DrawFileMenuItems(bool as_active);
 
+// load strings into memory and set up string pointers
+void App_LoadStrings(void);
 
 
 #endif /* SCREEN_H_ */

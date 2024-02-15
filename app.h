@@ -41,7 +41,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	6
+#define UPDATE_VERSION	7
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -73,6 +73,7 @@
 #define DEVICE_HIGHEST_DEVICE_NUM	2
 #define DEVICE_MAX_DEVICE_COUNT		(DEVICE_HIGHEST_DEVICE_NUM - DEVICE_LOWEST_DEVICE_NUM + 1)
 
+#define NO_DISK_PRESENT_FILE_NAME	30	// this is a char I see reported as a "islbl" by tool when scanning a floppy disk drive with no disk in it. 
 
 #define MEM_DUMP_BYTES_PER_ROW		16
 #define MAX_MEM_DUMP_LEN			(24 * MEM_DUMP_BYTES_PER_ROW)	// 24*16 = 384
@@ -95,7 +96,16 @@
 
 #define STORAGE_STRING_MERGE_BUFFER_SIZE	192 // will use for snprintf, strncpy, etc.
 
-// secondary uses of storage areas
+#define STORAGE_INTERBANK_BUFFER		0x0400	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
+#define STORAGE_INTERBANK_BUFFER_LEN	0x0100	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
+#define STORAGE_SAVED_GAME              0x0500	// outside of cc65 memory space. see config file. 
+#define STORAGE_PLAYER					(STORAGE_SAVED_GAME + 1)	// first byte is for the game level number
+#define STORAGE_PLAYER_LEN            	664
+
+
+#define STRING_STORAGE_SLOT                0x06
+#define STRING_STORAGE_VALUE               0x12
+#define STRING_STORAGE_PHYS_ADDR           0x24000
 
 
 
@@ -162,7 +172,7 @@
 #define ACTION_COPY					'c'
 #define ACTION_DUPLICATE			'd'
 #define ACTION_CANCEL				CH_ESC
-#define ACTION_CANCEL_ALT			CH_SPACE
+#define ACTION_CANCEL_ALT			CH_RUNSTOP
 #define ACTION_CONFIRM				CH_ENTER
 #define ACTION_QUIT					'q'
 #define ACTION_SORT_BY_NAME			'N'	// CH_F6
@@ -217,6 +227,49 @@
 
 #define ERROR_DEFINE_ME													255
 
+
+
+/*****************************************************************************/
+/*                                  Overlays                                 */
+/*****************************************************************************/
+
+#define NUM_OVERLAYS			9
+
+#define OVERLAY_SCREEN			0
+#define OVERLAY_FOLDER			1
+#define OVERLAY_CREATE_MAP		2
+#define OVERLAY_CREATE_LEVEL	3
+#define OVERLAY_COMBAT			4
+#define OVERLAY_INVENTORY		5
+#define OVERLAY_GAMEOVER		6
+#define OVERLAY_NOTICE_BOARD	7
+#define OVERLAY_CREATE_CAVERN	8
+
+#define OVERLAY_1_SLOT                     0x05
+#define OVERLAY_1_VALUE                    0x08
+#define OVERLAY_2_SLOT                     0x05
+#define OVERLAY_2_VALUE                    0x09
+#define OVERLAY_3_SLOT                     0x05
+#define OVERLAY_3_VALUE                    0x0A
+#define OVERLAY_4_SLOT                     0x05
+#define OVERLAY_4_VALUE                    0x0B
+#define OVERLAY_5_SLOT                     0x05
+#define OVERLAY_5_VALUE                    0x0C
+#define OVERLAY_6_SLOT                     0x05
+#define OVERLAY_6_VALUE                    0x0D
+#define OVERLAY_7_SLOT                     0x05
+#define OVERLAY_7_VALUE                    0x0E
+#define OVERLAY_8_SLOT                     0x05
+#define OVERLAY_8_VALUE                    0x0F
+#define OVERLAY_9_SLOT                     0x05
+#define OVERLAY_9_VALUE                    0x10
+#define OVERLAY_10_RESERVED_SLOT           0x05
+#define OVERLAY_10_RESERVED_VALUE          0x11
+
+#define OVERLAY_START_ADDR					0xA000	// in CPU memory space, the start of overlay memory
+#define OVERLAY_SLOT						0x05
+#define IO_SLOT								0x06
+
 /*****************************************************************************/
 /*                               Enumerations                                */
 /*****************************************************************************/
@@ -244,6 +297,13 @@
 //    int32_t	ds_Tick;	      /* Number of ticks past minute */
 // } DateStamp; /* DateStamp */
 
+typedef struct Overlay
+{
+	uint8_t		lut_slot_;	// 08-0f, refers to ZP address
+	uint8_t		lut_value_; // 00-80, refers to physical memory, each 8K bank goes up by 1
+} Overlay;
+
+
 /*****************************************************************************/
 /*                       Public Function Prototypes                          */
 /*****************************************************************************/
@@ -253,6 +313,8 @@
 void App_Exit(uint8_t the_error_number);
 
 
+// Brings the requested overlay into memory
+void App_LoadOverlay(uint8_t the_overlay_id);
 
 
 #endif /* FILE_MANAGER_H_ */

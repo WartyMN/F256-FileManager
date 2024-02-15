@@ -31,7 +31,7 @@
 #include <string.h>
 
 // F256 includes
-#include <f256.h>
+#include "f256.h"
 
 
 /*****************************************************************************/
@@ -600,7 +600,7 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 	if (the_file_handler == NULL)
 	{
 		//sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
-		Buffer_NewMessage(global_string_buff1);
+		//Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
 		goto error;
 	}
@@ -652,7 +652,7 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 		
 		user_input = getchar();
 		
-		if (user_input == CH_ESC || user_input == 'q')
+		if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 		{
 			keep_going = false;
 		}		
@@ -779,7 +779,7 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 		
 		user_input = getchar();
 		
-		if (user_input == CH_ESC || user_input == 'q')
+		if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 		{
 			keep_going = false;
 		}		

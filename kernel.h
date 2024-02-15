@@ -8,5 +8,8 @@
 // return negative number on any error
 int __fastcall__ mkfs(const char* name, const char drive);
 
+char GETIN(void);
+void kernel_init(void);
+
 
 #endif /* KERNEL_H_ */
