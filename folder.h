@@ -63,6 +63,9 @@
 #define _CBM_T_REG      0x10U   /* Bit set for regular files */
 #define _CBM_T_HEADER   0x05U   /* Disk header / title */
 #define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
+#define FNX_FILETYPE_FONT	200	// any 2k file ending in .fnt
+#define FNX_FILETYPE_EXE	201	// any .pgz, etc executable
+
 
 
 

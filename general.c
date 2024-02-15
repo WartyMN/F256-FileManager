@@ -602,36 +602,36 @@ char* General_PathPart(const char* the_file_path)
 }
 
 
-// //! Extract file extension into the passed char pointer, as new lowercased string pointer, if any found.
-// //! @param	the_file_name: the file name to extract an extension from
-// //! @param	the_extension: a pre-allocated buffer that will contain the extension, if any is detected. Must be large enough to hold the extension! No bounds checking is done. 
-// //! @return	Returns false if no file extension found.
-// bool General_ExtractFileExtensionFromFilename(const char* the_file_name, char* the_extension)
-// {
-// 	// LOGIC: 
-// 	//   if the first char is the first dot from right, we'll count the whole thing as an extension
-// 	//   if no dot char, then don't set extension, and return false
-// 	
-//     char*	dot = strrchr((char*)the_file_name, '.');
-//     int16_t	i;
-// 
-//     // (re) set the file extension to "" in case we have to return. It may have a value from whatever previous use was
-//     the_extension[0] = '\0';
-// 
-// 	if(!dot)
-//     {
-//     	return false;
-//     }
-// 
-// 	for (i = 1; dot[i]; i++)
-// 	{
-// 		the_extension[i-1] = General_ToLower(dot[i]);
-// 	}
-// 
-// 	the_extension[i-1] = '\0';
-// 
-// 	return true;
-// }
+//! Extract file extension into the passed char pointer, as new lowercased string pointer, if any found.
+//! @param	the_file_name: the file name to extract an extension from
+//! @param	the_extension: a pre-allocated buffer that will contain the extension, if any is detected. Must be large enough to hold the extension! No bounds checking is done. 
+//! @return	Returns false if no file extension found.
+bool General_ExtractFileExtensionFromFilename(const char* the_file_name, char* the_extension)
+{
+	// LOGIC: 
+	//   if the first char is the first dot from right, we'll count the whole thing as an extension
+	//   if no dot char, then don't set extension, and return false
+	
+    char*	dot = strrchr((char*)the_file_name, '.');
+    int16_t	i;
+
+    // (re) set the file extension to "" in case we have to return. It may have a value from whatever previous use was
+    the_extension[0] = '\0';
+
+	if(!dot)
+    {
+    	return false;
+    }
+
+	for (i = 1; dot[i]; i++)
+	{
+		the_extension[i-1] = General_ToLower(dot[i]);
+	}
+
+	the_extension[i-1] = '\0';
+
+	return true;
+}
 
 
 // return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
@@ -651,6 +651,14 @@ char* General_GetFileTypeString(uint8_t cbm_filetype_id)
 // 		
 // 		case _CBM_T_REL:
 // 			return General_GetString(ID_STR_FILETYPE_REL);
+
+		case FNX_FILETYPE_FONT:	
+			// any 2k file ending in .fnt
+			return General_GetString(ID_STR_FILETYPE_FONT);
+			
+		case FNX_FILETYPE_EXE:
+			// any .pgz, etc executable
+			return General_GetString(ID_STR_FILETYPE_EXE);
 // 		
 //		case _CBM_T_DEL:
 		case _CBM_T_DIR:

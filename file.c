@@ -26,6 +26,7 @@
 #include "text.h"
 
 // C includes
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,6 +39,12 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
+
+/*****************************************************************************/
+/*                           File-scope Variables                            */
+/*****************************************************************************/
+
+static uint8_t		temp_file_extension_buffer[FILE_MAX_EXTENSION_SIZE];	// 8 probably larger than needed, but... 
 
 /*****************************************************************************/
 /*                             Global Variables                              */
@@ -131,9 +138,39 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 // 	}
 // 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_size_string_	%p	size	%i", __func__ , __LINE__, the_file->file_size_string_, General_Strnlen(the_file->file_size_string_, FILE_SIZE_MAX_SIZE) + 1));
 
-	// get filetype
+	// accept filetype or determine subtype and use that instead
+	if (the_filetype == _CBM_T_REG)
+	{
+		// get file extensions
+		General_ExtractFileExtensionFromFilename(the_file->file_name_, (char*)&temp_file_extension_buffer);
+		
+		if (General_Strncasecmp((char*)&temp_file_extension_buffer, "fnt", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_FONT;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgz", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else
+		{
+			the_file->file_type_ = the_filetype;
+		}
+	}
+	else
+	{
+		the_file->file_type_ = the_filetype;
+	}
+	
 	the_file->is_directory_ = is_directory;
-	the_file->file_type_ = the_filetype;
 	the_file->device_number_ = the_device_num;
 	the_file->unit_number_ = the_unit_num;
 

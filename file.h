@@ -40,6 +40,7 @@
 #define PARAM_FILE_IS_FOLDER			true	// File_New() parameter
 #define PARAM_FILE_IS_NOT_FOLDER		false	// File_New() parameter
 
+#define FILE_MAX_EXTENSION_SIZE			8		// probably larger than needed, but... 
 
 
 /*****************************************************************************/
