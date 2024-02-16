@@ -49,8 +49,8 @@
 
 #define FOLDER_SYSTEM_ROOT_NAME		(char*)"[ROOT]"
 
-#define USE_COPY_OF_FOLDER_FILE		true	// for Folder_New()
-#define USE_FOLDER_FILE_AS_IS		false	// for Folder_New()
+#define PARAM_MAKE_COPY_OF_FOLDER_FILE			true	// for Folder_New()
+#define PARAM_DO_NOT_MAKE_COPY_OF_FOLDER_FILE	false	// for Folder_New()
 
 #define DO_NOT_DESTROY_FILE_OBJECT	false	// for Folder_RemoveFileListItem()
 #define DESTROY_FILE_OBJECT			true	// for Folder_RemoveFileListItem()
@@ -128,8 +128,9 @@ WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_cop
 
 // reset the folder, without destroying it, to a condition where it can be completely repopulated
 // destroys all child objects except the folder file, which is emptied out
+// recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number);
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number, char* new_path);
 
 // destructor
 // frees all allocated memory associated with the passed object, and the object itself

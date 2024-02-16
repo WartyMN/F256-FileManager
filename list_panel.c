@@ -31,6 +31,7 @@
 //#include "mouse.h"
 
 // C includes
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,6 +69,10 @@ extern char					global_dlg_button[3][10];	// arbitrary
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 extern uint8_t*		global_temp_buff_384b;
+
+extern char*		global_temp_path_1;
+extern char*		global_temp_path_2;
+
 extern uint8_t		temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 extern uint8_t		temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
@@ -186,6 +191,7 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	int8_t		the_drive_index;
 	uint8_t		the_new_device;
 	uint8_t		the_new_unit;
+	char		path_buff[3];
 	
 	the_drive_index = the_panel->drive_index_ + 1;
 	//sprintf(global_string_buff1, "panel drive index was %i before switch; trying to be %i; max=%u", the_panel->drive_index_, the_drive_index, max_drive_num);
@@ -209,9 +215,11 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	the_panel->device_number_ = the_new_device;
 	the_panel->unit_number_ = the_new_unit;
 
+	sprintf(path_buff, "%d:", the_new_device);
+	
 	App_LoadOverlay(OVERLAY_FOLDER);
 
-	if (Folder_Reset(the_panel->root_folder_, the_new_device, the_new_unit) == false)
+	if (Folder_Reset(the_panel->root_folder_, the_new_device, the_new_unit, path_buff) == false)
 	{
 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -613,19 +621,22 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	int16_t				the_current_row;
 	WB2KFileObject*		the_file;
 	bool				success;
-	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE];
-	char*				the_path = the_path_buffer;
+	uint8_t				orig_dialog_width;
+	uint8_t				temp_dialog_width;
 	
 	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
+
 	if (the_current_row < 0)
 	{
 		return false;
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+
+// 	sprintf(global_string_buff1, "file to rename='%s'", the_file->file_name_);
+// 	Buffer_NewMessage(global_string_buff1);
 
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), the_file->file_name_);
 	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
@@ -634,7 +645,22 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	// copy the current file name into the edit buffer so user can edit
 	General_Strlcpy(global_string_buff2, the_file->file_name_, FILE_MAX_FILENAME_SIZE);
 	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, FILE_MAX_FILENAME_SIZE);
+	orig_dialog_width = global_dlg.width_;
+	temp_dialog_width = General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 2; // +2 is for box draw chars
+	
+	if (temp_dialog_width < orig_dialog_width)
+	{
+		temp_dialog_width = orig_dialog_width - 2;
+	}
+	else
+	{
+		global_dlg.width_ = temp_dialog_width;
+		temp_dialog_width -= 2;
+	}
+	
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width);
+
+	global_dlg.width_ = orig_dialog_width;
 
 	// did user enter a name?
 	if (success == false)
@@ -642,15 +668,24 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	General_Strlcpy(the_path, the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
-	General_Strlcat(the_path, global_string_buff2, FILE_MAX_PATHNAME_SIZE);
-	//sprintf(global_string_buff1, "new path='%s'", the_path);
-	//Buffer_NewMessage(global_string_buff1);
-	//sprintf(global_string_buff1, "new filename='%s'", global_string_buff2);
-	//Buffer_NewMessage(global_string_buff2);
+	//General_Strlcpy(global_string_buff1, the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
+	//General_Strlcat(global_temp_path_1, global_string_buff2, FILE_MAX_PATHNAME_SIZE);
+	if (General_Strnlen(the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) == 2)
+	{
+		sprintf(global_temp_path_1, "%s%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
+	}
+	else
+	{
+		sprintf(global_temp_path_1, "%s/%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
+	}
+	
+// 	sprintf(global_string_buff1, "new path='%s'", global_temp_path_1);
+// 	Buffer_NewMessage(global_string_buff1);
+// 	sprintf(global_string_buff1, "new filename='%s'", global_string_buff2);
+// 	Buffer_NewMessage(global_string_buff1);
 	strcpy(global_string_buff1, global_string_buff2); // get a copy of the filename because it won't be available after rename
 	
-	success = File_Rename(the_file, global_string_buff2, the_path);
+	success = File_Rename(the_file, global_string_buff2, global_temp_path_1);
 	
 	if (success == false)
 	{
@@ -722,6 +757,63 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	return success;
 }
 
+
+// attempt to open the current file, if it is a directory, and display it in the same panel
+bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
+{
+	int16_t				the_current_row;
+	WB2KFileObject*		the_file;
+	bool				success;
+
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
+	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	
+	if (the_current_row < 0)
+	{
+		return false;
+	}
+	
+	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+
+	if (the_file->file_type_ != _CBM_T_DIR)
+	{
+		return false;
+	}
+	
+	//sprintf(global_string_buff1, "trying to set path '%s' as new root folder", the_file->file_path_);
+	//Buffer_NewMessage(global_string_buff1);
+
+	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, the_panel->unit_number_, the_file->file_path_) == false))
+	{
+		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+	}
+	
+// 	if (success)
+// 	{
+//		Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
+// 	}
+// 	else
+// 	{
+// 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
+// 	}
+	
+// 	// renew file listing
+// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_, the_other_panel->unit_number_) == false)
+// 	{
+// 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 	Buffer_NewMessage("folder reset called ok");
+	
+	Folder_RefreshListing(the_panel->root_folder_);
+	//Buffer_NewMessage("refresh listing called ok");
+	Panel_Init(the_panel);
+	//Buffer_NewMessage("panel init called ok");
+	
+	return true;
+}
 
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
@@ -1088,8 +1180,8 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, max_rows));
 	}
 	
-			sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
-			Buffer_NewMessage(global_string_buff1);
+	//sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
+	//Buffer_NewMessage(global_string_buff1);
 
 	// if there are no files in the folder the panel is showing, we can stop here
 	if (num_files == 0)
@@ -1224,8 +1316,8 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 
-			sprintf(global_string_buff1, "the_current_row=%u", the_current_row);
-			Buffer_NewMessage(global_string_buff1);
+	//sprintf(global_string_buff1, "the_current_row=%u", the_current_row);
+	//Buffer_NewMessage(global_string_buff1);
 	
 	if (the_current_row >= 0)
 	{

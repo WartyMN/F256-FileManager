@@ -56,6 +56,10 @@ extern uint8_t*		global_temp_buff_192b_1;
 extern uint8_t*		global_temp_buff_192b_2;
 extern uint8_t*		global_temp_buff_384b;
 
+extern char*		global_temp_path_1;
+extern char*		global_temp_path_2;
+
+
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
@@ -991,8 +995,8 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 		return false;
 	}
 
-	//sprintf(temp_buff, "old path: '%s', new path: '%s'", the_file->file_path_, new_file_path);
-	//Buffer_NewMessage((char*)&temp_buff);
+	//sprintf(global_string_buff1, "old path: '%s', new path: '%s'", the_file->file_path_, new_file_path);
+	//Buffer_NewMessage(global_string_buff1);
 	
 	if ( (result_code = rename( the_file->file_path_, new_file_path )) < 0)
 	{

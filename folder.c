@@ -42,12 +42,23 @@
 
 
 /*****************************************************************************/
+/*                          File-scoped Variables                            */
+/*****************************************************************************/
+
+static char			folder_temp_filename_buffer[FILE_MAX_FILENAME_SIZE];
+static char*		folder_temp_filename = folder_temp_filename_buffer;
+
+
+/*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
 
 extern uint8_t*		global_temp_buff_192b_1;
 extern uint8_t*		global_temp_buff_192b_2;
 extern uint8_t*		global_temp_buff_384b;
+
+extern char*		global_temp_path_1;
+extern char*		global_temp_path_2;
 
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
@@ -421,12 +432,13 @@ error:
 
 // reset the folder, without destroying it, to a condition where it can be completely repopulated
 // destroys all child objects except the folder file, which is emptied out
+// recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number)
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number, char* new_path)
 {
 // 	WB2KFileObject**	this_file;
 	char**				this_string_p;
-	char				path_buff[3];
+// 	char				path_buff[3];
 	
 //Buffer_NewMessage("folder reset: reached");	
 	// free all files in the folder's file list
@@ -486,9 +498,9 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	the_folder->unit_number_ = the_unit_number;
 	
 	// set the folder filepath and folder file filepath to match device+":"
-	sprintf(path_buff, "%d:", the_device_number);
+	//sprintf(path_buff, "%d:", the_device_number);
 
-	if ( (the_folder->folder_file_->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
+	if ( (the_folder->folder_file_->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
@@ -498,7 +510,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 
 //Buffer_NewMessage("folder reset: folder file file_path_ set");	
 	
-	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(path_buff, FILE_MAX_PATHNAME_SIZE)) == NULL)
+	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
@@ -884,14 +896,11 @@ WB2KFileObject* Folder_FindFileByRow(WB2KFolderObject* the_folder, uint8_t the_r
 uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 {	
 	bool				file_added;
-	char				the_parent_path_buffer[FILE_MAX_PATHNAME_SIZE];
-	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
-	char*				the_parent_path = the_parent_path_buffer;
-	char*				the_path = the_path_buffer;
 	char*				this_file_name;
 	struct DIR*			dir;
 	struct dirent*		dirent;
 	uint8_t				the_error_code = ERROR_NO_ERROR;
+	uint8_t				the_len;
 	uint16_t			file_cnt = 0;
 	WB2KFileObject*		this_file;
 	
@@ -919,9 +928,9 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
 	// set up base path for the folder + /. we will use this to build the filepaths for the files individually
 	
-	General_Strlcpy(the_parent_path, the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
+	General_Strlcpy(global_temp_path_1, the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
 // 	path_len = General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
-// 	General_Strlcat(the_parent_path, (char*)"/", FILE_MAX_PATHNAME_SIZE);
+// 	General_Strlcat(global_temp_path_1, (char*)"/", FILE_MAX_PATHNAME_SIZE);
 
 	// reset panel's file count, as we will be starting over from zero
 	the_folder->file_count_ = 0;
@@ -943,10 +952,44 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
         if (_DE_ISDIR(dirent->d_type))
         {
 			this_file_name = dirent->d_name;
-			General_Strlcpy(the_path, the_parent_path, FILE_MAX_PATHNAME_SIZE);
-			General_Strlcat(the_path, this_file_name, FILE_MAX_PATHNAME_SIZE);
+			
+			if (this_file_name[0] == '.' && this_file_name[1] == 0)
+			{
+				// this is the "current directory, not useful to us or user. skip
+				continue;
+			}
+			else if (this_file_name[0] == '.' && this_file_name[1] == '.' && this_file_name[2] == 0)
+			{
+				// this is the "parent directory", modify path to BE the parent path
+				the_len = (General_PathPart(global_temp_path_1) + 0) - global_temp_path_1;
+				memcpy(global_temp_path_2, global_temp_path_1, the_len);
+				global_temp_path_2[the_len] = '\0';
 
-			this_file = File_New(this_file_name, the_path, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+				if (General_Strnlen(global_temp_path_2, FILE_MAX_PATHNAME_SIZE) == 1)
+				{
+					// parent was the root (0:, 1:, or 2:), so we snipped it down too far, to just "0", "1", etc. 
+					global_temp_path_2[the_len++] = ':';
+					global_temp_path_2[the_len] = '\0';
+				}
+			}
+			else
+			{
+				// this is a normal directory, make path the parent + the filename
+				if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+				{
+					// parent is the root (0:, 1:, or 2:), so don't append /
+					sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+				}
+				else
+				{
+					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
+				}
+			}
+			
+			//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
+			//Buffer_NewMessage(global_string_buff1);
+		
+			this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
 
 			if (this_file == NULL)
 			{
@@ -995,10 +1038,20 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
         else if (_DE_ISREG(dirent->d_type))
         {
 			this_file_name = dirent->d_name;
-			General_Strlcpy(the_path, the_parent_path, FILE_MAX_PATHNAME_SIZE);
-			General_Strlcat(the_path, this_file_name, FILE_MAX_PATHNAME_SIZE);
+			//General_Strlcpy(global_temp_path_2, global_temp_path_1, FILE_MAX_PATHNAME_SIZE);
+			//General_Strlcat(global_temp_path_2, this_file_name, FILE_MAX_PATHNAME_SIZE);
+			
+			if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+			{
+				// parent is the root (0:, 1:, or 2:), so don't append /
+				sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+			}
+			else
+			{
+				sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
+			}
 
-			this_file = File_New(this_file_name, the_path, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+			this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
 
 			if (this_file == NULL)
 			{
@@ -1018,8 +1071,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
 			++file_cnt;
 			
-// 			sprintf(global_string_buff1, "file '%s' identified by _DE_ISREG", dirent->d_name);
-// 			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
+			//Buffer_NewMessage(global_string_buff1);
 			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
 			//Buffer_NewMessage(global_string_buff1);
 		}
@@ -1053,11 +1106,9 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 	uint8_t				name_uniqueifier;
 	uint8_t				name_len;
 	uint8_t				tries = 0;
-	uint8_t				max_tries = (10*FILE_MAX_FILENAME_SIZE);
-	char				filename_buffer[(FILE_MAX_FILENAME_SIZE*2)] = "";	// allow 2x size of buffer so we can snip off first by just advancing pointer
-	char				the_path_buffer[FILE_MAX_PATHNAME_SIZE] = "";
-	char*				new_filename = filename_buffer;
-	char*				the_target_file_path = the_path_buffer;
+	uint8_t				max_tries = 100;
+	//char				filename_buffer[(FILE_MAX_FILENAME_SIZE*2)] = "";	// allow 2x size of buffer so we can snip off first by just advancing pointer
+	//char*				new_filename = filename_buffer;
 	char*				the_target_folder_path;
 	bool				success = false;
 	WB2KList*			the_target_file_item;
@@ -1130,43 +1181,43 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		
 		// check if the new file path is the same as the old: would be the case in a 'duplicate this file' situation
 		// if so, figure out a compliant name that is unique. in fact, don't compare to the file at all, compare to entire folder!
-		strcpy(new_filename, the_file->file_name_);
+		strcpy(folder_temp_filename, the_file->file_name_);
 		name_uniqueifier = 48; // start artificially high so it resets to 48. 
 		
-		while ( (the_target_file_item = Folder_FindListItemByFileName(the_target_folder, new_filename)) != NULL && tries < max_tries)
+		while ( (the_target_file_item = Folder_FindListItemByFileName(the_target_folder, folder_temp_filename)) != NULL && tries < max_tries)
 		{		
 			// there is a file in this folder with the same name. 
 			// make name unique, then proceed with copy
 			// we have limited filesize to work with. if under limit, add '1'. if at limit, remove right-most character?
 			
-			name_len = strlen(new_filename);
+			name_len = strlen(folder_temp_filename);
 			
 			if (name_len < (FILE_MAX_FILENAME_SIZE-1) && name_uniqueifier > 57)
 			{
 				name_uniqueifier = 48; // ascii 48, a 0 char. 
-				new_filename[name_len] = name_uniqueifier;
-				new_filename[name_len+1] = '\0';
+				folder_temp_filename[name_len] = name_uniqueifier;
+				folder_temp_filename[name_len+1] = '\0';
 			}
 			else if (name_uniqueifier > 57)
 			{
 				// name is already at max, and we have cycled through digits (or haven't started yet)
 				// snip off leading char and try again
-				++new_filename;
+				++folder_temp_filename;
 				name_uniqueifier = 48; // ascii 48, a 0 char. 
-				new_filename[name_len] = name_uniqueifier;
-				new_filename[name_len+1] = '\0';
+				folder_temp_filename[name_len] = name_uniqueifier;
+				folder_temp_filename[name_len+1] = '\0';
 			}
 			else
 			{
 				// we are somewhere 1-9, replace last digit
-				new_filename[name_len-1] = name_uniqueifier;
+				folder_temp_filename[name_len-1] = name_uniqueifier;
 				++name_uniqueifier;
 			}
 			
 			++tries;
 		}
 
-		//sprintf(global_string_buff1, "new='%s', tries=%u", new_filename, tries);
+		//sprintf(global_string_buff1, "new='%s', tries=%u", folder_temp_filename, tries);
 		//Buffer_NewMessage(global_string_buff1);
 		
 		if (the_target_file_item != NULL)
@@ -1178,17 +1229,17 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		
 		// build a file path for target file, based on FileMover's current target folder path and source file name
 		the_target_folder_path = the_target_folder->folder_file_->file_path_;
-		General_CreateFilePathFromFolderAndFile(the_target_file_path, the_target_folder_path, new_filename);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_target_folder_path, folder_temp_filename);
 		
-		//sprintf(global_string_buff1, "tgt path='%s', tgt file='%s'", the_target_file_path, new_filename);
-		//sprintf(global_string_buff1, "tgt path='%s', tgt fldr path='%s', src fname='%s', src path='%s'", the_target_file_path, the_target_folder_path, the_file->file_name_, the_file->file_path_);
+		//sprintf(global_string_buff1, "tgt path='%s', tgt file='%s'", global_temp_path_2, folder_temp_filename);
+		//sprintf(global_string_buff1, "tgt path='%s', tgt fldr path='%s', src fname='%s', src path='%s'", global_temp_path_2, the_target_folder_path, the_file->file_name_, the_file->file_path_);
 		//Buffer_NewMessage(global_string_buff1);
 
 		// call function to copy file bits
-		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_path_, the_target_file_path));
+		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_path_, global_temp_path_2));
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
 		
-		bytes_copied = Folder_CopyFileBytes(the_file->file_path_, the_target_file_path);
+		bytes_copied = Folder_CopyFileBytes(the_file->file_path_, global_temp_path_2);
 		
 		if (bytes_copied < 0)
 		{
@@ -1740,7 +1791,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 					}
 // 				}
 // 				
-// 				if ( (the_sub_folder = Folder_New(this_file, USE_COPY_OF_FOLDER_FILE) ) == NULL)
+// 				if ( (the_sub_folder = Folder_New(this_file, PARAM_MAKE_COPY_OF_FOLDER_FILE) ) == NULL)
 // 				{
 // 					// couldn't get a folder object. probably should be returning some kind of error condition. TODO
 // 					LOG_ERR(("%s %d:  couldn't get a folder object for '%s'", __func__ , __LINE__, this_file->file_name_));

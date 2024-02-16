@@ -426,7 +426,7 @@ uint8_t* Text_GetMemLocForXY(uint8_t x, uint8_t y);
 // returns true if user entered something
 // populates the passed buffer with the text the user typed
 // user hitting ESC will always cause false to be returned, regardless of keyboard shortcuts.
-int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, int8_t the_max_length);
+int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, uint8_t the_max_length);
 
 // Display a Text-based dialog box, with 1, 2, or 3 buttons, a title, and a message body
 // Supports keyboard shortcuts for each button

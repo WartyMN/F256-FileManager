@@ -368,40 +368,40 @@ opendir (const char* name)
 // out(name[2]);
     
     name = path_without_drive(name, &drive);
-out(48+drive);
+//out(48+drive);
 // out(48+(uint8_t)strlen(name));
    
     if (dir_stream[drive]) {
-out(64);
+//out(64);
         return NULL;  // Only one at a time.
     }
     
     args.directory.open.drive = drive;
     args.common.buf = name;
     args.common.buflen = strlen(name);
-out(48+(uint8_t)args.common.buflen);
+//out(48+(uint8_t)args.common.buflen);
     stream = CALL(Directory.Open);
     if (error) {
-out(66); // B
+//out(66); // B
         return NULL;
     }
-out(67); // C
+//out(67); // C
     
     for(;;) {
         event.type = 0;
         asm("jsr %w", VECTOR(NextEvent));
         if (event.type == EVENT(directory.OPENED)) {
-out(68); // D
+//out(68); // D
             break;
         }
         if (event.type == EVENT(directory.ERROR)) {
-out(69); // E
+//out(69); // E
             return NULL;
         }
     }
     
     dir_stream[drive] = stream;
-out(70); // F
+//out(70); // F
     return (DIR*) &dir_stream[drive];
 }
 

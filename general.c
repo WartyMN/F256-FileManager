@@ -590,7 +590,7 @@ char* General_PathPart(const char* the_file_path)
 	
 	while (*this_point)
 	{
-		if (*this_point == '/')
+		if (*this_point == '/' || *this_point == ':')
 		{
 			the_directory_path = this_point;
 		}
