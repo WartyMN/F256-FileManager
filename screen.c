@@ -51,7 +51,7 @@ static UI_Button		uibutton[NUM_BUTTONS];
 static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] = 
 {
 	148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,
-7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,141,142,143,144,145,146,147,32,102,47,109,97,110,97,103,101,114,32,106,114,32,140,139,138,137,136,135,134,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,141,142,143,144,145,146,147,32,102,47,109,97,110,97,103,101,114,32,0x46,0x32,0x35,0x36,32,140,139,138,137,136,135,134,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
 153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,153,
 };
 
@@ -92,7 +92,7 @@ void Screen_DrawUI(void)
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 // 	Text_FillBoxAttrOnly(0, 1, 79, 1, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
-	Text_InvertBox(47, 1, 53, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat
+	Text_InvertBox(48, 1, 54, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat
 
 
 	// draw panels
@@ -246,6 +246,12 @@ void Screen_InitializeUI(void)
 	uibutton[BUTTON_ID_HEX_VIEW].string_id_ = ID_STR_FILE_HEX_PREVIEW;
 	//uibutton[BUTTON_ID_HEX_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
 
+	uibutton[BUTTON_ID_LOAD].id_ = BUTTON_ID_LOAD;
+	uibutton[BUTTON_ID_LOAD].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_LOAD].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 6;
+	uibutton[BUTTON_ID_LOAD].string_id_ = ID_STR_FILE_LOAD;
+	//uibutton[BUTTON_ID_LOAD].state_ = UI_BUTTON_STATE_DISABLED;
+
 	// set up the buttons - device actions
 	uibutton[BUTTON_ID_NEXT_DEVICE].id_ = BUTTON_ID_NEXT_DEVICE;
 	uibutton[BUTTON_ID_NEXT_DEVICE].x1_ = UI_MIDDLE_AREA_START_X;
@@ -264,6 +270,12 @@ void Screen_InitializeUI(void)
 	uibutton[BUTTON_ID_FORMAT].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 2;
 	uibutton[BUTTON_ID_FORMAT].string_id_ = ID_STR_DEV_FORMAT;
 	//uibutton[BUTTON_ID_FORMAT].state_ = UI_BUTTON_STATE_DISABLED;
+
+	uibutton[BUTTON_ID_MAKE_DIR].id_ = BUTTON_ID_MAKE_DIR;
+	uibutton[BUTTON_ID_MAKE_DIR].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_MAKE_DIR].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 3;
+	uibutton[BUTTON_ID_MAKE_DIR].string_id_ = ID_STR_DEV_MAKE_DIR;
+	//uibutton[BUTTON_ID_MAKE_DIR].state_ = UI_BUTTON_STATE_DISABLED;
 }
 
 
@@ -346,4 +358,15 @@ void App_LoadStrings(void)
 }
 
 
+// load in game font
+void LoadCustomFont(void)
+{
+	// logic: switch font bank in, call regular copy font routine, switch font bank out
+
+	zp_bank_num = CUSTOM_FONT_VALUE;
+	Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
+	//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
+	Text_UpdateFontData((char*)OVERLAY_START_ADDR, true);	// false=put into secondary font memory, not primary
+	Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
+}
 

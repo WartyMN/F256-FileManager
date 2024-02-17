@@ -2,67 +2,71 @@
 0	30	Are you sure you want to exit?
 1	13	Are you sure?
 2	16	Rename file '%s'
-3	17	Delete file '%s'?
+3	12	Delete '%s'?
 4	22	Erase and format disk?
 5	3	Yes
 6	2	No
 7	2	OK
 8	6	Cancel
 9	15	Enter new name:
-10	10	  DEVICE  
-11	7	 N Next
-12	10	 F Refresh
-13	9	 ` Format
-14	9	(SD Card)
-15	10	   FILE   
-16	10	C <<<<<<<<
-17	10	C >>>>>>>>
-18	8	X Delete
-19	10	D Duplicat
-20	8	R Rename
-21	10	T Txt View
-22	10	H Hex View
-23	6	L Load
-24	8	FILENAME
-25	4	DAYS
-26	4	TYPE
-27	5	BYTES
-28	22	Scanning for drives...
-29	15	%u drives found
-30	20	Files sorted by name
-31	20	Files sorted by size
-32	20	Files sorted by type
-33	13	Formatting...
-34	10	Copying...
-35	11	Deleting...
-36	20	Reading directory...
-37	17	File '%s' deleted
-38	25	File '%s' renamed to '%s'
-39	21	Unable to delete file
-40	4	Done
-41	6	(More)
-42	11	Hit any key
-43	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-44	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-45	3	DIR
-46	3	PRG
-47	3	REL
-48	3	SEQ
+10	20	Create new directory
+11	25	Enter new directory name:
+12	10	  DEVICE  
+13	7	 N Next
+14	10	 M New dir
+15	10	 F Refresh
+16	9	 ` Format
+17	9	(SD Card)
+18	10	   FILE   
+19	10	C <<<<<<<<
+20	10	C >>>>>>>>
+21	8	X Delete
+22	10	D Duplicat
+23	8	R Rename
+24	10	T Txt View
+25	10	H Hex View
+26	6	L Load
+27	8	FILENAME
+28	4	DAYS
+29	4	TYPE
+30	5	BYTES
+31	22	Scanning for drives...
+32	15	%u drives found
+33	20	Files sorted by name
+34	20	Files sorted by size
+35	20	Files sorted by type
+36	13	Formatting...
+37	10	Copying...
+38	11	Deleting...
+39	20	Reading directory...
+40	17	File '%s' deleted
+41	25	File '%s' renamed to '%s'
+42	21	Unable to delete file
+43	26	Unable to delete directory
+44	4	Done
+45	6	(More)
+46	11	Hit any key
+47	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+48	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
 49	3	 d 
-50	3	oth
-51	3	exe
-52	3	fnt
-53	14	Fatal error %u
-54	40	We don't need no stinkin' error messages
-55	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-56	16	The disk is full
-57	21	A disk error occurred
-58	26	Error: Could not open file
-59	31	Error: Could not list directory
-60	9	f/Manager
-61	32	f/Manager F256, version %u.%u.%u
-62	24	Copyright 2024 Micah Bly
-63	20	Cross-compiler: cc65
-64	41	Editor: BBEdit (the greatest of them all)
-65	76	This program is open source, using GPL 3 license. Please share improvements!
-66	46	https://github.com/WartyMN/F256jr-FileManager/
+50	3	PRG
+51	3	REL
+52	3	SEQ
+53	3	 d 
+54	3	oth
+55	3	exe
+56	3	fnt
+57	14	Fatal error %u
+58	40	We don't need no stinkin' error messages
+59	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+60	16	The disk is full
+61	21	A disk error occurred
+62	26	Error: Could not open file
+63	31	Error: Could not list directory
+64	9	f/Manager
+65	32	f/Manager F256, version %u.%u.%u
+66	24	Copyright 2024 Micah Bly
+67	20	Cross-compiler: cc65
+68	41	Editor: BBEdit (the greatest of them all)
+69	76	This program is open source, using GPL 3 license. Please share improvements!
+70	46	https://github.com/WartyMN/F256jr-FileManager/

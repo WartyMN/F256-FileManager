@@ -36,7 +36,7 @@
 /*****************************************************************************/
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					9
+#define NUM_BUTTONS					11
 
 #define BUTTON_ID_COPY				0
 #define BUTTON_ID_DELETE			1
@@ -44,15 +44,17 @@
 #define BUTTON_ID_RENAME			3
 #define BUTTON_ID_TEXT_VIEW			4
 #define BUTTON_ID_HEX_VIEW			5
+#define BUTTON_ID_LOAD				6
 
-#define BUTTON_ID_NEXT_DEVICE		6
-#define BUTTON_ID_REFRESH			7
-#define BUTTON_ID_FORMAT			8
+#define BUTTON_ID_NEXT_DEVICE		7
+#define BUTTON_ID_REFRESH			8
+#define BUTTON_ID_FORMAT			9
+#define BUTTON_ID_MAKE_DIR			10
 
 #define FIRST_ACTIVATING_BUTTON		BUTTON_ID_COPY
-#define LAST_ACTIVATING_BUTTON		BUTTON_ID_HEX_VIEW
+#define LAST_ACTIVATING_BUTTON		BUTTON_ID_LOAD
 #define FIRST_PERMSTATE_BUTTON		BUTTON_ID_NEXT_DEVICE
-#define LAST_PERMSTATE_BUTTON		BUTTON_ID_FORMAT
+#define LAST_PERMSTATE_BUTTON		BUTTON_ID_MAKE_DIR
 
 #define DEVICE_ID_UNSET				-1
 #define DEVICE_ID_ERROR				-2
@@ -62,7 +64,7 @@
 #define UI_BUTTON_STATE_SELECTED	2
 
 #define UI_MIDDLE_AREA_START_X			35
-#define UI_MIDDLE_AREA_START_Y			6
+#define UI_MIDDLE_AREA_START_Y			7
 #define UI_MIDDLE_AREA_WIDTH			10
 
 #define UI_MIDDLE_AREA_DEV_MENU_Y		(UI_MIDDLE_AREA_START_Y + 0)
@@ -160,6 +162,9 @@ void Screen_DrawFileMenuItems(bool as_active);
 
 // load strings into memory and set up string pointers
 void App_LoadStrings(void);
+
+// load in game font
+void LoadCustomFont(void);
 
 
 #endif /* SCREEN_H_ */
