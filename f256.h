@@ -46,6 +46,7 @@
 
 #define TEXT_FONT_WIDTH				8	// for text mode, the width of the fixed-sized font chars
 #define TEXT_FONT_HEIGHT			8	// for text mode, the height of the fixed-sized font chars.
+#define TEXT_FONT_BYTE_SIZE			(8*256)
 
 #define VIDEO_MODE_FREQ_BIT			0x01	//!> the bits in the 2nd byte of the system control register that define video mode (resolution). if this bit is set, resolution is 70hz 320x200 (text mode 80*25). if clar, is 60hz 630*240
 #define VIDEO_MODE_DOUBLE_X_BIT		0x02	//!> the bits in the 2nd byte of the system control register control text mode doubling in horizontal. if set, text mode chars are doubled in size, producing 40 chars across
@@ -93,7 +94,8 @@
 #define TEXT_BACK_LUT					0xd840		// BG_CHAR_LUT_PTR	Text Background Look-Up Table
 
 // Tiny VICKY I/O page 1 addresses
-#define FONT_MEMORY_BANK				0xc000		// FONT_MEMORY_BANK0	FONT Character Graphic Mem
+#define FONT_MEMORY_BANK0				0xc000		// FONT_MEMORY_BANK0	FONT Character Graphic Mem (primary)
+#define FONT_MEMORY_BANK1				0xc800		// FONT_MEMORY_BANK1	FONT Character Graphic Mem (secondary)
 #define VICKY_CLUT0						0xd000		// each addition LUT is 400 offset from here
 #define VICKY_CLUT1						(VICKY_CLUT0 + 0x400)	// each addition LUT is 400 offset from here
 #define VICKY_CLUT2						(VICKY_CLUT1 + 0x400)	// each addition LUT is 400 offset from here

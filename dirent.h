@@ -57,11 +57,11 @@ struct dirent {
 #define _DE_ISLNK(t)  (0)
 
 
-DIR* __fastcall__ opendir (const char* name);
+DIR* __fastcall__ Kernel_OpenDir (const char* name);
 
-struct dirent* __fastcall__ readdir (DIR* dir);
+struct dirent* __fastcall__ Kernel_ReadDir (DIR* dir);
 
-int __fastcall__ closedir (DIR* dir);
+int __fastcall__ Kernel_CloseDir (DIR* dir);
 
 long __fastcall__ telldir (DIR* dir);
 

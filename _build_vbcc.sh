@@ -129,7 +129,7 @@ cp ../strings/strings.bin ../release/
 
 
 # copy pgz binary to SD Card on F256 via fnxmanager
-# python3 $FOENIXMGR/FoenixMgr/fnxmgr.py --copy fm.pgZ
+python3 $FOENIXMGR/FoenixMgr/fnxmgr.py --copy fm.pgZ
 
 
 

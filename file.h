@@ -130,11 +130,16 @@ bool File_IsFolder(WB2KFileObject* the_file);
 // allocates and returns a copy of the file size as human readable string (for use with list mode headers or with info panel, etc.)
 char* File_GetFileSizeStringCopy(WB2KFileObject* the_file);
 
+
+// populate a buffer with bytes from the file. Non-interactive: it reads until end of file or specified number of bytes. 
+// Returns false on any error
+bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t buffer_size);
+
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer);
+bool File_GetTextContents(WB2KFileObject* the_file);
 
 // populate a buffer with a hex dump of the file, reading the specified number of bytes into the buffer. Returns false on any error
-bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer);
+bool File_GetHexContents(WB2KFileObject* the_file);
 
 // get the free disk space on the parent disk of the file
 // returns -1 in event of error

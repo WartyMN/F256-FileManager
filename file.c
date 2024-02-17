@@ -20,7 +20,9 @@
 #include "comm_buffer.h"
 #include "file.h"
 #include "general.h"
+#include "kernel.h"
 #include "list_panel.h"
+#include "memory.h"
 #include "screen.h"
 #include "strings.h"
 #include "text.h"
@@ -52,13 +54,12 @@ static uint8_t		temp_file_extension_buffer[FILE_MAX_EXTENSION_SIZE];	// 8 probab
 
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
-extern uint8_t*		global_temp_buff_192b_1;
-extern uint8_t*		global_temp_buff_192b_2;
-extern uint8_t*		global_temp_buff_384b;
 
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
+extern uint8_t				zp_bank_num;
+#pragma zpsym ("zp_bank_num");
 
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
@@ -605,8 +606,92 @@ uint8_t File_GetFileTypeID(WB2KFileObject* the_file)
 }
 
 
+// populate a buffer with bytes from the file. Non-interactive: it reads until end of file or specified number of bytes. 
+// Returns false on any error
+bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t buffer_size)
+{
+	// LOGIC
+	//   does not care about file type: any time of file will allowed
+	//   open file for reading > read first chunk into buffer > if space still available and not EOF continue
+	//   return false on any error
+	
+	// LOGIC
+	//   we need to keep the file stream open until it is used up, or buffer max size is hit
+
+	int16_t		bytes_read; // kernel read() gives back int16_t
+	uint16_t	bytes_still_needed; // kernel read() expects uint16_t for num bytes to read
+	FILE*		the_file_handler;
+
+	if (the_file == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		return false;
+	}
+
+	//sprintf(global_string_buff1, "starting binary data read of %u bytes to location %p", buffer_size, the_buffer);
+	//Buffer_NewMessage(global_string_buff1);
+
+	bytes_still_needed = buffer_size;
+	
+	//Open file
+	the_file_handler = fopen((char*)the_file->file_path_, "r");	
+
+	if (the_file_handler == NULL)
+	{
+		sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
+		Buffer_NewMessage(global_string_buff1);
+		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
+		goto error;
+	}
+
+	while (bytes_still_needed > 0)
+	{
+		bytes_read = fread((uint8_t*)STORAGE_FILE_BUFFER_1, sizeof(char), STORAGE_FILE_BUFFER_1_LEN, the_file_handler);
+	
+		//sprintf(global_string_buff1, "bytes_read=%i", bytes_read);
+		//Buffer_NewMessage(global_string_buff1);
+		
+		if (bytes_read == -1)
+		{
+			// error condition
+			Buffer_NewMessage("bytes_read < 0");
+			LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
+			goto error;
+		}
+		else if (bytes_read == 0)
+		{
+			// EOF reached
+			Buffer_NewMessage("EOF reached");
+			bytes_still_needed = 0;
+		}
+		else
+		{
+			// we got some bytes, potentially all wanted bytes, so copy to final buffer
+			zp_bank_num = CUSTOM_FONT_VALUE;
+			Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
+			memcpy((void*)the_buffer, (uint8_t*)STORAGE_FILE_BUFFER_1, bytes_read);
+			//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
+			Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
+			bytes_still_needed -= bytes_read;
+			the_buffer += bytes_read;
+		}
+
+		//sprintf(global_string_buff1, "bytes_still_needed=%i, buffer=%p", bytes_still_needed, the_buffer);
+		//Buffer_NewMessage(global_string_buff1);
+	}
+
+	fclose(the_file_handler);
+		
+	return true;
+	
+error:
+	if (the_file_handler) fclose(the_file_handler);
+	return false;
+}
+
+
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
+bool File_GetTextContents(WB2KFileObject* the_file)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -619,13 +704,13 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 	//   we only need one buffer as we read and print to screen line by line (80 bytes)
 	//   we need to keep the file stream open until it is used up, or user exits loop
 
+	FILE*		the_file_handler;
+	uint8_t		y;
+	uint8_t		user_input;
 	int16_t		s_bytes_read_from_disk;
 	uint16_t	num_bytes_to_read = MEM_TEXT_VIEW_BYTES_PER_ROW;
 	bool		keep_going = true;
-	uint8_t		y;
-	uint8_t		user_input;
-	char*		buffer_start = the_buffer;
-	FILE*		the_file_handler;
+	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
 
 	if (the_file == NULL)
 	{
@@ -636,7 +721,6 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 // 	Buffer_NewMessage("starting text read...");
 	
 	the_file_handler = fopen((char*)the_file->file_path_, "r");
-	//the_file_handler = fopen((char*)the_file->file_name_, "r");
 	
 	if (the_file_handler == NULL)
 	{
@@ -660,8 +744,6 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 		// per-row loop
 		do
 		{
-			the_buffer = buffer_start;
-
 			s_bytes_read_from_disk = fread(the_buffer, sizeof(char), num_bytes_to_read, the_file_handler);
 	
 			if ( s_bytes_read_from_disk < 0)
@@ -699,8 +781,7 @@ bool File_GetTextContents(WB2KFileObject* the_file, char* the_buffer)
 		}		
 	}
 
-	fclose(the_file_handler);
-	
+	fclose(the_file_handler);	
 	
 	return true;
 	
@@ -711,7 +792,7 @@ error:
 
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
+bool File_GetHexContents(WB2KFileObject* the_file)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -724,14 +805,15 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 	//   we only need one buffer as we read and print to screen line by line (80 bytes)
 	//   we need to keep the file stream open until it is used up, or user exits loop
 
-	int16_t		s_bytes_read_from_disk;
-	uint16_t	num_bytes_to_read = MEM_DUMP_BYTES_PER_ROW;
-	bool		keep_going = true;
+	FILE*		the_file_handler;
 	uint8_t		y;
 	uint8_t		cut_off_pos;
 	uint8_t		user_input;
-	FILE*		the_file_handler;
+	int16_t		s_bytes_read_from_disk;
+	uint16_t	num_bytes_to_read = MEM_DUMP_BYTES_PER_ROW;
+	bool		keep_going = true;
 	uint8_t*	loc_in_file = 0x000;	// will track the location within the file, so we can show to users on left side. 
+	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
 
 	if (the_file == NULL)
 	{
@@ -742,7 +824,6 @@ bool File_GetHexContents(WB2KFileObject* the_file, char* the_buffer)
 // 	Buffer_NewMessage("starting text read...");
 	
 	the_file_handler = fopen((char*)the_file->file_path_, "r");
-	//the_file_handler = fopen((char*)the_file->file_name_, "r");
 	
 	if (the_file_handler == NULL)
 	{
@@ -908,13 +989,24 @@ error:
 // delete the passed file/folder. If a folder, it must have been previously emptied of files.
 bool File_Delete(WB2KFileObject* the_file, void* not_needed)
 {
+	bool	success;
+	
 	if (the_file == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
-	if (remove(the_file->file_path_) < 0)
+	if (the_file->is_directory_)
+	{
+		success = Kernel_DeleteFile(the_file->file_path_);
+	}
+	else
+	{
+		success = Kernel_DeleteFolder(the_file->file_path_);
+	}
+	
+	if (success == false)
 	{
 		LOG_ERR(("%s %d: not able to delete file '%s' @ '%s'", __func__ , __LINE__, the_file->file_name_, the_file->file_path_));
 		goto error;
