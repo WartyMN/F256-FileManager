@@ -10,8 +10,9 @@
 #include <fcntl.h>
 
 #include "api.h"
+#include "app.h"	// need for FILE_MAX_PATHNAME_SIZE
 #include "dirent.h"  // Users are expected to "-I ." to get the local copy.
-
+#include "general.h" // need for strnlen
 #include "f256.h" // need for F1 key values
 
 #define VECTOR(member) (size_t) (&((struct call*) 0xff00)->member)
@@ -210,7 +211,7 @@ open(const char *fname, int mode, ...)
 }
 
 static int 
-kernel_read(int fd, void *buf, uint16_t nbytes)
+Kernel_Read(int fd, void *buf, uint16_t nbytes)
 {
     
     if (fd == 0) {
@@ -260,7 +261,7 @@ read(int fd, void *buf, uint16_t nbytes)
     
     // fread should be doing this, but it isn't, so we're doing it.
     while (gathered < nbytes) {
-        int returned = kernel_read(fd, data + gathered, nbytes - gathered);
+        int returned = Kernel_Read(fd, data + gathered, nbytes - gathered);
         if (returned <= 0) {
             break;
         }
@@ -331,6 +332,7 @@ write(int fd, const void *buf, uint16_t nbytes)
     return total;
 }
 
+
 int
 close(int fd)
 {
@@ -359,7 +361,7 @@ close(int fd)
 static char dir_stream[MAX_DRIVES];
 
 DIR* __fastcall__ 
-opendir (const char* name)
+Kernel_OpenDir(const char* name)
 {
     char drive, stream;
 
@@ -406,7 +408,7 @@ opendir (const char* name)
 }
 
 struct dirent* __fastcall__ 
-readdir(DIR* dir)
+Kernel_ReadDir(DIR* dir)
 {
     static struct dirent dirent;
     
@@ -478,7 +480,7 @@ readdir(DIR* dir)
     
     
 int __fastcall__ 
-closedir (DIR* dir)
+Kernel_CloseDir (DIR* dir)
 {
     if (!dir) {
         return -1;
@@ -501,8 +503,10 @@ closedir (DIR* dir)
     }
 }
 
-int __fastcall__ 
-remove(const char* name)
+
+// deletes the file at the specified path
+// returns false in all error conditions
+bool __fastcall__ Kernel_DeleteFile(const char* name)
 {
     char drive, stream;
     
@@ -512,7 +516,7 @@ remove(const char* name)
     args.common.buflen = strlen(name);
     stream = CALL(File.Delete);
     if (error) {
-        return -1;
+        return false;
     }
     
     for(;;) {
@@ -522,12 +526,42 @@ remove(const char* name)
             break;
         }
         if (event.type == EVENT(file.ERROR)) {
-            return -1;
+            return false;
         }
     }
     
-    return 0;
+    return true;
 }
+
+// deletes the folder at the specified path
+// returns false in all error conditions
+bool __fastcall__ Kernel_DeleteFolder(const char* name)
+{
+    char drive, stream;
+    
+    name = path_without_drive(name, &drive);
+    args.file.delete.drive = drive;
+    args.common.buf = name;
+    args.common.buflen = strlen(name);
+    stream = CALL(Directory.RmDir);
+    if (error) {
+        return false;
+    }
+    
+    for(;;) {
+        event.type = 0;
+        asm("jsr %w", VECTOR(NextEvent));
+        if (event.type == EVENT(directory.DELETED)) {
+            break;
+        }
+        if (event.type == EVENT(directory.ERROR)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 
 int __fastcall__ 
 rename(const char* name, const char *to)
@@ -596,3 +630,118 @@ mkfs(const char* name, const char drive)
     
     return 0;	
 }
+
+
+// perform a MkDir on the specified device, with the specified path
+// returns false on any error
+bool Kernal_MkDir(char* the_path, uint8_t drive_num)
+{
+    char stream;
+    
+    the_path += 2;	// get past 0:, 1:, 2:, etc. 
+
+    args.directory.mkdir.drive = drive_num;
+    //args.directory.mkdir.path = the_path;
+    //args.directory.mkdir.path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE) + 1;
+    args.common.buf = the_path;
+    args.common.buflen = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE) + 1;
+    //args.directory.mkdir.cookie = 126; // NOT HANDLING THIS CURRENTLY. FUTURE: PROVIDE A COOKIE AND USE IT TO TRACK COMPLETION?
+
+    stream = CALL(Directory.MkDir);
+    
+    if (error)
+    {
+        return false;
+    }
+    
+    for(;;) {
+        event.type = 0;
+        asm("jsr %w", VECTOR(NextEvent));
+        if (event.type == EVENT(directory.CREATED)) {
+            break;
+        }
+        if (event.type == EVENT(file.ERROR)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Directory.MkDir
+// 
+// Creates a sub-directory.
+// 
+// Input
+// 
+// kernel.args.directory.mkdir.drive contains the device id (0 = SD, 1 = IEC #8, 2 = IEC #9).
+// kernel.args.directory.mkdir.path points to a buffer containing the path.
+// kernel.args.directory.mkdir.path_len contains the length of the path above. May be zero for the root directory.
+// kernel.args.directory.mkdir.cookie contains a user-supplied cookie for matching the completed event.
+// Output
+// 
+// Carry cleared on success.
+// Carry set on error (device not found, kernel out of event or stream objects).
+// Events
+// 
+// On successful completion, the kernel will queue an event.directory.CREATED event.
+// On error, the kernel will queue an event.directory.ERROR event.
+// In either case, event.directory.cookie will contain the above cookie.
+
+
+// calls Pexec and tells it to run the specified path. 
+// returns error on error, and never returns on success (because pexec took over)
+bool Kernal_RunNamed(char* the_path)
+{
+    char		stream;
+    uint8_t		path_len;
+	
+	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
+	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for '- filetorun.pgz'
+	// per dwsjason, these should be located at $200, with the pointers starting at $280. 
+	//  'arg0- to pexec should be "-", then arg1 should be the name of the pgz you want to run, includign the whole path. 
+	args.common.buf = (char*)0x0200; //"-";
+	args.common.buflen = 2;
+	
+    // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
+    the_path += 2;	// get past 0:, 1:, 2:, etc.     
+	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
+
+	General_Strlcpy((char*)0x0202, the_path, path_len);
+	
+	args.common.ext = (char*)0x0280;
+	args.common.extlen = 4;
+	
+	stream = CALL(RunNamed);
+    
+    if (error) 
+    {
+        return false;
+    }
+    
+    return true; // just so cc65 is happy; but will not be hit in event of success as pexec will already be running.
+}
+
+// Input
+// • kernel.args.buf points to a buffer containing the name of the program to run. 
+// • kernel.args.buflen contains the length of the name.
+// Output
+// • On success, the call doesn’t return.
+// • Carry set on error (a program with the provided name was not found).
+// Notes
+// • The name match is case-insensitive.
+
+
+//https://github.com/FoenixRetro/Documentation/blob/main/f256/programming-developing.md
+
+// Parameter Passing
+// 
+// Although not part of the kernel specification, a standardized method of passing commandline arguments to programs exists.
+// 
+// Both DOS and SuperBASIC are able to pass arguments to the program to run, and pexec is also able to pass any further arguments after the filename on to the program. As an example, /- program.pgz hello in SuperBASIC would start pexec with the parameters -, program.pgz, and hello. pexec would then load program.pgz, and start it with the parameters program.pgz and hello.
+// 
+// Arguments are passed in the ext and extlen kernel arguments. This approach is suitable for passing arguments through the RunNamed and RunBlock kernel functions, and is also used by pexec when starting a PGX or PGZ program.
+// 
+// ext will contain an array of pointers, one for each argument given on the commandline. The first pointer is the program name itself. The list is terminated with a null pointer. extlen contains the length in bytes of the array, less the null pointer. For instance, if two parameters are passed, extlen will be 4.
+// 
+// pexec reserves $200-$2FF for parameters - programs distributed in the PGX and PGZ formats should therefore load themselves no lower than $0300, if they want to access commandline parameters. If they do not use the commandline parameters, they may load themselves as low as $0200.

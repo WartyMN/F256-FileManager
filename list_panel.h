@@ -124,6 +124,8 @@ WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel);
 
 // **** OTHER FUNCTIONS *****
 
+// create a new folder in the current one
+bool Panel_MakeDir(WB2KViewPanel* the_panel);
 
 // format the specified drive
 // DANGER WILL ROBINSON!
@@ -152,6 +154,9 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel);
 
 // delete the currently selected file
 bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel);
+
+// Launch current file if EXE, or load font if FNT
+bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel);
 
 // attempt to open the current file, if it is a directory, and display it in the same panel
 bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel);

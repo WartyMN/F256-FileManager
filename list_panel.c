@@ -17,18 +17,20 @@
 /*****************************************************************************/
 
 // project includes
+#include "list_panel.h"
+#include "api.h"
+#include "app.h"
 #include "comm_buffer.h"
 #include "file.h"
-#include "app.h"
 #include "folder.h"
 #include "general.h"
-#include "text.h"
+#include "kernel.h" // most kernel calls are covered by stdio.h etc, but mkfs was not, so added this header file
 #include "list.h"
-#include "list_panel.h"
+#include "memory.h"
 #include "screen.h"
 #include "strings.h"
-#include "kernel.h" // most kernel calls are covered by stdio.h etc, but mkfs was not, so added this header file
-//#include "mouse.h"
+#include "sys.h"
+#include "text.h"
 
 // C includes
 #include <stdint.h>
@@ -68,7 +70,6 @@ extern char					global_dlg_button[3][10];	// arbitrary
 
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
-extern uint8_t*		global_temp_buff_384b;
 
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
@@ -78,7 +79,10 @@ extern uint8_t		temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: d
 extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
 extern int8_t		global_connected_unit[DEVICE_MAX_DEVICE_COUNT];		// will be 0 or 1 if connected, or -1 if not. paired with global_connected_device.
 
+extern uint8_t				zp_bank_num;
+#pragma zpsym ("zp_bank_num");
 
+extern struct call_args args; // in gadget's version of f256 lib, this is allocated and initialized with &args in crt0. 
 
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
@@ -306,6 +310,70 @@ WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel)
 
 
 // **** OTHER FUNCTIONS *****
+
+
+// create a new folder in the current one
+bool Panel_MakeDir(WB2KViewPanel* the_panel)
+{
+	bool				success;
+	uint8_t				current_path_len;
+	uint8_t				available_len;
+	uint8_t				temp_dialog_width;
+
+	temp_dialog_width = global_dlg.width_ - 2;
+	
+	// calculate the max length of the folder the user can enter, based on max path len - current len - 1 for separator
+	current_path_len = General_Strnlen(the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
+	available_len = FILE_MAX_PATHNAME_SIZE - current_path_len - 1;
+
+	// we are hard limited by max window width at this point. 80-2 for box chars.
+	if (available_len > temp_dialog_width)
+	{
+		available_len = temp_dialog_width;
+	}
+
+// 	sprintf(global_string_buff1, "current_path_len=%u, available_len=%u", current_path_len, available_len);
+// 	Buffer_NewMessage(global_string_buff1);
+// 	sprintf(global_string_buff1, "temp_dialog_width=%u, orig_dialog_width=%u", temp_dialog_width, orig_dialog_width);
+// 	Buffer_NewMessage(global_string_buff1);
+	
+	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_NEW_FOLDER_TITLE), 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_FOLDER_NAME), 70);
+
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, available_len);
+
+	// did user enter a name?
+	if (success == false)
+	{
+		return false;
+	}
+
+	if (current_path_len == 2)
+	{
+		sprintf(global_temp_path_1, "%s%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
+	}
+	else
+	{
+		sprintf(global_temp_path_1, "%s/%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
+	}
+
+	//sprintf(global_string_buff1, "new folder path='%s', drive=%u", global_temp_path_1, the_panel->drive_index_);
+	//Buffer_NewMessage(global_string_buff1);
+	
+	success = Kernal_MkDir(global_temp_path_1, the_panel->drive_index_);
+	
+	if (success == false)
+	{
+		return false;
+	}
+	
+	// renew file listing
+	App_LoadOverlay(OVERLAY_FOLDER);
+	Folder_RefreshListing(the_panel->root_folder_);
+	Panel_Init(the_panel);			
+
+	return success;
+}
 
 
 // format the specified drive
@@ -704,6 +772,51 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 }
 
 
+// Launch current file if EXE, or load font if FNT
+bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
+{
+	WB2KFileObject*		the_file;
+	int16_t				the_current_row;
+	bool				success;
+
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
+	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	
+	if (the_current_row < 0)
+	{
+		return false;
+	}
+	
+	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+	strcpy(global_temp_path_1, the_file->file_path_);
+	
+	if (the_file->file_type_ == FNX_FILETYPE_FONT)
+	{
+		success = File_GetBinaryContents(the_file, (char*)OVERLAY_START_ADDR, TEXT_FONT_BYTE_SIZE);
+		
+		if (success)
+		{
+			zp_bank_num = CUSTOM_FONT_VALUE;
+			Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
+			//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
+			Text_UpdateFontData((char*)OVERLAY_START_ADDR, true);	// false=put into secondary font memory, not primary
+			Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
+		}
+	}
+	else if (the_file->file_type_ == FNX_FILETYPE_EXE)
+	{
+		success = Kernal_RunNamed(the_file->file_path_);
+	}
+	else
+	{
+		return false;
+	}
+	
+	return success;
+}
+
+
 // delete the currently selected file
 bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 {
@@ -743,6 +856,15 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	
 	if (success == false)
 	{
+		if (the_file->is_directory_)
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_DIR_FAILURE));
+		}
+		else
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_FILE_FAILURE));
+		}
+		
 		return false;
 	}
 	
@@ -878,7 +1000,7 @@ bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetHexContents(the_file, (char*)global_temp_buff_384b);
+	success = File_GetHexContents(the_file);
 	
 	return success;
 }
@@ -901,7 +1023,7 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 	}
 
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetTextContents(the_file, (char*)global_temp_buff_384b);
+	success = File_GetTextContents(the_file);
 	
 	return success;
 }
@@ -1416,11 +1538,11 @@ bool Panel_ReSelectCurrentFile(WB2KViewPanel* the_panel)
 //     printf (" Dir %s:\n", curdir);
 //     free (curdir);
 // 
-//     /* Calling opendir() always with "." avoids
+//     /* Calling Kernel_OpenDir() always with "." avoids
 //     ** fiddling around with pathname separators.
 //     */
-//     dir = opendir (".");
-//     while (ent = readdir (dir)) {
+//     dir = Kernel_OpenDir (".");
+//     while (ent = Kernel_ReadDir (dir)) {
 // 
 //         if (_DE_ISREG (ent->d_type)) {
 //             printf ("  File %s\n", ent->d_name);
@@ -1429,14 +1551,14 @@ bool Panel_ReSelectCurrentFile(WB2KViewPanel* the_panel)
 // 
 //         /* We defer handling of subdirectories until we're done with the
 //         ** current one as several targets don't support other disk i/o
-//         ** while reading a directory (see cc65 readdir() doc for more).
+//         ** while reading a directory (see cc65 Kernel_ReadDir() doc for more).
 //         */
 //         if (_DE_ISDIR (ent->d_type)) {
 //             subdirs = realloc (subdirs, FILENAME_MAX * (dirnum + 1));
 //             strcpy (subdirs + FILENAME_MAX * dirnum++, ent->d_name);
 //         }
 //     }
-//     closedir (dir);
+//     Kernel_CloseDir (dir);
 // 
 //     for (num = 0; num < dirnum; ++num) {
 //         if (printdir (subdirs + FILENAME_MAX * num))
