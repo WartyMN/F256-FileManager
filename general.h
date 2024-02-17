@@ -291,7 +291,9 @@ void General_DelayTicks(uint16_t ticks);
 // **** MISC UTILITIES *****
 
 
-
+// // Print out a section of memory in a hex viewer style
+// // display length is hard-coded to one screen at 80x59 (MEM_DUMP_BYTES_PER_ROW * MAX_TEXT_VIEW_ROWS_PER_PAGE)
+// void General_ViewHexDump(uint8_t* the_buffer);
 
 // **** LOGGING AND DEBUG UTILITIES *****
 

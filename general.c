@@ -21,6 +21,7 @@
 #include "folder.h"	// only need for the CBM file type definitions
 #include "strings.h"
 #include "memory.h"
+#include "text.h"
 #include "sys.h"
 
 // C includes
@@ -59,11 +60,9 @@
 /*****************************************************************************/
 
 
-uint8_t*				interbank_temp = (uint8_t*)STORAGE_INTERBANK_BUFFER;	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
-
 extern char*			global_string[NUM_STRINGS];
-extern uint8_t*			global_temp_buff_192b_1;
-extern uint8_t*			global_temp_buff_192b_2;
+extern char*			global_string_buff1;
+extern char*			global_string_buff2;
 
 
 extern uint8_t			zp_bank_num;
@@ -204,28 +203,9 @@ char* General_GetString(uint8_t the_string_id)
 	zp_bank_num = STRING_STORAGE_VALUE;
 	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
 
-	// DEBUG
-	//if (the_string_id == ID_STR_MONSTER_7 || the_string_id == ID_STR_MSG_BADGE_EARNED || the_string_id == ID_STR_CURIO_AMMO)
-// 	if (the_string_id == ID_STR_STAFF_UNKNOWN)
-// 	{
-// 		General_PrintBufferCharacters((uint8_t*)global_string[the_string_id], 2000);
-// 	}
-	
 	// copy the string to buffer in MAIN space (we'll copy a whole page, because cheaper than checking len of string (??)
-	//DEBUG_OUT(("%s %d: str id=%u, global_string[id]=%p, interbank_temp=%p", __func__, __LINE__, the_string_id, global_string[the_string_id], interbank_temp));
-	//memcpy(interbank_temp, global_string[the_string_id], 255);
-	strcpy((char*)interbank_temp, global_string[the_string_id]);
-
-// 	// Get IO bank pointing back to Vicky registers, to protect kernel code from being overwritten
-// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-// 
-// 	asm("CLI"); // restore interrupts
-// 
-// 	// remap the space under IO bank to whatever had been there before (probably kernel)
-// 	zp_bank_num = old_bank_under_io;
-// 	Memory_SwapInNewBank(BANK_IO);
-
-
+	//DEBUG_OUT(("%s %d: str id=%u, global_string[id]=%p, STORAGE_GETSTRING_BUFFER=%p", __func__, __LINE__, the_string_id, global_string[the_string_id], (char*)STORAGE_GETSTRING_BUFFER));
+	strcpy((char*)STORAGE_GETSTRING_BUFFER, global_string[the_string_id]);
 	
 	Memory_RestorePreviousBank(BANK_IO);
 	asm("CLI"); // restore interrupts
@@ -233,8 +213,7 @@ char* General_GetString(uint8_t the_string_id)
 	// Re-enable the I/O page, which unmaps the string bank from 6502 RAM space
 	Sys_RestoreIOPage();
 
-	
-	return (char*)interbank_temp;
+	return (char*)STORAGE_GETSTRING_BUFFER;
 }
 
 
@@ -749,6 +728,51 @@ void General_DelayTicks(uint16_t ticks)
 
 
 
+// // Print out a section of memory in a hex viewer style
+// // display length is hard-coded to one screen at 80x59 (MEM_DUMP_BYTES_PER_ROW * MAX_TEXT_VIEW_ROWS_PER_PAGE)
+// void General_ViewHexDump(uint8_t* the_buffer)
+// {
+// 	// LOGIC
+// 	//   we only have 80x60 to work with, and we need a row for "hit space for more, esc to stop"
+// 	//     so 60 rows * 16 bytes = 960 max bytes can be shown
+// 	//   we only need one buffer as we read and print to screen line by line (80 bytes)
+// 	//   we need to keep the file stream open until it is used up, or user exits loop
+// 
+// 	uint8_t		y;
+// 	uint8_t		cut_off_pos;
+// 	uint16_t	num_bytes_to_read = MEM_DUMP_BYTES_PER_ROW;
+// 	uint8_t*	loc_in_file = 0x000;	// will track the location within the file, so we can show to users on left side. 
+// 
+// 	cut_off_pos = MEM_DUMP_BYTES_PER_ROW * 3; // each char represented by 2 hex digits and a space
+// 	y = 0;
+// 	Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+// 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_HEX_VIEW_INSTRUCTIONS), "Memory Dump");
+// 	Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+// 				
+// 	// loop until all screen rows used
+// 	do
+// 	{
+// 
+// 		sprintf(global_string_buff2, "%p: ", the_buffer);
+// 		Text_DrawStringAtXY(0, y, global_string_buff2, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+// 	
+// 		sprintf(global_string_buff2, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
+// 			the_buffer[0], the_buffer[1], the_buffer[2], the_buffer[3], the_buffer[4], the_buffer[5], the_buffer[6], the_buffer[7], 
+// 			the_buffer[8], the_buffer[9], the_buffer[10], the_buffer[11], the_buffer[12], the_buffer[13], the_buffer[14], the_buffer[15]);
+// 		
+// 		// cut off the string
+// 		global_string_buff2[cut_off_pos] = '\0';
+// 		
+// 		Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff2, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+// 
+// 		// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
+// 		Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)the_buffer, MEM_DUMP_BYTES_PER_ROW);
+// 	
+// 		the_buffer += MEM_DUMP_BYTES_PER_ROW;
+// 		++y;
+// 	
+// 	} while (y < MAX_TEXT_VIEW_ROWS_PER_PAGE);
+// }
 
 
 

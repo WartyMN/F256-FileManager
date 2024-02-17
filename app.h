@@ -41,7 +41,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	7
+#define UPDATE_VERSION	9
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -67,7 +67,6 @@
 #define FILE_BYTES_PER_BLOCK		254	// 1 block = 256b but really only 254
 #define MAX_NUM_FILES_IEC			144 // The directory track should be contained totally on track 18. Sectors 1-18 contain the entries and sector 0 contains the BAM (Block Availability Map) and disk name/ID. Since the directory is only 18 sectors large (19 less one for the BAM), and each sector can contain only 8 entries (32 bytes per entry), the maximum number of directory entries is 18 * 8 = 144. http://justsolve.archiveteam.org/wiki/CBMFS
 // BUT... 1581 supported 296 entries. hmm. 
-#define FILE_COPY_BUFFER_SIZE		384	// arbitrarily set to match global temp buff 384b.
 
 
 #define DEVICE_LOWEST_DEVICE_NUM	0
@@ -92,16 +91,15 @@
 /*****************************************************************************/
 
 // temp storage for data outside of normal cc65 visibility - extra memory!
-#define STORAGE_STRING_MERGE_BUFFER		global_temp_buff_192b_1		// match to PET tape #1 area above - 192 bytes
-#define STORAGE_STRING_MERGE_BUFFER2	global_temp_buff_192b_2		// match to PET tape #2 buffer - 192 bytes
-
-#define STORAGE_STRING_MERGE_BUFFER_SIZE	192 // will use for snprintf, strncpy, etc.
-
-#define STORAGE_INTERBANK_BUFFER		0x0400	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
-#define STORAGE_INTERBANK_BUFFER_LEN	0x0100	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
-#define STORAGE_SAVED_GAME              0x0500	// outside of cc65 memory space. see config file. 
-#define STORAGE_PLAYER					(STORAGE_SAVED_GAME + 1)	// first byte is for the game level number
-#define STORAGE_PLAYER_LEN            	664
+#define STORAGE_GETSTRING_BUFFER			0x0400	// interbank buffer to store individual strings retrieved from EM
+#define STORAGE_GETSTRING_BUFFER_LEN		256	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
+#define STORAGE_FILE_BUFFER_1				0x0500	// interbank buffer for file reading operations
+#define STORAGE_FILE_BUFFER_1_LEN			256	// 1-page buffer. see cc65 memory config file. this is outside cc65 space.
+#define STORAGE_STRING_BUFFER_1				(STORAGE_FILE_BUFFER_1 + STORAGE_FILE_BUFFER_1_LEN)	// temp string merge/etc buff
+#define STORAGE_STRING_BUFFER_1_LEN			204	// 204b buffer. see cc65 memory config file. this is outside cc65 space.
+#define STORAGE_STRING_BUFFER_2				(STORAGE_STRING_BUFFER_1 + STORAGE_STRING_BUFFER_1_LEN)	// temp string merge/etc buff
+#define STORAGE_STRING_BUFFER_1_LEN			204	// 204b buffer. 
+#define STORAGE_TEMP_UNUSED_1B				(STORAGE_STRING_BUFFER_2 + STORAGE_STRING_BUFFER_2_LEN)	// 799 is hard coded, so this is just noting that we have 1 unused byte here.
 
 
 #define STRING_STORAGE_SLOT                0x06
@@ -183,7 +181,8 @@
 #define ACTION_VIEW_AS_HEX			'h'
 #define ACTION_VIEW_AS_TEXT			't'
 #define ACTION_RENAME				'r'
-#define ACTION_LAUNCH				'l'
+#define ACTION_LOAD					'l'
+#define ACTION_NEW_FOLDER			'm' // for "mkdir"
 
 #define ACTION_NEXT_DEVICE			'n'	// CH_F1
 #define ACTION_REFRESH_PANEL		'f'	// CH_F2
@@ -270,6 +269,10 @@
 #define OVERLAY_START_ADDR					0xA000	// in CPU memory space, the start of overlay memory
 #define OVERLAY_SLOT						0x05
 #define IO_SLOT								0x06
+
+#define CUSTOM_FONT_PHYS_ADDR              0x3A000	// temporary buffer for loading in a font?
+#define CUSTOM_FONT_SLOT                   0x05
+#define CUSTOM_FONT_VALUE                  0x1D
 
 /*****************************************************************************/
 /*                               Enumerations                                */

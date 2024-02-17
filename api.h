@@ -202,8 +202,8 @@ struct file_t {
 struct dir_open_t {
     uint8_t drive;
     uint8_t cookie;
-    // fname       = args.buf
-    // fname_len   = args.buflen
+    const void *	path; //       = args.buf
+    uint8_t			path_len; //   = args.buflen
 };
 
 struct dir_read_t {

@@ -53,10 +53,6 @@ static char*		folder_temp_filename = folder_temp_filename_buffer;
 /*                             Global Variables                              */
 /*****************************************************************************/
 
-extern uint8_t*		global_temp_buff_192b_1;
-extern uint8_t*		global_temp_buff_192b_2;
-extern uint8_t*		global_temp_buff_384b;
-
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
@@ -102,7 +98,7 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 {
 	FILE*		the_source_handle;
 	FILE*		the_target_handle;
-	uint8_t*	the_buffer = global_temp_buff_384b;
+	uint8_t*	the_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
 	int16_t		bytes_read = 0;
 	int16_t		total_bytes_read = 0;
 	bool		keep_going = true;
@@ -130,10 +126,10 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 			goto error;
 		}
 
-		// loop until source file EOF, writing FILE_COPY_BUFFER_SIZE bytes per loop (sized to available buffer)
+		// loop until source file EOF, writing STORAGE_FILE_BUFFER_1_LEN bytes per loop (sized to available buffer)
 		do
 		{
-			bytes_read = fread(the_buffer, 1, FILE_COPY_BUFFER_SIZE, the_source_handle);
+			bytes_read = fread(the_buffer, 1, STORAGE_FILE_BUFFER_1_LEN, the_source_handle);
 	
 			if ( bytes_read < 0)
 			{
@@ -149,7 +145,7 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 				keep_going = false;
 			}
 		
-			if ( bytes_read < FILE_COPY_BUFFER_SIZE )
+			if ( bytes_read < STORAGE_FILE_BUFFER_1_LEN )
 			{
 				// we hit end of file
 				//Buffer_NewMessage("s_bytes_read_from_disk was less than full row");
@@ -937,15 +933,15 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
     /* print directory listing */
 
-	dir = opendir(the_folder->folder_file_->file_path_);
-	//dir = opendir(".");
+	dir = Kernel_OpenDir(the_folder->folder_file_->file_path_);
+	//dir = Kernel_OpenDir(".");
 	if (! dir) {
-		//sprintf(global_string_buff1, "opendir failed. filepath='%s'. errno=%u", the_folder->folder_file_->file_path_, errno);
-		//sprintf(global_string_buff1, "opendir failed. filepath='%s'", the_folder->folder_file_->file_path_);
+		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'. errno=%u", the_folder->folder_file_->file_path_, errno);
+		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'", the_folder->folder_file_->file_path_);
 		//Buffer_NewMessage(global_string_buff1);
 		return ERROR_COULD_NOT_OPEN_DIR;
 	}
-    while ( (dirent = readdir(dir)) != NULL )
+    while ( (dirent = Kernel_ReadDir(dir)) != NULL )
     {
         // is this is the disk name, or a file?
 
@@ -1079,7 +1075,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
 	}
 
-	closedir(dir);
+	Kernel_CloseDir(dir);
 
 	// set current row to first file, or -1
 	the_folder->cur_row_ = (file_cnt > 0 ? 0 : -1);
@@ -1092,7 +1088,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	return (the_error_code);
 	
 error:
-	if (dir)	closedir(dir);
+	if (dir)	Kernel_CloseDir(dir);
 	
 	return (the_error_code);
 }

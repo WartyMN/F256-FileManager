@@ -59,7 +59,6 @@
 
 static WB2KFolderObject*	app_root_folder[2];
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
-static uint8_t				temp_buff_384b[384];	// will use for both 192 and 384 buffers (shared)
 static uint8_t				app_connected_drive_count;
 
 /*****************************************************************************/
@@ -76,11 +75,8 @@ char					global_dlg_title[36];	// arbitrary
 char					global_dlg_body_msg[70];	// arbitrary
 char					global_dlg_button[3][10];	// arbitrary
 
-uint8_t*				global_temp_buff_192b_1 = temp_buff_384b;
-uint8_t*				global_temp_buff_192b_2 = (temp_buff_384b + 192);
-uint8_t*				global_temp_buff_384b = temp_buff_384b;
-char*					global_string_buff1 = (char*)temp_buff_384b;
-char*					global_string_buff2 = (char*)(temp_buff_384b + 192);
+char*					global_string_buff1 = (char*)STORAGE_STRING_BUFFER_1;
+char*					global_string_buff2 = (char*)STORAGE_STRING_BUFFER_2;
 
 char					global_temp_path_1_buffer[FILE_MAX_PATHNAME_SIZE];
 char					global_temp_path_2_buffer[FILE_MAX_PATHNAME_SIZE] = "";
@@ -176,7 +172,7 @@ int8_t	App_ScanDevices(void)
 	{
 		sprintf(the_drive_path, "%u:", device);
 //	Buffer_NewMessage(the_drive_path);
-		dir = opendir(the_drive_path);
+		dir = Kernel_OpenDir(the_drive_path);
 
 		if (dir)
 		{
@@ -185,7 +181,7 @@ int8_t	App_ScanDevices(void)
 			global_connected_unit[drive_num] = unit;
 			++drive_num;
 			
-			if (closedir(dir) == -1)
+			if (Kernel_CloseDir(dir) == -1)
 			{
 				//Buffer_NewMessage("clsdir fail");
 			}
@@ -434,15 +430,18 @@ uint8_t App_MainLoop(void)
 				
 					case ACTION_DELETE:
 					case ACTION_DELETE_ALT:
-						if ( (success = Panel_DeleteCurrentFile(the_panel)) == false )
-						{
-							Buffer_NewMessage(General_GetString(ID_STR_MSG_DELETE_FAILURE));
-						}
+						// works for files and dirs
+						success = Panel_DeleteCurrentFile(the_panel);
 						break;
 
 					case ACTION_SELECT:
 						// if the current file is a directory, open it, and redisplay the panel with the contents
 						success = Panel_OpenCurrentFileFolder(the_panel);	// tell panel to open the dir, if it is a dir						
+						break;
+					
+					case ACTION_LOAD:
+						// if the current file is an exe, run it with pexec. if a font, load it into memory.
+						success = Panel_LoadCurrentFile(the_panel);
 						break;
 						
 					default:
@@ -480,6 +479,10 @@ uint8_t App_MainLoop(void)
 						Folder_RefreshListing(the_panel->root_folder_);
 						Panel_Init(the_panel);			
 					}
+					break;
+					
+				case ACTION_NEW_FOLDER:
+					success = Panel_MakeDir(the_panel);
 					break;
 					
 				case MOVE_UP:
