@@ -65,6 +65,7 @@
 #define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
 #define FNX_FILETYPE_FONT	200	// any 2k file ending in .fnt
 #define FNX_FILETYPE_EXE	201	// any .pgz, etc executable
+#define FNX_FILETYPE_BASIC	202	// a .bas file that f/manager will try to pass to SuperBASIC
 
 
 

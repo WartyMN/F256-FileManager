@@ -54,19 +54,20 @@
 52	3	SEQ
 53	3	 d 
 54	3	oth
-55	3	exe
-56	3	fnt
-57	14	Fatal error %u
-58	40	We don't need no stinkin' error messages
-59	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-60	16	The disk is full
-61	21	A disk error occurred
-62	26	Error: Could not open file
-63	31	Error: Could not list directory
-64	9	f/Manager
-65	32	f/Manager F256, version %u.%u.%u
-66	24	Copyright 2024 Micah Bly
-67	20	Cross-compiler: cc65
-68	41	Editor: BBEdit (the greatest of them all)
-69	76	This program is open source, using GPL 3 license. Please share improvements!
-70	46	https://github.com/WartyMN/F256jr-FileManager/
+55	3	bas
+56	3	exe
+57	3	fnt
+58	14	Fatal error %u
+59	40	We don't need no stinkin' error messages
+60	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+61	16	The disk is full
+62	21	A disk error occurred
+63	26	Error: Could not open file
+64	31	Error: Could not list directory
+65	9	f/Manager
+66	32	f/Manager F256, version %u.%u.%u
+67	24	Copyright 2024 Micah Bly
+68	20	Cross-compiler: cc65
+69	41	Editor: BBEdit (the greatest of them all)
+70	76	This program is open source, using GPL 3 license. Please share improvements!
+71	46	https://github.com/WartyMN/F256jr-FileManager/

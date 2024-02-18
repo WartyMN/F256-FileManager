@@ -631,6 +631,10 @@ char* General_GetFileTypeString(uint8_t cbm_filetype_id)
 // 		case _CBM_T_REL:
 // 			return General_GetString(ID_STR_FILETYPE_REL);
 
+		case FNX_FILETYPE_BASIC:	
+			// any file ending in .bas
+			return General_GetString(ID_STR_FILETYPE_BASIC);
+			
 		case FNX_FILETYPE_FONT:	
 			// any 2k file ending in .fnt
 			return General_GetString(ID_STR_FILETYPE_FONT);

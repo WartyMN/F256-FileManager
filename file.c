@@ -157,13 +157,25 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 		{
 			the_file->file_type_ = FNX_FILETYPE_EXE;
 		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgz", FILE_MAX_EXTENSION_SIZE) == 0)
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "kup", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "lbm", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_EXE;
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "bas", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_BASIC;
 		}
 		else
 		{
@@ -174,7 +186,7 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 	{
 		the_file->file_type_ = the_filetype;
 	}
-	
+
 	the_file->is_directory_ = is_directory;
 	the_file->device_number_ = the_device_num;
 	the_file->unit_number_ = the_unit_num;
