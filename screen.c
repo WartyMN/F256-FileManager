@@ -356,17 +356,3 @@ void App_LoadStrings(void)
 
 	asm("CLI"); // restore interrupts
 }
-
-
-// load in game font
-void LoadCustomFont(void)
-{
-	// logic: switch font bank in, call regular copy font routine, switch font bank out
-
-	zp_bank_num = CUSTOM_FONT_VALUE;
-	Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
-	//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
-	Text_UpdateFontData((char*)OVERLAY_START_ADDR, true);	// false=put into secondary font memory, not primary
-	Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
-}
-

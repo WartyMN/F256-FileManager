@@ -249,15 +249,15 @@ void Text_ClearScreen(uint8_t fore_color, uint8_t back_color);
 //! @return	Returns false on any error/invalid input.
 bool Text_FillBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_char, uint8_t fore_color, uint8_t back_color);
 
-//! Fill character memory for a specific box area
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	the_char: the character to be used for the fill operation
-//! @return	Returns false on any error/invalid input.
-bool Text_FillBoxCharOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_char);
+// //! Fill character memory for a specific box area
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	the_char: the character to be used for the fill operation
+// //! @return	Returns false on any error/invalid input.
+// bool Text_FillBoxCharOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_char);
 
 //! Fill attribute memory for a specific box area
 //! @param	the_screen: valid pointer to the target screen to operate on
@@ -321,15 +321,15 @@ bool Text_SetAttrAtXY(uint8_t x, uint8_t y, uint8_t the_attribute_value);
 //! @return	Returns false on any error/invalid input.
 bool Text_SetColorAtXY(uint8_t x, uint8_t y, uint8_t fore_color, uint8_t back_color);
 
-//! Draw a char at a specified x, y coord, also setting the color attributes
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	x: the horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y: the vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	the_char: the character to be used
-//! @param	fore_color: Index to the desired foreground color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
-//! @param	back_color: Index to the desired background color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
-//! @return	Returns false on any error/invalid input.
-bool Text_SetCharAndAttrAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t the_attribute_value);
+// //! Draw a char at a specified x, y coord, also setting the color attributes
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	x: the horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y: the vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	the_char: the character to be used
+// //! @param	fore_color: Index to the desired foreground color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
+// //! @param	back_color: Index to the desired background color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
+// //! @return	Returns false on any error/invalid input.
+// bool Text_SetCharAndAttrAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t the_attribute_value);
 
 //! Draw a char at a specified x, y coord, also setting the color attributes
 //! @param	the_screen: valid pointer to the target screen to operate on

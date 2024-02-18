@@ -152,8 +152,8 @@ void Folder_SetCurrentRow(WB2KFolderObject* the_folder, int16_t the_row_number);
 // // returns the list of files associated with the folder
 // WB2KList** Folder_GetFileList(WB2KFolderObject* the_folder);
 
-// returns the file object for the root folder
-WB2KFileObject* Folder_GetFolderFile(WB2KFolderObject* the_folder);
+// // returns the file object for the root folder
+// WB2KFileObject* Folder_GetFolderFile(WB2KFolderObject* the_folder);
 
 // returns true if folder has any files/folders in it. based on curated file_count_ property, not on a live check of disk.
 bool Folder_HasChildren(WB2KFolderObject* the_folder);

@@ -68,9 +68,9 @@ extern char*		global_string_buff2;
 // free every fileobject in the folder's list, and remove the nodes from the list
 void Folder_DestroyAllFiles(WB2KFolderObject* the_folder);
 
-// looks through all files in the file list, comparing the passed file object, and turning true if found in the list
-// use case: checking if a given file in a selection pool is also the potential target for a drag action
-bool Folder_InFileList(WB2KFolderObject* the_folder, WB2KFileObject* the_file, uint8_t the_scope);
+// // looks through all files in the file list, comparing the passed file object, and turning true if found in the list
+// // use case: checking if a given file in a selection pool is also the potential target for a drag action
+// bool Folder_InFileList(WB2KFolderObject* the_folder, WB2KFileObject* the_file, uint8_t the_scope);
 
 // looks through all files in the file list, comparing the passed string to the filename of each file.
 // Returns NULL if nothing matches, or returns pointer to first matching list item
@@ -209,38 +209,38 @@ void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
 }
 
 
-// looks through all files in the file list, comparing the passed file object, and turning true if found in the list
-// use case: checking if a given file in a selection pool is also the potential target for a drag action
-bool Folder_InFileList(WB2KFolderObject* the_folder, WB2KFileObject* the_file, uint8_t the_scope)
-{
-	WB2KList*	the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-	
-	the_item = *(the_folder->list_);
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject* this_file = (WB2KFileObject*)(the_item->payload_);
-
-		// is this the item we are looking for?
-		if (the_scope == LIST_SCOPE_ALL || (the_scope == LIST_SCOPE_SELECTED && this_file->selected_) || (the_scope == LIST_SCOPE_NOT_SELECTED && this_file->selected_ == false))
-		{
-			if (this_file == the_file)
-			{
-				return true;
-			}
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return false;
-}
+// // looks through all files in the file list, comparing the passed file object, and turning true if found in the list
+// // use case: checking if a given file in a selection pool is also the potential target for a drag action
+// bool Folder_InFileList(WB2KFolderObject* the_folder, WB2KFileObject* the_file, uint8_t the_scope)
+// {
+// 	WB2KList*	the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 	
+// 	the_item = *(the_folder->list_);
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject* this_file = (WB2KFileObject*)(the_item->payload_);
+// 
+// 		// is this the item we are looking for?
+// 		if (the_scope == LIST_SCOPE_ALL || (the_scope == LIST_SCOPE_SELECTED && this_file->selected_) || (the_scope == LIST_SCOPE_NOT_SELECTED && this_file->selected_ == false))
+// 		{
+// 			if (this_file == the_file)
+// 			{
+// 				return true;
+// 			}
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return false;
+// }
 
 
 // looks through all files in the file list, comparing the passed string to the filename of each file.
@@ -588,17 +588,17 @@ WB2KList** Folder_GetFileList(WB2KFolderObject* the_folder)
 }
 
 
-// returns the file object for the root folder
-WB2KFileObject* Folder_GetFolderFile(WB2KFolderObject* the_folder)
-{
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-	
-	return the_folder->folder_file_;
-}
+// // returns the file object for the root folder
+// WB2KFileObject* Folder_GetFolderFile(WB2KFolderObject* the_folder)
+// {
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 	
+// 	return the_folder->folder_file_;
+// }
 
 
 // // returns true if folder has any files/folders in it. based on curated file_count_ property, not on a live check of disk.

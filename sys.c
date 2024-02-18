@@ -358,39 +358,39 @@ bool Sys_AutoConfigure(void)
 }
 
 
-//! Switch machine into text mode
-//! @param	the_system: valid pointer to system object
-//! @param as_overlay: If true, sets text overlay mode (text over graphics). If false, sets full text mode (no graphics);
-void Sys_SetModeText(bool as_overlay)
-{	
-	// LOGIC:
-	//   On an A2560K or X, the only screen that has a text/graphics mode is the Channel B screen
-	
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	
-	if (as_overlay)
-	{
-		// switch to text mode with overlay by setting graphics mode bit, setting bitmap engine enable bit, and setting graphics mode overlay		
-		R8(VICKY_MASTER_CTRL_REG_L) = (GRAPHICS_MODE_TEXT | GRAPHICS_MODE_TEXT_OVER | GRAPHICS_MODE_GRAPHICS | GRAPHICS_MODE_EN_BITMAP);
-		R8(BITMAP_CTRL) = 0x01;
-		
-		// c256foenix, discord 2022/03/10
-		// Normally, for example, if you setup everything to be in bitmap mode, and you download an image in VRAM and you can see it properly... If you turn on overlay, then you will see on top of that same image, your text that you had before.
-		// Mstr_Ctrl_Text_Mode_En  = $01       ; Enable the Text Mode
-		// Mstr_Ctrl_Text_Overlay  = $02       ; Enable the Overlay of the text mode on top of Graphic Mode (the Background Color is ignored)
-		// Mstr_Ctrl_Graph_Mode_En = $04       ; Enable the Graphic Mode
-		// Mstr_Ctrl_Bitmap_En     = $08       ; Enable the Bitmap Module In Vicky
-		// all of these should be ON
-	}
-	else
-	{
-		R8(VICKY_MASTER_CTRL_REG_L) = (GRAPHICS_MODE_TEXT);
-		// disable bitmap
-		R8(BITMAP_CTRL) = 0x00;
-	}
-	
-	Sys_RestoreIOPage();
-}
+// //! Switch machine into text mode
+// //! @param	the_system: valid pointer to system object
+// //! @param as_overlay: If true, sets text overlay mode (text over graphics). If false, sets full text mode (no graphics);
+// void Sys_SetModeText(bool as_overlay)
+// {	
+// 	// LOGIC:
+// 	//   On an A2560K or X, the only screen that has a text/graphics mode is the Channel B screen
+// 	
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 	
+// 	if (as_overlay)
+// 	{
+// 		// switch to text mode with overlay by setting graphics mode bit, setting bitmap engine enable bit, and setting graphics mode overlay		
+// 		R8(VICKY_MASTER_CTRL_REG_L) = (GRAPHICS_MODE_TEXT | GRAPHICS_MODE_TEXT_OVER | GRAPHICS_MODE_GRAPHICS | GRAPHICS_MODE_EN_BITMAP);
+// 		R8(BITMAP_CTRL) = 0x01;
+// 		
+// 		// c256foenix, discord 2022/03/10
+// 		// Normally, for example, if you setup everything to be in bitmap mode, and you download an image in VRAM and you can see it properly... If you turn on overlay, then you will see on top of that same image, your text that you had before.
+// 		// Mstr_Ctrl_Text_Mode_En  = $01       ; Enable the Text Mode
+// 		// Mstr_Ctrl_Text_Overlay  = $02       ; Enable the Overlay of the text mode on top of Graphic Mode (the Background Color is ignored)
+// 		// Mstr_Ctrl_Graph_Mode_En = $04       ; Enable the Graphic Mode
+// 		// Mstr_Ctrl_Bitmap_En     = $08       ; Enable the Bitmap Module In Vicky
+// 		// all of these should be ON
+// 	}
+// 	else
+// 	{
+// 		R8(VICKY_MASTER_CTRL_REG_L) = (GRAPHICS_MODE_TEXT);
+// 		// disable bitmap
+// 		R8(BITMAP_CTRL) = 0x00;
+// 	}
+// 	
+// 	Sys_RestoreIOPage();
+// }
 
 
 //! Detect the current screen mode/resolution, and set # of columns, rows, H pixels, V pixels, accordingly
@@ -459,50 +459,50 @@ bool Sys_DetectScreenSize(void)
 }
 
 
-//! Change video mode to the one passed.
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	new_mode: One of the enumerated screen_resolution values. Must correspond to a valid VICKY video mode for the host machine. See VICKY_IIIA_RES_800X600_FLAGS, etc. defined in a2560_platform.h
-//! @return	returns false on any error/invalid input.
-bool Sys_SetVideoMode(uint8_t new_mode)
-{
-	uint8_t		new_mode_flag;
-	
-	if (new_mode == RES_320X240)
-	{
-		new_mode_flag = VICKY_RES_320X240_FLAGS;
-	}
-	else if (new_mode == RES_320X200)
-	{
-		new_mode_flag = VICKY_RES_320X200_FLAGS;
-	}
-	else
-	{
-		LOG_ERR(("%s %d: specified video mode is not legal for this screen %u", __func__, __LINE__, new_mode));
-		return false;
-	}
-	
- 	//DEBUG_OUT(("%s %d: specified video mode = %u, flag=%u", __func__, __LINE__, new_mode, new_mode_flag));
-		
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	
- 	//DEBUG_OUT(("%s %d: vicky before = %x", __func__, __LINE__, *the_screen->vicky_ ));
-	R8(VICKY_MASTER_CTRL_REG_H) = R8(VICKY_MASTER_CTRL_REG_H) & new_mode_flag;
- 	//DEBUG_OUT(("%s %d: vicky after = %x", __func__, __LINE__, *the_screen->vicky_ ));
-	
-	Sys_RestoreIOPage();
-	
-	// teach screen about the new settings
-	if (Sys_DetectScreenSize() == false)
-	{
-		LOG_ERR(("%s %d: Changed screen resolution, but the selected resolution could not be handled", __func__, __LINE__, new_mode));
-		return false;
-	}
-
-	// tell the MCP that we changed res so it can update it's internal col sizes, etc.  - this function is not exposed in MCP headers yet
-	//sys_text_setsizes();
-	
-	return true;
-}
+// //! Change video mode to the one passed.
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	new_mode: One of the enumerated screen_resolution values. Must correspond to a valid VICKY video mode for the host machine. See VICKY_IIIA_RES_800X600_FLAGS, etc. defined in a2560_platform.h
+// //! @return	returns false on any error/invalid input.
+// bool Sys_SetVideoMode(uint8_t new_mode)
+// {
+// 	uint8_t		new_mode_flag;
+// 	
+// 	if (new_mode == RES_320X240)
+// 	{
+// 		new_mode_flag = VICKY_RES_320X240_FLAGS;
+// 	}
+// 	else if (new_mode == RES_320X200)
+// 	{
+// 		new_mode_flag = VICKY_RES_320X200_FLAGS;
+// 	}
+// 	else
+// 	{
+// 		LOG_ERR(("%s %d: specified video mode is not legal for this screen %u", __func__, __LINE__, new_mode));
+// 		return false;
+// 	}
+// 	
+//  	//DEBUG_OUT(("%s %d: specified video mode = %u, flag=%u", __func__, __LINE__, new_mode, new_mode_flag));
+// 		
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 	
+//  	//DEBUG_OUT(("%s %d: vicky before = %x", __func__, __LINE__, *the_screen->vicky_ ));
+// 	R8(VICKY_MASTER_CTRL_REG_H) = R8(VICKY_MASTER_CTRL_REG_H) & new_mode_flag;
+//  	//DEBUG_OUT(("%s %d: vicky after = %x", __func__, __LINE__, *the_screen->vicky_ ));
+// 	
+// 	Sys_RestoreIOPage();
+// 	
+// 	// teach screen about the new settings
+// 	if (Sys_DetectScreenSize() == false)
+// 	{
+// 		LOG_ERR(("%s %d: Changed screen resolution, but the selected resolution could not be handled", __func__, __LINE__, new_mode));
+// 		return false;
+// 	}
+// 
+// 	// tell the MCP that we changed res so it can update it's internal col sizes, etc.  - this function is not exposed in MCP headers yet
+// 	//sys_text_setsizes();
+// 	
+// 	return true;
+// }
 
 
 // enable or disable the gamma correction 

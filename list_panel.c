@@ -98,54 +98,54 @@ extern struct call_args args; // in gadget's version of f256 lib, this is alloca
 
 
 
-// on change to size of parent surface, redefine dimensions of the panel as appropriate for list mode
-// define the width of each list column, and whether or not there is enough space to render it.
-void Panel_UpdateSizeListMode(WB2KViewPanel* the_panel, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
-{
-	// LOGIC:
-	//   As window gets too narrow, we shrink filename column, then start dropping columns entirely
-	//   Priority for displaying columns is: ALWAYS: icon and name; type > date > size
-
-	bool		scroller_reset_needed = false;
-
-	// first check if new height/width/x/y are different. if not, stop here. 
-	if (the_panel->x_ == x && the_panel->y_ == y && the_panel->width_ == width && the_panel->height_ == height)
-	{
-		return;
-	}
-	
-	// check if height changed: if so, reset content top to 0, because we probably have to reflow
-	if (the_panel->height_ != height)
-	{
-		the_panel->content_top_ = 0;
-		scroller_reset_needed = true;
-	}
-	
-	// accept new size/pos data
-	the_panel->width_ = width;
-	the_panel->height_ = height;
-	the_panel->x_ = x;
-	the_panel->y_ = y;
-
-// 	// set our required inner width (and publish to parent surface as these are identical in case of list mode)
-// 	the_panel->required_inner_width_ = required_h_space;
-// 	
-// 	if (the_panel->my_parent_surface_->required_inner_width_ != the_panel->required_inner_width_)
+// // on change to size of parent surface, redefine dimensions of the panel as appropriate for list mode
+// // define the width of each list column, and whether or not there is enough space to render it.
+// void Panel_UpdateSizeListMode(WB2KViewPanel* the_panel, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
+// {
+// 	// LOGIC:
+// 	//   As window gets too narrow, we shrink filename column, then start dropping columns entirely
+// 	//   Priority for displaying columns is: ALWAYS: icon and name; type > date > size
+// 
+// 	bool		scroller_reset_needed = false;
+// 
+// 	// first check if new height/width/x/y are different. if not, stop here. 
+// 	if (the_panel->x_ == x && the_panel->y_ == y && the_panel->width_ == width && the_panel->height_ == height)
 // 	{
-// 		// inform window it should recalculate the scrollbar sliders
-// 		the_panel->my_parent_surface_->required_inner_width_ = the_panel->required_inner_width_;
+// 		return;
+// 	}
+// 	
+// 	// check if height changed: if so, reset content top to 0, because we probably have to reflow
+// 	if (the_panel->height_ != height)
+// 	{
+// 		the_panel->content_top_ = 0;
 // 		scroller_reset_needed = true;
 // 	}
+// 	
+// 	// accept new size/pos data
+// 	the_panel->width_ = width;
+// 	the_panel->height_ = height;
+// 	the_panel->x_ = x;
+// 	the_panel->y_ = y;
 // 
-// 	// reset scrollers if either required inner height/width changed, or if available height/width changed
-// 	//   (whatever is appropriate to this view mode)
-// 	if (scroller_reset_needed)
-// 	{
-// 		Window_ResetScrollbars(the_panel->my_parent_surface_);
-// 	}
-	
-	return;
-}
+// // 	// set our required inner width (and publish to parent surface as these are identical in case of list mode)
+// // 	the_panel->required_inner_width_ = required_h_space;
+// // 	
+// // 	if (the_panel->my_parent_surface_->required_inner_width_ != the_panel->required_inner_width_)
+// // 	{
+// // 		// inform window it should recalculate the scrollbar sliders
+// // 		the_panel->my_parent_surface_->required_inner_width_ = the_panel->required_inner_width_;
+// // 		scroller_reset_needed = true;
+// // 	}
+// // 
+// // 	// reset scrollers if either required inner height/width changed, or if available height/width changed
+// // 	//   (whatever is appropriate to this view mode)
+// // 	if (scroller_reset_needed)
+// // 	{
+// // 		Window_ResetScrollbars(the_panel->my_parent_surface_);
+// // 	}
+// 	
+// 	return;
+// }
 
 // display the title of the panel only
 // inverses the title if the panel is active, draws it normally if inactive
@@ -295,17 +295,17 @@ void Panel_ToggleActiveState(WB2KViewPanel* the_panel)
 // }
 
 
-// return the root folder
-WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel)
-{
-	if (the_panel == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
-	}
-	
-	return the_panel->root_folder_;
-}
+// // return the root folder
+// WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel)
+// {
+// 	if (the_panel == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
+// 	}
+// 	
+// 	return the_panel->root_folder_;
+// }
 
 
 
@@ -1465,24 +1465,24 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 }
 
 
-// Re-select the current file.
-// typically after a sort, so that panel's current row gets reset to match new row the previously selected file had
-// returns false if action was not possible
-bool Panel_ReSelectCurrentFile(WB2KViewPanel* the_panel)
-{
-	int16_t		the_current_row;
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-	if (--the_current_row < 0)
-	{
-		return false;
-	}
-	
-	return Panel_SetFileSelectionByRow(the_panel, the_current_row, true);
-}
+// // Re-select the current file.
+// // typically after a sort, so that panel's current row gets reset to match new row the previously selected file had
+// // returns false if action was not possible
+// bool Panel_ReSelectCurrentFile(WB2KViewPanel* the_panel)
+// {
+// 	int16_t		the_current_row;
+// 	
+// 	App_LoadOverlay(OVERLAY_FOLDER);
+// 	
+// 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+// 	
+// 	if (--the_current_row < 0)
+// 	{
+// 		return false;
+// 	}
+// 	
+// 	return Panel_SetFileSelectionByRow(the_panel, the_current_row, true);
+// }
 
 
 

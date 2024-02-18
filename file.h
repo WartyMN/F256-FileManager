@@ -100,8 +100,8 @@ void File_Destroy(WB2KFileObject** the_file);
 
 // **** SETTERS *****
 
-// set files selected/unselected status (no visual change)
-void File_SetSelected(WB2KFileObject* the_file, bool selected);
+// // set files selected/unselected status (no visual change)
+// void File_SetSelected(WB2KFileObject* the_file, bool selected);
 
 /// updates the icon's size/position information
 void File_UpdatePos(WB2KFileObject* the_file, uint8_t x, int8_t display_row, uint16_t row);

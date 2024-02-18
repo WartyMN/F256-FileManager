@@ -217,32 +217,32 @@ char* General_GetString(uint8_t the_string_id)
 }
 
 
-//! Convert a string, in place, to lower case
-//! This overwrites the string with a lower case version of itself.
-//! Warning: no length check is in place. Calling function must verify string is well-formed (terminated).
-//! @param	the_string: the string to convert to lower case.
-//! @return	Returns true if the string was modified by the process.
-bool General_StrToLower(char* the_string)
-{
-    int16_t	i;
-    int16_t	len = strlen(the_string);
-    bool	change_made = false;
-    
-	for (i = 0; i < len; i++)
-	{
-	    char	this_char;
-		
-		this_char = the_string[i];
-		the_string[i] = General_ToLower(the_string[i]);
-		
-		if (this_char != the_string[i])
-		{
-			change_made = true;
-		}
-	}
-
-	return change_made;
-}
+// //! Convert a string, in place, to lower case
+// //! This overwrites the string with a lower case version of itself.
+// //! Warning: no length check is in place. Calling function must verify string is well-formed (terminated).
+// //! @param	the_string: the string to convert to lower case.
+// //! @return	Returns true if the string was modified by the process.
+// bool General_StrToLower(char* the_string)
+// {
+//     int16_t	i;
+//     int16_t	len = strlen(the_string);
+//     bool	change_made = false;
+//     
+// 	for (i = 0; i < len; i++)
+// 	{
+// 	    char	this_char;
+// 		
+// 		this_char = the_string[i];
+// 		the_string[i] = General_ToLower(the_string[i]);
+// 		
+// 		if (this_char != the_string[i])
+// 		{
+// 			change_made = true;
+// 		}
+// 	}
+// 
+// 	return change_made;
+// }
 
 
 //! Change the case of the passed character from upper to lower (if necessary)
@@ -384,13 +384,15 @@ signed long General_Strlcat(char* dst, const char* src, signed long max_len)
 //! @return	Returns 0 if the strings are equivalent (at least up to max_len). Returns a negative or positive if the strings are different.
 int16_t General_Strncasecmp(const char* string_1, const char* string_2, size_t max_len)
 {
+	uint8_t	u1;
+	uint8_t	u2;
 	//DEBUG_OUT(("%s %d: s1='%s'; s2='%s'; max_len=%i", __func__ , __LINE__, string_1, string_2, max_len));
 
 	for (; max_len != 0; max_len--, string_1++, string_2++)
 	{
-		uint8_t	u1 = (uint8_t)*string_1;
-		uint8_t	u2 = (uint8_t)*string_2;
-		
+		u1 = (uint8_t)*string_1;
+		u2 = (uint8_t)*string_2;
+			
 		if (General_ToLower(u1) != General_ToLower(u2))
 		{
 			return General_ToLower(u1) - General_ToLower(u2);

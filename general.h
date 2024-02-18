@@ -161,12 +161,12 @@ void General_MakeFileSizeReadable(unsigned long size_in_bytes, char* formatted_f
 // this is just a wrapper around the string, to make it easier to re-use and diff code in different overlays
 char* General_GetString(uint8_t the_string_id);
 
-//! Convert a string, in place, to lower case
-//! This overwrites the string with a lower case version of itself.
-//! Warning: no length check is in place. Calling function must verify string is well-formed (terminated).
-//! @param	the_string: the string to convert to lower case.
-//! @return	Returns true if the string was modified by the process.
-bool General_StrToLower(char* the_string);
+// //! Convert a string, in place, to lower case
+// //! This overwrites the string with a lower case version of itself.
+// //! Warning: no length check is in place. Calling function must verify string is well-formed (terminated).
+// //! @param	the_string: the string to convert to lower case.
+// //! @return	Returns true if the string was modified by the process.
+// bool General_StrToLower(char* the_string);
 
 //! Change the case of the passed character from upper to lower (if necessary)
 //! Scope is limited to characters A-Z, ascii.

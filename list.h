@@ -82,8 +82,8 @@ void List_Destroy(WB2KList** head_item);
 // adds a new list item as the head of the list
 void List_AddItem(WB2KList** head_item, WB2KList* the_item);
 
-// adds a new list item after the list_item passed
-void List_AddItemAfter(WB2KList** list_head, WB2KList* the_new_item, WB2KList* the_existing_item);
+// // adds a new list item after the list_item passed
+// void List_AddItemAfter(WB2KList** list_head, WB2KList* the_new_item, WB2KList* the_existing_item);
 
 // adds a new list item before the list_item passed (making itself the head item)
 void List_Insert(WB2KList** head_item, WB2KList* the_item, WB2KList* previous_item);
@@ -91,11 +91,11 @@ void List_Insert(WB2KList** head_item, WB2KList* the_item, WB2KList* previous_it
 // removes the specified item from the list (without destroying the list item)
 void List_RemoveItem(WB2KList** head_item, WB2KList* the_item);
 
-// iterates through the list looking for the list item that matches the address of the payload object passed
-WB2KList* List_FindThisObject(WB2KList** head_item, void* the_payload);
+// // iterates through the list looking for the list item that matches the address of the payload object passed
+// WB2KList* List_FindThisObject(WB2KList** head_item, void* the_payload);
 
-// prints out every item in the list, using the helper function passed
-WB2KList* List_Print(WB2KList** list_head, void (* print_function)(void*));
+// // prints out every item in the list, using the helper function passed
+// WB2KList* List_Print(WB2KList** list_head, void (* print_function)(void*));
 
 // frees the specified item and the data it points to
 //void List_DeleteItem(List* the_item);
@@ -103,15 +103,15 @@ WB2KList* List_Print(WB2KList** list_head, void (* print_function)(void*));
 // Merge Sort. pass a pointer to a function that compares the payload of 2 list items, and returns true if thing 1 > thing 2
 void List_InitMergeSort(WB2KList** list_head, bool (* compare_function)(void*, void*));
 
-// returns a list item for the first item in the list; returns null if list is empty
-WB2KList* List_GetFirst(WB2KList** head_item);
+// // returns a list item for the first item in the list; returns null if list is empty
+// WB2KList* List_GetFirst(WB2KList** head_item);
 
-// returns a list item for the last item in the list; returns null if list is empty
-WB2KList* List_GetLast(WB2KList** list_head);
+// // returns a list item for the last item in the list; returns null if list is empty
+// WB2KList* List_GetLast(WB2KList** list_head);
 
-// for the passed list, return the mid-point list item, given the starting point and ending point desired
-// use this to do binary searches, etc. if max_item is NULL, will continue until end of list
-WB2KList* List_GetMidpoint(WB2KList** list_head, WB2KList* starting_item, WB2KList* max_item);
+// // for the passed list, return the mid-point list item, given the starting point and ending point desired
+// // use this to do binary searches, etc. if max_item is NULL, will continue until end of list
+// WB2KList* List_GetMidpoint(WB2KList** list_head, WB2KList* starting_item, WB2KList* max_item);
 
 //*** declarations for test function(s) ***
 

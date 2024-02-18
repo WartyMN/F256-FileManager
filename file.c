@@ -409,19 +409,19 @@ void File_Destroy(WB2KFileObject** the_file)
 
 // **** SETTERS *****
 
-// set files selected/unselected status (no visual change)
-void File_SetSelected(WB2KFileObject* the_file, bool selected)
-{
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return;
-	}
-	
-	the_file->selected_ = selected;
-
-	return;
-}
+// // set files selected/unselected status (no visual change)
+// void File_SetSelected(WB2KFileObject* the_file, bool selected)
+// {
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return;
+// 	}
+// 	
+// 	the_file->selected_ = selected;
+// 
+// 	return;
+// }
 
 
 /// updates the icon's size/position information
@@ -525,30 +525,30 @@ bool File_IsSelected(WB2KFileObject* the_file)
 }
 
 
-// returns true if file object represents a folder
-bool File_IsFolder(WB2KFileObject* the_file)
-{
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return false;
-	}
+// // returns true if file object represents a folder
+// bool File_IsFolder(WB2KFileObject* the_file)
+// {
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return false;
+// 	}
+// 
+// 	return the_file->is_directory_;
+// }
 
-	return the_file->is_directory_;
-}
 
-
-// returns the filename - no allocation
-char* File_GetFileNameString(WB2KFileObject* the_file)
-{
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	return the_file->file_name_;
-}
+// // returns the filename - no allocation
+// char* File_GetFileNameString(WB2KFileObject* the_file)
+// {
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	return the_file->file_name_;
+// }
 
 
 // // allocates and returns a copy of the modified date and time as string (for use with list mode headers or with info panel, etc.)
@@ -605,17 +605,17 @@ char* File_GetFileNameString(WB2KFileObject* the_file)
 // }
 
 
-// returns the filetype id
-uint8_t File_GetFileTypeID(WB2KFileObject* the_file)
-{
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return 255;
-	}
-	
-	return the_file->file_type_;
-}
+// // returns the filetype id
+// uint8_t File_GetFileTypeID(WB2KFileObject* the_file)
+// {
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return 255;
+// 	}
+// 	
+// 	return the_file->file_type_;
+// }
 
 
 // populate a buffer with bytes from the file. Non-interactive: it reads until end of file or specified number of bytes. 

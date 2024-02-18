@@ -408,32 +408,32 @@ bool Text_FillBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_ch
 }
 
 
-//! Fill character memory for a specific box area
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	the_char: the character to be used for the fill operation
-//! @return	Returns false on any error/invalid input.
-bool Text_FillBoxCharOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_char)
-{
-	uint8_t		dy;
-	uint8_t		dx;
-	
-	if (x1 > x2 || y1 > y2)
-	{
-		LOG_ERR(("%s %d: illegal coordinates", __func__, __LINE__));
-		return false;
-	}
-
- 	// add 1 to H line len, because dx becomes width, and if width = 0, then memset gets 0, and nothing happens.
-	// dy can be 0 and you still get at least one row done.
-	dx = x2 - x1 + 1;
-	dy = y2 - y1 + 0;
-
-	return Text_FillMemoryBox(x1, y1, dx, dy, SCREEN_FOR_TEXT_CHAR, the_char);
-}
+// //! Fill character memory for a specific box area
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	x1: the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y1: the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	x2: the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y2: the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	the_char: the character to be used for the fill operation
+// //! @return	Returns false on any error/invalid input.
+// bool Text_FillBoxCharOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_char)
+// {
+// 	uint8_t		dy;
+// 	uint8_t		dx;
+// 	
+// 	if (x1 > x2 || y1 > y2)
+// 	{
+// 		LOG_ERR(("%s %d: illegal coordinates", __func__, __LINE__));
+// 		return false;
+// 	}
+// 
+//  	// add 1 to H line len, because dx becomes width, and if width = 0, then memset gets 0, and nothing happens.
+// 	// dy can be 0 and you still get at least one row done.
+// 	dx = x2 - x1 + 1;
+// 	dy = y2 - y1 + 0;
+// 
+// 	return Text_FillMemoryBox(x1, y1, dx, dy, SCREEN_FOR_TEXT_CHAR, the_char);
+// }
 
 
 //! Fill attribute memory for a specific box area
@@ -595,33 +595,33 @@ bool Text_SetColorAtXY(uint8_t x, uint8_t y, uint8_t fore_color, uint8_t back_co
 }
 
 
-//! Draw a char at a specified x, y coord, also setting the color attributes
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	x: the horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y: the vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	the_char: the character to be used
-//! @param	fore_color: Index to the desired foreground color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
-//! @param	back_color: Index to the desired background color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
-//! @return	Returns false on any error/invalid input.
-bool Text_SetCharAndAttrAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t the_attribute_value)
-{
-	uint8_t*		the_write_loc;
-
-	the_write_loc = Text_GetMemLocForXY(x, y);	
-	
-	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-	*the_write_loc = the_attribute_value;
-	Sys_RestoreIOPage();
-
-	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	*the_write_loc = the_char;
-	Sys_RestoreIOPage();
-
-	last_x = x;
-	last_y = y;
-	
-	return true;
-}
+// //! Draw a char at a specified x, y coord, also setting the color attributes
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	x: the horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y: the vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	the_char: the character to be used
+// //! @param	fore_color: Index to the desired foreground color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
+// //! @param	back_color: Index to the desired background color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
+// //! @return	Returns false on any error/invalid input.
+// bool Text_SetCharAndAttrAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t the_attribute_value)
+// {
+// 	uint8_t*		the_write_loc;
+// 
+// 	the_write_loc = Text_GetMemLocForXY(x, y);	
+// 	
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
+// 	*the_write_loc = the_attribute_value;
+// 	Sys_RestoreIOPage();
+// 
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
+// 	*the_write_loc = the_char;
+// 	Sys_RestoreIOPage();
+// 
+// 	last_x = x;
+// 	last_y = y;
+// 	
+// 	return true;
+// }
 
 
 //! Draw a char at a specified x, y coord, also setting the color attributes
@@ -1267,7 +1267,6 @@ int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char
 // returns false if no string built.
 bool Text_GetStringFromUser(char* the_buffer, int8_t the_max_length, uint8_t start_x, uint8_t start_y)
 {
-	char*		original_string = the_buffer;
 	char*		the_user_input = the_buffer;
 	int8_t		x = start_x;
 	int8_t		characters_remaining;
@@ -1276,7 +1275,6 @@ bool Text_GetStringFromUser(char* the_buffer, int8_t the_max_length, uint8_t sta
 	uint8_t		i;
 	uint8_t		the_char;
 	uint8_t		the_cursor_char_code = SC_CHECKERED;
-	uint8_t		fore_cursor = COLOR_BRIGHT_YELLOW;
 	uint8_t		fore_text = COLOR_BRIGHT_WHITE;
 	uint8_t		background = COLOR_BLACK;
 	

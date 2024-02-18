@@ -244,29 +244,29 @@ void List_AddItem(WB2KList** list_head, WB2KList* the_item)
 }
 
 
-// adds a new list item after the list_item passed
-void List_AddItemAfter(WB2KList** list_head, WB2KList* the_new_item, WB2KList* the_existing_item)
-{
-	// If the Linked List is empty or if existing item is NULL, then turn the new item passed into the head of the list
-	if (*list_head == NULL || the_existing_item == NULL)
-	{
-		the_new_item->prev_item_ = NULL;
-		the_new_item->next_item_ = NULL;
-
-		*list_head = the_new_item;
-	}
-	else
-	{
-		if (the_existing_item->next_item_)
-		{
-			the_new_item->next_item_ = the_existing_item->next_item_;
-			the_existing_item->next_item_->prev_item_ = the_new_item;
-		}
-		
-		the_new_item->prev_item_ = the_existing_item;
-		the_existing_item->next_item_ = the_new_item;
-	}
-}
+// // adds a new list item after the list_item passed
+// void List_AddItemAfter(WB2KList** list_head, WB2KList* the_new_item, WB2KList* the_existing_item)
+// {
+// 	// If the Linked List is empty or if existing item is NULL, then turn the new item passed into the head of the list
+// 	if (*list_head == NULL || the_existing_item == NULL)
+// 	{
+// 		the_new_item->prev_item_ = NULL;
+// 		the_new_item->next_item_ = NULL;
+// 
+// 		*list_head = the_new_item;
+// 	}
+// 	else
+// 	{
+// 		if (the_existing_item->next_item_)
+// 		{
+// 			the_new_item->next_item_ = the_existing_item->next_item_;
+// 			the_existing_item->next_item_->prev_item_ = the_new_item;
+// 		}
+// 		
+// 		the_new_item->prev_item_ = the_existing_item;
+// 		the_existing_item->next_item_ = the_new_item;
+// 	}
+// }
 
 
 // removes the specified item from the list (without destroying the list item)
@@ -293,23 +293,23 @@ void List_RemoveItem(WB2KList** list_head, WB2KList* the_item)
 }
 
 
-// iterates through the list looking for the list item that matches the address of the payload object passed
-WB2KList* List_FindThisObject(WB2KList** list_head, void* the_payload)
-{
-	WB2KList* the_item = *list_head;
-
-	while (the_item != NULL)
-	{
-		if (the_item->payload_ == the_payload)
-		{
-			return the_item;
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	return NULL;
-}
+// // iterates through the list looking for the list item that matches the address of the payload object passed
+// WB2KList* List_FindThisObject(WB2KList** list_head, void* the_payload)
+// {
+// 	WB2KList* the_item = *list_head;
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		if (the_item->payload_ == the_payload)
+// 		{
+// 			return the_item;
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return NULL;
+// }
 
 
 // frees the specified item and the data it points to
@@ -320,56 +320,56 @@ WB2KList* List_FindThisObject(WB2KList** list_head, void* the_payload)
 //}
 
 
-// returns a list item for the first item in the list; returns null if list is empty
-WB2KList* List_GetFirst(WB2KList** list_head)
-{
-	WB2KList* the_item = *list_head;
-
-	if (the_item == NULL)
-	{
-		return NULL;
-	}
-	else
-	{
-		return the_item;
-	}
-
-}
-
-
-// returns a list item for the last item in the list; returns null if list is empty
-WB2KList* List_GetLast(WB2KList** list_head)
-{
-	WB2KList* the_item = *list_head;
-
-	if (the_item == NULL)
-	{
-		return NULL;
-	}
-
-	while (the_item->next_item_ != NULL)
-	{
-		the_item = the_item->next_item_;
-	}
-
-	return the_item;
-}
+// // returns a list item for the first item in the list; returns null if list is empty
+// WB2KList* List_GetFirst(WB2KList** list_head)
+// {
+// 	WB2KList* the_item = *list_head;
+// 
+// 	if (the_item == NULL)
+// 	{
+// 		return NULL;
+// 	}
+// 	else
+// 	{
+// 		return the_item;
+// 	}
+// 
+// }
 
 
-// prints out every item in the list, using the helper function passed
-WB2KList* List_Print(WB2KList** list_head, void (* print_function)(void*))
-{
-	WB2KList* the_item = *list_head;
+// // returns a list item for the last item in the list; returns null if list is empty
+// WB2KList* List_GetLast(WB2KList** list_head)
+// {
+// 	WB2KList* the_item = *list_head;
+// 
+// 	if (the_item == NULL)
+// 	{
+// 		return NULL;
+// 	}
+// 
+// 	while (the_item->next_item_ != NULL)
+// 	{
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return the_item;
+// }
 
-	while (the_item != NULL)
-	{
-		(*print_function)(the_item->payload_);
 
-		the_item = the_item->next_item_;
-	}
-
-	return NULL;
-}
+// // prints out every item in the list, using the helper function passed
+// WB2KList* List_Print(WB2KList** list_head, void (* print_function)(void*))
+// {
+// 	WB2KList* the_item = *list_head;
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		(*print_function)(the_item->payload_);
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	return NULL;
+// }
 
 
 // starting point for sorting a list with MergeSort
@@ -383,34 +383,34 @@ void List_InitMergeSort(WB2KList** list_head, bool (* compare_function)(void*, v
 }
 
 
-// for the passed list, return the mid-point list item, given the starting point and ending point desired
-// use this to do binary searches, etc. if max_item is NULL, will continue until end of list
-WB2KList* List_GetMidpoint(WB2KList** list_head, WB2KList* starting_item, WB2KList* max_item)
-{
-	WB2KList* slow_ptr;
-	WB2KList* fast_ptr;
-	slow_ptr = starting_item;
-	fast_ptr = starting_item;
-
-	// are the upper and lower bounds the same thing to start with? 
-	if (starting_item == max_item)
-	{
-		return starting_item;
-	}
-	
-	// fast_ptr is incremented twice and slow_ptr is incremented once
-	while (fast_ptr != NULL && fast_ptr != max_item)
-	{
-		fast_ptr = fast_ptr->next_item_;
-
-		if (fast_ptr != NULL && fast_ptr != max_item)
-		{
-			slow_ptr = slow_ptr->next_item_;
-			fast_ptr = fast_ptr->next_item_;
-		}
-	}
-
-	// slow_ptr is at the midpoint
-	return slow_ptr;
-}
+// // for the passed list, return the mid-point list item, given the starting point and ending point desired
+// // use this to do binary searches, etc. if max_item is NULL, will continue until end of list
+// WB2KList* List_GetMidpoint(WB2KList** list_head, WB2KList* starting_item, WB2KList* max_item)
+// {
+// 	WB2KList* slow_ptr;
+// 	WB2KList* fast_ptr;
+// 	slow_ptr = starting_item;
+// 	fast_ptr = starting_item;
+// 
+// 	// are the upper and lower bounds the same thing to start with? 
+// 	if (starting_item == max_item)
+// 	{
+// 		return starting_item;
+// 	}
+// 	
+// 	// fast_ptr is incremented twice and slow_ptr is incremented once
+// 	while (fast_ptr != NULL && fast_ptr != max_item)
+// 	{
+// 		fast_ptr = fast_ptr->next_item_;
+// 
+// 		if (fast_ptr != NULL && fast_ptr != max_item)
+// 		{
+// 			slow_ptr = slow_ptr->next_item_;
+// 			fast_ptr = fast_ptr->next_item_;
+// 		}
+// 	}
+// 
+// 	// slow_ptr is at the midpoint
+// 	return slow_ptr;
+// }
 

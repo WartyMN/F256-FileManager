@@ -117,8 +117,8 @@ bool Panel_HasSelections(WB2KViewPanel* the_panel);
 // returns number of currently selected files in this panel
 uint16_t Panel_GetCountSelectedFiles(WB2KViewPanel* the_panel);
 
-// return the root folder
-WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel);
+// // return the root folder
+// WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel);
 
 
 

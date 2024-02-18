@@ -127,17 +127,17 @@ bool Sys_AutoConfigure(void);
 //! @return	returns false on any error/invalid input.
 bool Sys_DetectScreenSize(void);
 
-//! Change video mode to the one passed.
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	new_mode: One of the enumerated screen_resolution values. Must correspond to a valid VICKY video mode for the host machine. See VICKY_IIIA_RES_800X600_FLAGS, etc. defined in a2560_platform.h
-//! @return	returns false on any error/invalid input.
-bool Sys_SetVideoMode(uint8_t new_mode);
+// //! Change video mode to the one passed.
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	new_mode: One of the enumerated screen_resolution values. Must correspond to a valid VICKY video mode for the host machine. See VICKY_IIIA_RES_800X600_FLAGS, etc. defined in a2560_platform.h
+// //! @return	returns false on any error/invalid input.
+// bool Sys_SetVideoMode(uint8_t new_mode);
 
-//! Switch machine into text mode
-//! @param	the_system: valid pointer to system object
-//! @param as_overlay: If true, sets text overlay mode (text over graphics). If false, sets full text mode (no graphics);
-//! @return	returns false on any error/invalid input.
-void Sys_SetModeText(bool as_overlay);
+// //! Switch machine into text mode
+// //! @param	the_system: valid pointer to system object
+// //! @param as_overlay: If true, sets text overlay mode (text over graphics). If false, sets full text mode (no graphics);
+// //! @return	returns false on any error/invalid input.
+// void Sys_SetModeText(bool as_overlay);
 
 //! Enable or disable the hardware cursor in text mode, for the specified screen
 //! @param	the_system: valid pointer to system object
