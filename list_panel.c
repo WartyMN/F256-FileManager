@@ -762,8 +762,6 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	
 	// renew file listing
 	Panel_RenderContents(the_panel);
-// 	Folder_RefreshListing(the_panel->root_folder_);
-// 	Panel_Init(the_panel);
 	
 // 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, the_file->file_name_);
 // 	Buffer_NewMessage(global_string_buff2);
@@ -793,16 +791,7 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	
 	if (the_file->file_type_ == FNX_FILETYPE_FONT)
 	{
-		success = File_GetBinaryContents(the_file, (char*)OVERLAY_START_ADDR, TEXT_FONT_BYTE_SIZE);
-		
-		if (success)
-		{
-			zp_bank_num = CUSTOM_FONT_VALUE;
-			Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
-			//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
-			Text_UpdateFontData((char*)OVERLAY_START_ADDR, true);	// false=put into secondary font memory, not primary
-			Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
-		}
+		success = File_ReadFontData(the_file);
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_EXE)
 	{
@@ -1377,6 +1366,8 @@ void Panel_ClearDisplay(WB2KViewPanel* the_panel)
 void Panel_RenderContents(WB2KViewPanel* the_panel)
 {
 	WB2KList*	the_item;
+	
+	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	// clear the panel. if this is a refresh, it isn't guaranteed panel UI was just drawn. eg, file was deleted. 
 	Text_FillBox(

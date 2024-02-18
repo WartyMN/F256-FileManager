@@ -285,11 +285,11 @@ bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 
 // **** FONT RELATED *****
 
-//! replace the current font data with the data at the passed memory buffer
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	new_font_data: Pointer to 2K (256 characters x 8 lines/bytes each) of font data. Each byte represents one line of an 8x8 font glyph.
-//! @return	Returns false on any error/invalid input.
-bool Text_UpdateFontData(char* new_font_data, bool for_primary_font);
+// //! replace the current font data with the data at the passed memory buffer
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	new_font_data: Pointer to 2K (256 characters x 8 lines/bytes each) of font data. Each byte represents one line of an 8x8 font glyph.
+// //! @return	Returns false on any error/invalid input.
+// bool Text_UpdateFontData(char* new_font_data, bool for_primary_font);
 
 
 

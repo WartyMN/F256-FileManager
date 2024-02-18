@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "screen.h"
 #include "strings.h"
+#include "sys.h"
 #include "text.h"
 
 // C includes
@@ -618,9 +619,9 @@ bool File_IsSelected(WB2KFileObject* the_file)
 // }
 
 
-// populate a buffer with bytes from the file. Non-interactive: it reads until end of file or specified number of bytes. 
+// Populates the primary font data area in VICKY with bytes read from disk
 // Returns false on any error
-bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t buffer_size)
+bool File_ReadFontData(WB2KFileObject* the_file)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -630,6 +631,7 @@ bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t b
 	// LOGIC
 	//   we need to keep the file stream open until it is used up, or buffer max size is hit
 
+	char*		the_font_data = (char*)FONT_MEMORY_BANK0;
 	int16_t		bytes_read; // kernel read() gives back int16_t
 	uint16_t	bytes_still_needed; // kernel read() expects uint16_t for num bytes to read
 	FILE*		the_file_handler;
@@ -643,7 +645,7 @@ bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t b
 	//sprintf(global_string_buff1, "starting binary data read of %u bytes to location %p", buffer_size, the_buffer);
 	//Buffer_NewMessage(global_string_buff1);
 
-	bytes_still_needed = buffer_size;
+	bytes_still_needed = TEXT_FONT_BYTE_SIZE;
 	
 	//Open file
 	the_file_handler = fopen((char*)the_file->file_path_, "r");	
@@ -679,13 +681,12 @@ bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t b
 		else
 		{
 			// we got some bytes, potentially all wanted bytes, so copy to final buffer
-			zp_bank_num = CUSTOM_FONT_VALUE;
-			Memory_SwapInNewBank(CUSTOM_FONT_SLOT);
-			memcpy((void*)the_buffer, (uint8_t*)STORAGE_FILE_BUFFER_1, bytes_read);
-			//DEBUG_OUT(("%s %d: font loaded into slot %u from bank %u", __func__, __LINE__, CUSTOM_FONT_SLOT, CUSTOM_FONT_VALUE));
-			Memory_RestorePreviousBank(CUSTOM_FONT_SLOT);
+			Sys_SwapIOPage(VICKY_IO_PAGE_FONT_AND_LUTS);	
+			memcpy((void*)the_font_data, (uint8_t*)STORAGE_FILE_BUFFER_1, bytes_read);
+			Sys_RestoreIOPage();
+			
 			bytes_still_needed -= bytes_read;
-			the_buffer += bytes_read;
+			the_font_data += bytes_read;
 		}
 
 		//sprintf(global_string_buff1, "bytes_still_needed=%i, buffer=%p", bytes_still_needed, the_buffer);

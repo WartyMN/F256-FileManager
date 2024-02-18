@@ -249,6 +249,8 @@ void App_Initialize(void)
 
 	// set up the left panel pointing to the lowest available device
 	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
 	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
@@ -257,8 +259,6 @@ void App_Initialize(void)
 	}
 
 	app_active_panel_id = PANEL_ID_LEFT;
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
 	{

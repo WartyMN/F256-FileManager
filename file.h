@@ -131,9 +131,9 @@ bool File_IsFolder(WB2KFileObject* the_file);
 char* File_GetFileSizeStringCopy(WB2KFileObject* the_file);
 
 
-// populate a buffer with bytes from the file. Non-interactive: it reads until end of file or specified number of bytes. 
+// Populates the primary font data area in VICKY with bytes read from disk
 // Returns false on any error
-bool File_GetBinaryContents(WB2KFileObject* the_file, char* the_buffer, size_t buffer_size);
+bool File_ReadFontData(WB2KFileObject* the_file);
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
 bool File_GetTextContents(WB2KFileObject* the_file);

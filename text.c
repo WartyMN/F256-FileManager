@@ -699,37 +699,37 @@ bool Text_DrawCharsAtXY(uint8_t x, uint8_t y, uint8_t* the_buffer, uint16_t the_
 
 // **** FONT RELATED *****
 
-//! replace the current font data with the data at the passed memory buffer
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @param	new_font_data: Pointer to 2K (256 characters x 8 lines/bytes each) of font data. Each byte represents one line of an 8x8 font glyph.
-//! @return	Returns false on any error/invalid input.
-bool Text_UpdateFontData(char* new_font_data, bool for_primary_font)
-{
-	uint8_t*	target_font_addr;
-	
-	if (new_font_data == NULL)
-	{
-		LOG_ERR(("%s %d: passed font data was NULL", __func__, __LINE__));
-		return false;
-	}
-
-	if (for_primary_font)
-	{
-		target_font_addr = (uint8_t*)FONT_MEMORY_BANK0;
-	}
-	else
-	{
-		target_font_addr = (uint8_t*)FONT_MEMORY_BANK1;
-	}
-	
-	Sys_SwapIOPage(VICKY_IO_PAGE_FONT_AND_LUTS);
-
-	memcpy(target_font_addr, new_font_data, (8*256));
-		
-	Sys_RestoreIOPage();
-
-	return true;
-}
+// //! replace the current font data with the data at the passed memory buffer
+// //! @param	the_screen: valid pointer to the target screen to operate on
+// //! @param	new_font_data: Pointer to 2K (256 characters x 8 lines/bytes each) of font data. Each byte represents one line of an 8x8 font glyph.
+// //! @return	Returns false on any error/invalid input.
+// bool Text_UpdateFontData(char* new_font_data, bool for_primary_font)
+// {
+// 	uint8_t*	target_font_addr;
+// 	
+// 	if (new_font_data == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed font data was NULL", __func__, __LINE__));
+// 		return false;
+// 	}
+// 
+// 	if (for_primary_font)
+// 	{
+// 		target_font_addr = (uint8_t*)FONT_MEMORY_BANK0;
+// 	}
+// 	else
+// 	{
+// 		target_font_addr = (uint8_t*)FONT_MEMORY_BANK1;
+// 	}
+// 	
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_FONT_AND_LUTS);
+// 
+// 	memcpy(target_font_addr, new_font_data, (8*256));
+// 		
+// 	Sys_RestoreIOPage();
+// 
+// 	return true;
+// }
 
 
 
