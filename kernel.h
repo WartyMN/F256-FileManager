@@ -24,6 +24,10 @@ bool Kernal_RunExe(char* the_path);
 // // returns error on error, and never returns on success (because SuperBASIC took over)
 // bool Kernal_RunBASIC(char* the_path);
 
+// calls modojr and tells it to load the specified .mod file
+// returns error on error, and never returns on success (because pexec took over)
+bool Kernal_RunMod(char* the_path);
+
 // deletes the file at the specified path
 // returns false in all error conditions
 bool __fastcall__ Kernel_DeleteFile(const char* name);

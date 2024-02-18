@@ -797,6 +797,10 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	{
 		success = Kernal_RunExe(the_file->file_path_);
 	}
+	else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
+	{
+		success = Kernal_RunMod(the_file->file_path_);
+	}
 // 	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 // 	{
 // 		success = Kernal_RunBASIC(the_file->file_path_);

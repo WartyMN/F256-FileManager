@@ -150,13 +150,26 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 		// get file extensions
 		General_ExtractFileExtensionFromFilename(the_file->file_name_, (char*)&temp_file_extension_buffer);
 		
-		if (General_Strncasecmp((char*)&temp_file_extension_buffer, "fnt", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_FONT;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
+		// do this in order of most likely to least likely
+		if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "bas", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_BASIC;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mod", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_MUSIC;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_EXE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "fnt", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_FONT;
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "kup", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
@@ -169,14 +182,6 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_EXE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "bas", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_BASIC;
 		}
 		else
 		{

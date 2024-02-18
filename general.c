@@ -644,6 +644,10 @@ char* General_GetFileTypeString(uint8_t cbm_filetype_id)
 		case FNX_FILETYPE_EXE:
 			// any .pgz, etc executable
 			return General_GetString(ID_STR_FILETYPE_EXE);
+
+		case FNX_FILETYPE_MUSIC:
+			// any .mod etc music file that modo can play
+			return General_GetString(ID_STR_FILETYPE_MUSIC);
 // 		
 //		case _CBM_T_DEL:
 		case _CBM_T_DIR:
