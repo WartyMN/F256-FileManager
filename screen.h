@@ -81,10 +81,11 @@
 
 #define UI_PANEL_INNER_WIDTH			33
 #define UI_PANEL_OUTER_WIDTH			(UI_PANEL_INNER_WIDTH + 2)
-#define UI_PANEL_INNER_HEIGHT			43
+#define UI_PANEL_INNER_HEIGHT			42
 #define UI_PANEL_OUTER_HEIGHT			(UI_PANEL_INNER_HEIGHT + 2)
 #define UI_PANEL_TAB_WIDTH				28
 #define UI_PANEL_TAB_HEIGHT				3
+
 #define UI_PANEL_FILENAME_OFFSET		1	// from left edge of panel to start of filename
 #define UI_PANEL_FILETYPE_OFFSET		23	// from start of filename to start of filesize
 #define UI_PANEL_FILESIZE_OFFSET		5	// from start of filesize to start of filetype
@@ -121,6 +122,8 @@
 #define UI_RIGHT_PANEL_BODY_HEIGHT		UI_PANEL_OUTER_HEIGHT
 #define UI_RIGHT_PANEL_BODY_X2			(UI_RIGHT_PANEL_BODY_X1 + UI_RIGHT_PANEL_BODY_WIDTH - 1)
 #define UI_RIGHT_PANEL_BODY_Y2			(UI_RIGHT_PANEL_BODY_Y1 + UI_RIGHT_PANEL_BODY_HEIGHT - 1)
+
+#define UI_FULL_PATH_LINE_Y				(UI_LEFT_PANEL_BODY_Y2 + 1)	// row, not in any boxes, under file panels, above comms panel, for showing full path of a file.
 
 #define CH_UNDERSCORE					148		// this is one line up from a pure underscore, but works if text right under it. 0x5f	// '_'
 #define CH_OVERSCORE					0x0e	// opposite of '_'

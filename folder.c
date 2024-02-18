@@ -18,8 +18,8 @@
 #include "general.h"
 #include "list.h"
 #include "list_panel.h"
-#include "text.h"
 #include "strings.h"
+#include "text.h"
 
 // C includes
 #include <stdio.h>
