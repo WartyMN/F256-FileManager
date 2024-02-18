@@ -177,11 +177,11 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "lbm", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
+			the_file->file_type_ = FNX_FILETYPE_IMAGE;
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
+			the_file->file_type_ = FNX_FILETYPE_IMAGE;
 		}
 		else
 		{

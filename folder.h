@@ -67,7 +67,7 @@
 #define FNX_FILETYPE_EXE	201	// any .pgz, etc executable
 #define FNX_FILETYPE_BASIC	202	// a .bas file that f/manager will try to pass to SuperBASIC
 #define FNX_FILETYPE_MUSIC	203	// a .mod file that f/manager will try to pass to modojr
-
+#define FNX_FILETYPE_IMAGE	204 // a .256 or .lbm image file.
 
 
 

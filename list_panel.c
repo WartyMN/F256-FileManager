@@ -793,8 +793,9 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	{
 		success = File_ReadFontData(the_file);
 	}
-	else if (the_file->file_type_ == FNX_FILETYPE_EXE)
+	else if (the_file->file_type_ == FNX_FILETYPE_EXE || the_file->file_type_ == FNX_FILETYPE_IMAGE)
 	{
+		// this works because pexec can display images as well as log executables
 		success = Kernal_RunExe(the_file->file_path_);
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
