@@ -689,9 +689,51 @@ bool Kernal_MkDir(char* the_path, uint8_t drive_num)
 // In either case, event.directory.cookie will contain the above cookie.
 
 
+// // NOTE: this code below MIGHT be working, but SuperBASIC doesn't seem to be argument aware as of 2024/02/17
+// //   also, not sure if name of superbasic is not "basic". it probably is.
+// // calls SuperBASIC and tells it to run the specified basic file
+// // returns error on error, and never returns on success (because SuperBASIC took over)
+// bool Kernal_RunBASIC(char* the_path)
+// {
+//     char		stream;
+//     uint8_t		path_len;
+// 	
+// 	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
+// 	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for 'SuperBASIC', and one for the basic program SuperBASIC should load
+// 	// per dwsjason, these should be located at $200, with the pointers starting at $280. 
+// 	//  'arg0- to pexec should be "-", then arg1 should be the name of the pgz you want to run, includign the whole path. 
+// 	args.common.buf = (char*)0x0200; //"-";
+// 	args.common.buflen = 2;
+// 
+// 	General_Strlcpy((char*)0x0202, "SuperBASIC", 11);
+// 	
+//     // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
+//     the_path += 2;	// get past 0:, 1:, 2:, etc.     
+// 	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
+// 
+// 	General_Strlcpy((char*)0x020d, the_path, path_len);
+// 	
+// 	args.common.ext = (char*)0x0280;
+// 	args.common.extlen = 8;
+// 	
+// 	*(char*)0x0284 = 0x0d;
+// 	*(char*)0x0285 = 0x02;
+// 	*(char*)0x0286 = 0x00;
+// 	
+// 	stream = CALL(RunNamed);
+//     
+//     if (error) 
+//     {
+//         return false;
+//     }
+//     
+//     return true; // just so cc65 is happy; but will not be hit in event of success as pexec will already be running.
+// }
+
+
 // calls Pexec and tells it to run the specified path. 
 // returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunNamed(char* the_path)
+bool Kernal_RunExe(char* the_path)
 {
     char		stream;
     uint8_t		path_len;

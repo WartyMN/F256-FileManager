@@ -806,8 +806,12 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_EXE)
 	{
-		success = Kernal_RunNamed(the_file->file_path_);
+		success = Kernal_RunExe(the_file->file_path_);
 	}
+// 	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
+// 	{
+// 		success = Kernal_RunBASIC(the_file->file_path_);
+// 	}
 	else
 	{
 		return false;

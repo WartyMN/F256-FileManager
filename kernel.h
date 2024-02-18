@@ -18,7 +18,11 @@ bool Kernal_MkDir(char* the_folder_path, uint8_t drive_num);
 
 // calls Pexec and tells it to run the specified path. 
 // returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunNamed(char* the_exe_path);
+bool Kernal_RunExe(char* the_path);
+
+// // calls SuperBASIC and tells it to run the specified basic file
+// // returns error on error, and never returns on success (because SuperBASIC took over)
+// bool Kernal_RunBASIC(char* the_path);
 
 // deletes the file at the specified path
 // returns false in all error conditions
