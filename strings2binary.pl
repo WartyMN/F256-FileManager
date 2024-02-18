@@ -62,15 +62,10 @@ sub asciiToPETSCII
 		#/* @ */
 		return $thisChar;
 	}
-	elsif ($thisCharCode == 95)
-	{			
-		#/* _ underscore, replace with similar petscii */
-		return chr(100);
-	}
 	elsif ($thisCharCode == 126)
 	{			
-		#/* ~ , replace with petscii upper-left brick */
-		return chr(126);
+		#/* tilde, replace with sort by type downward disclosure triangle */
+		return chr(248);
 	}
 	elsif ($thisCharCode >= 91 && $thisCharCode <= 96) 
 	{	

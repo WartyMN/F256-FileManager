@@ -12,62 +12,66 @@
 10	20	Create new directory
 11	25	Enter new directory name:
 12	10	  DEVICE  
-13	7	 N Next
-14	10	 M New dir
-15	10	 F Refresh
-16	9	 ` Format
-17	9	(SD Card)
-18	10	   FILE   
-19	10	C <<<<<<<<
-20	10	C >>>>>>>>
-21	8	X Delete
-22	10	D Duplicat
-23	8	R Rename
-24	10	T Txt View
-25	10	H Hex View
-26	6	L Load
-27	8	FILENAME
-28	4	DAYS
-29	4	TYPE
-30	5	BYTES
-31	22	Scanning for drives...
-32	15	%u drives found
-33	20	Files sorted by name
-34	20	Files sorted by size
-35	20	Files sorted by type
-36	13	Formatting...
-37	10	Copying...
-38	11	Deleting...
-39	20	Reading directory...
-40	17	File '%s' deleted
-41	25	File '%s' renamed to '%s'
-42	21	Unable to delete file
-43	26	Unable to delete directory
-44	4	Done
-45	6	(More)
-46	11	Hit any key
-47	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-48	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-49	3	 d 
-50	3	PRG
-51	3	REL
-52	3	SEQ
+13	6	n Next
+14	8	` Format
+15	9	(SD Card)
+16	9	DIRECTORY
+17	9	m New dir
+18	9	f Refresh
+19	7	T ~Type
+20	7	N ~Name
+21	7	S ~Size
+22	10	   FILE   
+23	10	c <<<<<<<<
+24	10	c >>>>>>>>
+25	8	x Delete
+26	10	d Duplicat
+27	8	r Rename
+28	10	t Txt View
+29	10	h Hex View
+30	6	l Load
+31	8	FILENAME
+32	4	DAYS
+33	4	TYPE
+34	5	BYTES
+35	22	Scanning for drives...
+36	15	%u drives found
+37	20	Files sorted by name
+38	20	Files sorted by size
+39	20	Files sorted by type
+40	13	Formatting...
+41	10	Copying...
+42	11	Deleting...
+43	20	Reading directory...
+44	17	File '%s' deleted
+45	25	File '%s' renamed to '%s'
+46	21	Unable to delete file
+47	26	Unable to delete directory
+48	4	Done
+49	6	(More)
+50	11	Hit any key
+51	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+52	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
 53	3	 d 
-54	3	oth
-55	3	bas
-56	3	exe
-57	3	fnt
-58	14	Fatal error %u
-59	40	We don't need no stinkin' error messages
-60	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-61	16	The disk is full
-62	21	A disk error occurred
-63	26	Error: Could not open file
-64	31	Error: Could not list directory
-65	9	f/Manager
-66	32	f/Manager F256, version %u.%u.%u
-67	24	Copyright 2024 Micah Bly
-68	20	Cross-compiler: cc65
-69	41	Editor: BBEdit (the greatest of them all)
-70	76	This program is open source, using GPL 3 license. Please share improvements!
-71	46	https://github.com/WartyMN/F256jr-FileManager/
+54	3	PRG
+55	3	REL
+56	3	SEQ
+57	3	 d 
+58	3	oth
+59	3	bas
+60	3	exe
+61	3	fnt
+62	14	Fatal error %u
+63	40	We don't need no stinkin' error messages
+64	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+65	16	The disk is full
+66	21	A disk error occurred
+67	26	Error: Could not open file
+68	31	Error: Could not list directory
+69	9	f/Manager
+70	32	f/Manager F256, version %u.%u.%u
+71	24	Copyright 2024 Micah Bly
+72	20	Cross-compiler: cc65
+73	41	Editor: BBEdit (the greatest of them all)
+74	76	This program is open source, using GPL 3 license. Please share improvements!
+75	46	https://github.com/WartyMN/F256jr-FileManager/
