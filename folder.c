@@ -949,64 +949,68 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
         {
 			this_file_name = dirent->d_name;
 			
-			if (this_file_name[0] == '.' && this_file_name[1] == 0)
+			if (this_file_name[0] == '.' && this_file_name[1] != '.')
 			{
-				// this is the "current directory, not useful to us or user. skip
-				continue;
-			}
-			else if (this_file_name[0] == '.' && this_file_name[1] == '.' && this_file_name[2] == 0)
-			{
-				// this is the "parent directory", modify path to BE the parent path
-				the_len = (General_PathPart(global_temp_path_1) + 0) - global_temp_path_1;
-				memcpy(global_temp_path_2, global_temp_path_1, the_len);
-				global_temp_path_2[the_len] = '\0';
+				// this is a dir starting with '.' probably macOS junk, OR
+				// this is a the current dir ".", and we still don't need to see it.
 
-				if (General_Strnlen(global_temp_path_2, FILE_MAX_PATHNAME_SIZE) == 1)
-				{
-					// parent was the root (0:, 1:, or 2:), so we snipped it down too far, to just "0", "1", etc. 
-					global_temp_path_2[the_len++] = ':';
-					global_temp_path_2[the_len] = '\0';
-				}
 			}
 			else
 			{
-				// this is a normal directory, make path the parent + the filename
-				if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+				if (this_file_name[0] == '.' && this_file_name[1] == '.' && this_file_name[2] == 0)
 				{
-					// parent is the root (0:, 1:, or 2:), so don't append /
-					sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+					// this is the "parent directory", modify path to BE the parent path
+					the_len = (General_PathPart(global_temp_path_1) + 0) - global_temp_path_1;
+					memcpy(global_temp_path_2, global_temp_path_1, the_len);
+					global_temp_path_2[the_len] = '\0';
+	
+					if (General_Strnlen(global_temp_path_2, FILE_MAX_PATHNAME_SIZE) == 1)
+					{
+						// parent was the root (0:, 1:, or 2:), so we snipped it down too far, to just "0", "1", etc. 
+						global_temp_path_2[the_len++] = ':';
+						global_temp_path_2[the_len] = '\0';
+					}
 				}
 				else
 				{
-					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
+					// this is a normal directory, make path the parent + the filename
+					if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+					{
+						// parent is the root (0:, 1:, or 2:), so don't append /
+						sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+					}
+					else
+					{
+						sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
+					}
 				}
-			}
+				
+				//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
+				//Buffer_NewMessage(global_string_buff1);
 			
-			//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
-			//Buffer_NewMessage(global_string_buff1);
-		
-			this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
-
-			if (this_file == NULL)
-			{
-				LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
-				the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
-				goto error;
-			}
-
-			// Add this file to the list of files
-			file_added = Folder_AddNewFile(the_folder, this_file);
-
-			// if this is first file in scan, preselect it
-			if (file_cnt == 0)
-			{
-				this_file->selected_ = true;
-			}
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
 	
-			++file_cnt;
-			
-// 			sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
-// 			Buffer_NewMessage(global_string_buff1);
+				if (this_file == NULL)
+				{
+					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
+					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
+					goto error;
+				}
+	
+				// Add this file to the list of files
+				file_added = Folder_AddNewFile(the_folder, this_file);
+	
+				// if this is first file in scan, preselect it
+				if (file_cnt == 0)
+				{
+					this_file->selected_ = true;
+				}
+		
+				++file_cnt;
+				
+	// 			sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
+	// 			Buffer_NewMessage(global_string_buff1);
+			}
 		}
         else if (_DE_ISLBL(dirent->d_type))
         {
@@ -1037,40 +1041,48 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			//General_Strlcpy(global_temp_path_2, global_temp_path_1, FILE_MAX_PATHNAME_SIZE);
 			//General_Strlcat(global_temp_path_2, this_file_name, FILE_MAX_PATHNAME_SIZE);
 			
-			if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+			if (this_file_name[0] == '.')
 			{
-				// parent is the root (0:, 1:, or 2:), so don't append /
-				sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+				// this is a file starting with '.'. probably macOS junk. don't need to see it.
+
 			}
 			else
 			{
-				sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
-			}
-
-			this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
-
-			if (this_file == NULL)
-			{
-				LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
-				the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
-				goto error;
-			}
-
-			// Add this file to the list of files
-			file_added = Folder_AddNewFile(the_folder, this_file);
-
-			// if this is first file in scan, preselect it
-			if (file_cnt == 0)
-			{
-				this_file->selected_ = true;
-			}
+				if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
+				{
+					// parent is the root (0:, 1:, or 2:), so don't append /
+					sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
+				}
+				else
+				{
+					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
+				}
 	
-			++file_cnt;
-			
-			//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
-			//Buffer_NewMessage(global_string_buff1);
-			//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
-			//Buffer_NewMessage(global_string_buff1);
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+	
+				if (this_file == NULL)
+				{
+					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
+					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
+					goto error;
+				}
+	
+				// Add this file to the list of files
+				file_added = Folder_AddNewFile(the_folder, this_file);
+	
+				// if this is first file in scan, preselect it
+				if (file_cnt == 0)
+				{
+					this_file->selected_ = true;
+				}
+		
+				++file_cnt;
+				
+				//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
+				//Buffer_NewMessage(global_string_buff1);
+				//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+				//Buffer_NewMessage(global_string_buff1);
+			}
 		}
 
 	}
