@@ -83,8 +83,11 @@
 #define UI_PANEL_TAB_WIDTH				28
 #define UI_PANEL_TAB_HEIGHT				3
 #define UI_PANEL_FILENAME_OFFSET		1	// from left edge of panel to start of filename
-#define UI_PANEL_FILETYPE_OFFSET		21	// from start of filename to start of filesize
-#define UI_PANEL_FILESIZE_OFFSET		7	// from start of filesize to start of filetype
+#define UI_PANEL_FILETYPE_OFFSET		23	// from start of filename to start of filesize
+#define UI_PANEL_FILESIZE_OFFSET		5	// from start of filesize to start of filetype
+#define UI_PANEL_FILENAME_SORT_OFFSET	(UI_PANEL_FILENAME_OFFSET + 3)	// from start of col header to pos right of it for sort icon
+#define UI_PANEL_FILETYPE_SORT_OFFSET	(UI_PANEL_FILENAME_SORT_OFFSET + UI_PANEL_FILETYPE_OFFSET)	// from start of col header to pos right of it for sort icon
+#define UI_PANEL_FILESIZE_SORT_OFFSET	(UI_PANEL_FILETYPE_SORT_OFFSET + UI_PANEL_FILESIZE_OFFSET)	// from start of col header to pos right of it for sort icon
 
 #define UI_LEFT_PANEL_TITLE_TAB_X1		0
 #define UI_LEFT_PANEL_TITLE_TAB_Y1		3
@@ -92,6 +95,7 @@
 #define UI_LEFT_PANEL_TITLE_TAB_HEIGHT	UI_PANEL_TAB_HEIGHT
 #define UI_LEFT_PANEL_TITLE_TAB_X2		(UI_LEFT_PANEL_TITLE_TAB_X1 + UI_LEFT_PANEL_TITLE_TAB_WIDTH - 1)
 #define UI_LEFT_PANEL_TITLE_TAB_Y2		(UI_LEFT_PANEL_TITLE_TAB_Y1 + UI_LEFT_PANEL_TITLE_TAB_HEIGHT - 1)
+#define UI_LEFT_PANEL_HEADER_Y			(UI_LEFT_PANEL_TITLE_TAB_Y2 + 2)
 #define UI_LEFT_PANEL_BODY_X1			0
 #define UI_LEFT_PANEL_BODY_Y1			6
 #define UI_LEFT_PANEL_BODY_WIDTH		UI_PANEL_OUTER_WIDTH
@@ -107,6 +111,7 @@
 #define UI_RIGHT_PANEL_TITLE_TAB_HEIGHT	UI_PANEL_TAB_HEIGHT
 #define UI_RIGHT_PANEL_TITLE_TAB_X2		(UI_RIGHT_PANEL_TITLE_TAB_X1 + UI_RIGHT_PANEL_TITLE_TAB_WIDTH - 1)
 #define UI_RIGHT_PANEL_TITLE_TAB_Y2		(UI_RIGHT_PANEL_TITLE_TAB_Y1 + UI_RIGHT_PANEL_TITLE_TAB_HEIGHT - 1)
+#define UI_RIGHT_PANEL_HEADER_Y			UI_LEFT_PANEL_HEADER_Y
 #define UI_RIGHT_PANEL_BODY_X1			(UI_LEFT_PANEL_BODY_X1 + UI_RIGHT_PANEL_X_DELTA)
 #define UI_RIGHT_PANEL_BODY_Y1			(UI_LEFT_PANEL_BODY_Y1)
 #define UI_RIGHT_PANEL_BODY_WIDTH		UI_PANEL_OUTER_WIDTH
@@ -116,6 +121,7 @@
 
 #define CH_UNDERSCORE					148		// this is one line up from a pure underscore, but works if text right under it. 0x5f	// '_'
 #define CH_OVERSCORE					0x0e	// opposite of '_'
+#define CH_SORT_ICON					248		// downward disclosure triangle in f256 fonts
 
 /*****************************************************************************/
 /*                               Enumerations                                */
@@ -163,6 +169,9 @@ void Screen_Render(void);
 // device buttons are always activated, so are only drawn once
 void Screen_DrawFileMenuItems(bool as_active);
 
+// have screen function draw the sort triangle in the right place
+void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function);
+	
 // load strings into memory and set up string pointers
 void App_LoadStrings(void);
 

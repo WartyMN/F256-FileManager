@@ -18,6 +18,7 @@
 #include "screen.h"
 #include "app.h"
 #include "comm_buffer.h"
+#include "file.h"
 #include "general.h"
 #include "memory.h"
 #include "sys.h"
@@ -90,7 +91,6 @@ void Screen_DrawUI(void)
 	// draw the title bar at top. 3x80
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&app_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
-// 	Text_FillBoxAttrOnly(0, 1, 79, 1, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_InvertBox(48, 1, 54, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat
 
@@ -373,4 +373,34 @@ void App_LoadStrings(void)
 	Memory_SwapInNewBank(BANK_IO);
 
 	asm("CLI"); // restore interrupts
+}
+
+
+// have screen function draw the sort triangle in the right place
+void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function)
+{
+	// LOGIC:
+	//    we want to draw CH_SORT_ICON immediately to the right of the column header which is now being sorted. 
+	//    the positions for the sort icons are defined by UI_PANEL_FILENAME_SORT_OFFSET, etc. 
+	//    we also need to undraw whatever had been set
+	//    we are passed a pointer to the current compare function. we can use that to figure out what type of sort icon to draw. 
+	
+	// clear old icons
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
+	
+	// set new ones
+	if (the_sort_compare_function == (void*)&File_CompareName)
+	{
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+	}
+	else if (the_sort_compare_function == (void*)&File_CompareFileTypeID)
+	{
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+	}
+	else if (the_sort_compare_function == (void*)&File_CompareSize)
+	{
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+	}
 }

@@ -366,7 +366,7 @@ uint8_t App_MainLoop(void)
 						//DEBUG_OUT(("%s %d: Sort by name", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareName;
 						Panel_SortFiles(the_panel);
-						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_NAME));
+						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_NAME));
 						break;
 
 	// 				case ACTION_SORT_BY_DATE:
@@ -380,14 +380,14 @@ uint8_t App_MainLoop(void)
 						//DEBUG_OUT(("%s %d: Sort by size", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareSize;
 						Panel_SortFiles(the_panel);
-						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_SIZE));
+						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_SIZE));
 						break;
 			
 					case ACTION_SORT_BY_TYPE:
 						//DEBUG_OUT(("%s %d: Sort by type", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareFileTypeID;
 						Panel_SortFiles(the_panel);
-						Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_TYPE));
+						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_TYPE));
 						break;
 			
 					case ACTION_VIEW_AS_HEX:

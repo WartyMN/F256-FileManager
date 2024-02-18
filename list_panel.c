@@ -1458,6 +1458,11 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 	{
 		Folder_SetCurrentRow(the_panel->root_folder_, the_current_file->row_);
 	}
+	
+	// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
+	App_LoadOverlay(OVERLAY_SCREEN);
+	Screen_UpdateSortIcons(the_panel->x_, the_panel->sort_compare_function_);
+
 }
 
 
