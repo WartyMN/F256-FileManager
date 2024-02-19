@@ -968,9 +968,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 // 	Buffer_NewMessage("folder reset called ok");
 	
 	Folder_RefreshListing(the_other_panel->root_folder_);
-	//Buffer_NewMessage("refresh listing called ok");
 	Panel_Init(the_other_panel);
-	//Buffer_NewMessage("panel init called ok");
 	
 	return true;
 }

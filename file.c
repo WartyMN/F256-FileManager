@@ -90,8 +90,7 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 
 	if ( (the_file = (WB2KFileObject*)calloc(1, sizeof(WB2KFileObject)) ) == NULL)
 	{
-		sprintf(global_string_buff1, "could not allocate memory to create new file object '%s'", the_file_name);
-		Buffer_NewMessage(global_string_buff1);
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
 		LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
 		goto error;
 	}
@@ -645,7 +644,7 @@ bool File_ReadFontData(WB2KFileObject* the_file)
 
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file->file_path_);
 		Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
 		goto error;
@@ -661,14 +660,13 @@ bool File_ReadFontData(WB2KFileObject* the_file)
 		if (bytes_read == -1)
 		{
 			// error condition
-			Buffer_NewMessage("bytes_read < 0");
+			Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
 			LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
 			goto error;
 		}
 		else if (bytes_read == 0)
 		{
 			// EOF reached
-			Buffer_NewMessage("EOF reached");
 			bytes_still_needed = 0;
 		}
 		else
@@ -833,7 +831,7 @@ bool File_GetHexContents(WB2KFileObject* the_file)
 	
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, "file '%s' could not be opened for hex display", the_file->file_path_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file->file_path_);
 		Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
 		goto error;

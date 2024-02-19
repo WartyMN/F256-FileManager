@@ -1019,8 +1019,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			}
 			else if (dirent->d_name[1] == NO_DISK_PRESENT_FILE_NAME)
 			{
-				sprintf(global_string_buff1, "A file with name reported as asc 30 detected, assume means no disk in drive");
-				Buffer_NewMessage(global_string_buff1);
+				Buffer_NewMessage(General_GetString(ID_STR_ERROR_NO_DISK));
 				continue;
 			}
 			else

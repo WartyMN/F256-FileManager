@@ -73,7 +73,7 @@
 #define DEVICE_HIGHEST_DEVICE_NUM	2
 #define DEVICE_MAX_DEVICE_COUNT		(DEVICE_HIGHEST_DEVICE_NUM - DEVICE_LOWEST_DEVICE_NUM + 1)
 
-#define NO_DISK_PRESENT_FILE_NAME	30	// this is a char I see reported as a "islbl" by tool when scanning a floppy disk drive with no disk in it. 
+#define NO_DISK_PRESENT_FILE_NAME	30	// this is a char I see reported as a "islbl" by tool when scanning a floppy disk drive with no disk in it. but this might just have been garbage. 
 
 #define MEM_DUMP_BYTES_PER_ROW		16
 #define MAX_MEM_DUMP_LEN			(24 * MEM_DUMP_BYTES_PER_ROW)	// 24*16 = 384

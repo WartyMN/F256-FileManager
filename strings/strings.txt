@@ -42,35 +42,42 @@
 40	20	Reading directory...
 41	17	File '%s' deleted
 42	25	File '%s' renamed to '%s'
-43	21	Unable to delete file
-44	26	Unable to delete directory
-45	4	Done
-46	6	(More)
-47	11	Hit any key
-48	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-49	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-50	3	 d 
-51	3	PRG
-52	3	REL
-53	3	SEQ
-54	3	 d 
-55	3	oth
-56	3	bas
-57	3	exe
-58	3	fnt
-59	3	mus
-60	3	img
-61	14	Fatal error %u
+43	4	Done
+44	6	(More)
+45	11	Hit any key
+46	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+47	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
+48	3	 d 
+49	3	PRG
+50	3	REL
+51	3	SEQ
+52	3	 d 
+53	3	oth
+54	3	bas
+55	3	exe
+56	3	fnt
+57	3	mus
+58	3	img
+59	14	Fatal error %u
+60	21	Unable to delete file
+61	26	Unable to delete directory
 62	40	We don't need no stinkin' error messages
 63	74	No connected devices were detected. f/manager has died of loneliness. Bye!
 64	16	The disk is full
 65	21	A disk error occurred
-66	26	Error: Could not open file
-67	31	Error: Could not list directory
-68	9	f/Manager
-69	32	f/Manager F256, version %u.%u.%u
-70	24	Copyright 2024 Micah Bly
-71	20	Cross-compiler: cc65
-72	41	Editor: BBEdit (the greatest of them all)
-73	76	This program is open source, using GPL 3 license. Please share improvements!
-74	46	https://github.com/WartyMN/F256jr-FileManager/
+66	34	No disk detected in the disk drive
+67	31	Error: Could not open file '%s'
+68	31	Error: Could not list directory
+69	19	Out of memory error
+70	9	f/Manager
+71	32	f/Manager F256, version %u.%u.%u
+72	24	Copyright 2024 Micah Bly
+73	20	Cross-compiler: cc65
+74	41	Editor: BBEdit (the greatest of them all)
+75	76	This program is open source, using GPL 3 license. Please share improvements!
+76	46	https://github.com/WartyMN/F256jr-FileManager/
+77	6	F256JR
+78	5	F256K
+79	18	<unknown hardware>
+80	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
+81	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 

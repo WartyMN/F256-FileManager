@@ -258,7 +258,7 @@ void App_Initialize(void)
 	
 	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
 	{
-		Buffer_NewMessage("error creating left folder file object");
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
 	}
 
@@ -362,7 +362,6 @@ uint8_t App_MainLoop(void)
 						//DEBUG_OUT(("%s %d: Sort by name", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareName;
 						Panel_SortFiles(the_panel);
-						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_NAME));
 						break;
 
 	// 				case ACTION_SORT_BY_DATE:
@@ -376,14 +375,12 @@ uint8_t App_MainLoop(void)
 						//DEBUG_OUT(("%s %d: Sort by size", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareSize;
 						Panel_SortFiles(the_panel);
-						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_SIZE));
 						break;
 			
 					case ACTION_SORT_BY_TYPE:
 						//DEBUG_OUT(("%s %d: Sort by type", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareFileTypeID;
 						Panel_SortFiles(the_panel);
-						//Buffer_NewMessage(General_GetString(ID_STR_MSG_SORTED_BY_TYPE));
 						break;
 			
 					case ACTION_VIEW_AS_HEX:
