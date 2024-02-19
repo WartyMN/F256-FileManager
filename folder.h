@@ -96,12 +96,11 @@ typedef struct WB2KFolderObject
 	WB2KList**			list_;
 	uint16_t			file_count_;
 	int16_t				cur_row_;							// 0-n: selected file num. 0=first file. -1 if no file. 
-	uint32_t			total_bytes_;
+//	uint32_t			total_bytes_;
 // 	uint32_t			selected_bytes_;
-	uint16_t			total_blocks_;
-	uint16_t			selected_blocks_;
-	uint8_t				device_number_;						// For CBM, the drive unit #. eg, 8.
-	uint8_t				unit_number_;						// For CBM, the unit number. eg, 0 or 1. 0 for all single-drive devices.
+// 	uint16_t			total_blocks_;
+// 	uint16_t			selected_blocks_;
+	uint8_t				device_number_;						// For CBM, 8-9-10-11. for fnx, 0-1-2
 	char*				file_path_;							// rather than having in file, where it gets stored a lot, will just have in folder. 
 } WB2KFolderObject;
 
@@ -126,13 +125,13 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id);
 // constructor
 // allocates space for the object and any string or other properties that need allocating
 // if make_copy_of_folder_file is false, it will use the passed file object as is. Do not pass a file object that is owned by a folder already (without setting to true)!
-WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number, uint8_t the_unit_number);
+WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number);
 
 // reset the folder, without destroying it, to a condition where it can be completely repopulated
 // destroys all child objects except the folder file, which is emptied out
 // recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number, char* new_path);
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char* new_path);
 
 // destructor
 // frees all allocated memory associated with the passed object, and the object itself

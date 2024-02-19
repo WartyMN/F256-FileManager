@@ -76,8 +76,7 @@ extern char*		global_temp_path_2;
 
 extern uint8_t		temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 extern uint8_t		temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
-extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
-extern int8_t		global_connected_unit[DEVICE_MAX_DEVICE_COUNT];		// will be 0 or 1 if connected, or -1 if not. paired with global_connected_device.
+extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
 
 extern uint8_t				zp_bank_num;
 #pragma zpsym ("zp_bank_num");
@@ -189,12 +188,11 @@ void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, u
 
 
 // Forget all its files, and repopulate from the next drive in the system. 
-// max_drive_num is the highest available connected drive/unit combo in the system. an index to global_connected_device/global_connected_unit arrays.
+// max_drive_num is the highest available connected drive in the system. an index to global_connected_device array.
 bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 {
 	int8_t		the_drive_index;
 	uint8_t		the_new_device;
-	uint8_t		the_new_unit;
 	char		path_buff[3];
 	
 	the_drive_index = the_panel->drive_index_ + 1;
@@ -210,20 +208,18 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 	}
 	
 	the_new_device = global_connected_device[the_drive_index];
-	the_new_unit = global_connected_unit[the_drive_index];
 	
-	//sprintf(global_string_buff1, "Switching to device %u, unit %u, drive idx=%i", the_new_device, the_new_unit, the_drive_index);
+	//sprintf(global_string_buff1, "Switching to device %u, drive idx=%i", the_new_device, the_drive_index);
 	//Buffer_NewMessage(global_string_buff1);
 	
 	the_panel->drive_index_ = the_drive_index;
 	the_panel->device_number_ = the_new_device;
-	the_panel->unit_number_ = the_new_unit;
 
 	sprintf(path_buff, "%d:", the_new_device);
 	
 	App_LoadOverlay(OVERLAY_FOLDER);
 
-	if (Folder_Reset(the_panel->root_folder_, the_new_device, the_new_unit, path_buff) == false)
+	if (Folder_Reset(the_panel->root_folder_, the_new_device, path_buff) == false)
 	{
 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -240,12 +236,11 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 // **** SETTERS *****
 
 
-// sets the current device number (CBM drive number, eg, 8) + unit number (eg, 0 or 1) the panel is using
+// sets the current device number (CBM device number, eg, 8-9-10-11 or FNX drive num, eg 0, 1, or 2) the panel is using
 // does not refresh. Repopulate to do that.
-void Panel_SetCurrentUnit(WB2KViewPanel* the_panel, uint8_t the_device_num, uint8_t the_unit_num)
+void Panel_SetCurrentDrive(WB2KViewPanel* the_panel, uint8_t the_device_num)
 {
 	the_panel->device_number_ = the_device_num;
-	the_panel->unit_number_ = the_unit_num;
 }
 
 
@@ -904,7 +899,7 @@ bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
 	//sprintf(global_string_buff1, "trying to set path '%s' as new root folder", the_file->file_path_);
 	//Buffer_NewMessage(global_string_buff1);
 
-	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, the_panel->unit_number_, the_file->file_path_) == false))
+	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, the_file->file_path_) == false))
 	{
 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -920,7 +915,7 @@ bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
 // 	}
 	
 // 	// renew file listing
-// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_, the_other_panel->unit_number_) == false)
+// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_) == false)
 // 	{
 // 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 // 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -965,7 +960,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	}
 	
 // 	// renew file listing
-// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_, the_other_panel->unit_number_) == false)
+// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_) == false)
 // 	{
 // 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 // 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -1209,7 +1204,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 // 				WB2KWindow*			new_surface;
 // 
 // 				//if ( (the_root_folder = Folder_GetRootFolderNEW(this_file)) == NULL)
-// 				if ( (the_root_folder = Folder_GetRootFolder(this_file->file_path_, this_file->device_name_, this_file->rport_, this_file->datetime_.dat_Stamp)) == NULL)
+// 				if ( (the_root_folder = Folder_GetRootFolder(this_file->file_path_, this_file->rport_, this_file->datetime_.dat_Stamp)) == NULL)
 // 				{
 // 					LOG_ERR(("%s %d: Unable to create a folder object for '%s'", __func__ , __LINE__, this_file->file_path_));
 // 					goto error;

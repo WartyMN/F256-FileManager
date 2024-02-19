@@ -372,7 +372,7 @@ WB2KList* Folder_FindListItemByFileName(WB2KFolderObject* the_folder, char* the_
 // constructor
 // allocates space for the object and any string or other properties that need allocating
 // if make_copy_of_folder_file is false, it will use the passed file object as is. Do not pass a file object that is owned by a folder already (without setting to true)!
-WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number, uint8_t the_unit_number)
+WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number)
 {
 	WB2KFolderObject*	the_folder;
 	WB2KFileObject*		the_copy_of_folder_file;
@@ -413,10 +413,9 @@ WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_cop
 	
 	// set some other props
 	the_folder->file_count_ = 0;
-	the_folder->total_blocks_ = 0;
-	the_folder->selected_blocks_ = 0;
+	//the_folder->total_blocks_ = 0;
+	//the_folder->selected_blocks_ = 0;
 	the_folder->device_number_ = the_device_number;
-	the_folder->unit_number_ = the_unit_number;
 
 	return the_folder;
 
@@ -430,7 +429,7 @@ error:
 // destroys all child objects except the folder file, which is emptied out
 // recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
 // returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8_t the_unit_number, char* new_path)
+bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char* new_path)
 {
 // 	WB2KFileObject**	this_file;
 	char**				this_string_p;
@@ -488,10 +487,9 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, uint8
 	
 	// reset some other props
 	the_folder->file_count_ = 0;
-	the_folder->total_blocks_ = 0;
-	the_folder->selected_blocks_ = 0;
+	//the_folder->total_blocks_ = 0;
+	//the_folder->selected_blocks_ = 0;
 	the_folder->device_number_ = the_device_number;
-	the_folder->unit_number_ = the_unit_number;
 	
 	// set the folder filepath and folder file filepath to match device+":"
 	//sprintf(path_buff, "%d:", the_device_number);
@@ -988,7 +986,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
 				//Buffer_NewMessage(global_string_buff1);
 			
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt);
 	
 				if (this_file == NULL)
 				{
@@ -1058,7 +1056,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
 				}
 	
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, the_folder->device_number_, the_folder->unit_number_, file_cnt);
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, file_cnt);
 	
 				if (this_file == NULL)
 				{
@@ -1474,7 +1472,7 @@ bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, b
 // 	the_datetime = General_GetCurrentDateStampWithAlloc();
 // 	
 // 	// make WB2K file object for the folder that now exists on disk
-// 	the_file = File_New(the_target_file_name, the_target_folder_path, the_folder->folder_file_->device_name_, PARAM_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
+// 	the_file = File_New(the_target_file_name, the_target_folder_path, PARAM_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
 // 
 // 	LOG_ALLOC(("%s %d:	__ALLOC__	the_datetime	%p	size	%i", __func__ , __LINE__, the_datetime, sizeof(struct DateStamp)));
 // 	free(the_datetime);

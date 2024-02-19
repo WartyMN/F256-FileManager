@@ -83,7 +83,7 @@ extern uint8_t				zp_bank_num;
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_device_num, uint8_t the_unit_num, uint8_t the_row)
+WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row)
 {
 	WB2KFileObject*		the_file;
 	bool				date_ok = false;
@@ -124,14 +124,6 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
-// 	//DEBUG_OUT(("%s %d: device_name = '%s'", __func__ , __LINE__, the_device_name));
-// 	if ( (the_file->device_name_ = General_StrlcpyWithAlloc(the_device_name, FILE_MAX_PATHNAME_SIZE)) == NULL)
-// 	{
-// 		LOG_ERR(("%s %d: could not allocate memory for the device name", __func__ , __LINE__));
-// 		goto error;
-// 	}
-// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->device_name_	%p	size	%i", __func__ , __LINE__, the_file->device_name_, General_Strnlen(the_file->device_name_, FILE_MAX_PATHNAME_SIZE) + 1));
-	
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
 // 	sprintf(global_string_buff1, "%4lu blocks", the_filesize);
@@ -194,8 +186,6 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 	}
 
 	the_file->is_directory_ = is_directory;
-	the_file->device_number_ = the_device_num;
-	the_file->unit_number_ = the_unit_num;
 
 	// file is brand new: not selected yet.
 	the_file->selected_ = false;
@@ -278,8 +268,6 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_duplicate_file->size_ = the_original_file->size_;
-	the_duplicate_file->device_number_ = the_original_file->device_number_;
-	the_duplicate_file->unit_number_ = the_original_file->unit_number_;
 
 // 	if ( (the_duplicate_file->file_size_string_ = General_StrlcpyWithAlloc(the_original_file->file_size_string_, FILE_MAX_PATHNAME_SIZE)) == NULL)
 // 	{

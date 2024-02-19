@@ -65,8 +65,7 @@ typedef struct WB2KViewPanel
 	uint8_t				num_rows_;							// for any mode, number of rows used
 	uint8_t				content_top_;						// for column mode, need to track our own content top position
 	uint8_t				device_number_;						// For CBM, the drive #. eg, 8 or 9. 
-	uint8_t				unit_number_;						// For CBM, the unit # within the drive. eg, 0 or 1 
-	int8_t				drive_index_;						// reference to index to global_connected_unit/global_connected_device array. -1 if no device.
+	int8_t				drive_index_;						// reference to index to global_connected_device array. -1 if no device.
 // 	uint8_t				col_width_[PANEL_LIST_NUM_COLS];	// for list mode, the widths of each column. Can vary by window width
 // 	uint8_t				col_highest_visible_;				// the last column that should be rendered by File_RenderLabel
 // 	bool				col_show_[PANEL_LIST_NUM_COLS];		// for list mode, whether a given column will render. Can vary by window width
@@ -94,16 +93,16 @@ bool printdir (char *newdir);
 void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 
 // Forget all its files, and repopulate from the next drive in the system. 
-// max_drive_num is the highest available connected drive/unit combo in the system. an index to global_connected_device/global_connected_unit arrays.
+// max_drive_num is the highest available connected drive in the system. an index to global_connected_device array.
 bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num);
 
 
 
 // **** SETTERS *****
 
-// sets the current device number (CBM drive number, eg, 8) + unit number (eg, 0 or 1) the panel is using
+// sets the current device number (CBM drive number, eg, 8-9-10-11 or FNX drive num, eg 0, 1, or 2) the panel is using
 // does not refresh. Repopulate to do that.
-void Panel_SetCurrentUnit(WB2KViewPanel* the_panel, uint8_t the_device_num, uint8_t the_unit_num);
+void Panel_SetCurrentDrive(WB2KViewPanel* the_panel, uint8_t the_device_num);
 
 // tells the panel to toggle its active/inactive state, and redraw its title appropriately
 void Panel_ToggleActiveState(WB2KViewPanel* the_panel);

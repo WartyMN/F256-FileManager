@@ -65,8 +65,7 @@ static uint8_t				app_connected_drive_count;
 /*                             Global Variables                              */
 /*****************************************************************************/
 
-int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. paired with global_connected_unit.
-int8_t					global_connected_unit[DEVICE_MAX_DEVICE_COUNT];		// will be 0 or 1 if connected, or -1 if not. paired with global_connected_device.
+int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. 
 
 WB2KViewPanel			app_file_panel[2];
 //WB2KFolderObject		app_root_folder[2];
@@ -154,7 +153,6 @@ int8_t	App_ScanDevices(void)
 {
 	uint8_t		drive_num = 0;
 	uint8_t		device;
-	uint8_t		unit = 0;
 	DIR*		dir;
 	char		drive_path[3];
 	char*		the_drive_path = drive_path;
@@ -178,14 +176,13 @@ int8_t	App_ScanDevices(void)
 		{
 			// this device exists/is connected
 			global_connected_device[drive_num] = device;
-			global_connected_unit[drive_num] = unit;
 			++drive_num;
 			
 			if (Kernel_CloseDir(dir) == -1)
 			{
 				//Buffer_NewMessage("clsdir fail");
 			}
-		//sprintf(the_drive_path, "device was ok. device=%u, unit=%u", device, unit);
+		//sprintf(the_drive_path, "device was ok. device=%u", device);
 		//Buffer_NewMessage(the_drive_path);
 			//sprintf(global_string_buff1, "%u: open ok", device);
 		}
@@ -252,14 +249,14 @@ void App_Initialize(void)
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
-	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
+	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
 	}
 
 	app_active_panel_id = PANEL_ID_LEFT;
 	
-	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
+	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
 	{
 		Buffer_NewMessage("error creating left folder file object");
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
@@ -282,14 +279,14 @@ void App_Initialize(void)
 		sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 	}
 
-	if ( (root_folder_file_right = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 1, global_connected_device[the_drive_index], 0, 0) ) == NULL)
+	if ( (root_folder_file_right = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
 	}
 
 	App_LoadOverlay(OVERLAY_FOLDER);
 	
-	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index], global_connected_unit[the_drive_index]) ) == NULL)
+	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT);
 	}
@@ -310,8 +307,8 @@ void App_Initialize(void)
 		(UI_RIGHT_PANEL_BODY_WIDTH - 2), (UI_RIGHT_PANEL_BODY_HEIGHT - 3)
 	);
 
-	Panel_SetCurrentUnit(&app_file_panel[PANEL_ID_LEFT], app_root_folder[PANEL_ID_LEFT]->device_number_, app_root_folder[PANEL_ID_LEFT]->unit_number_);
-	Panel_SetCurrentUnit(&app_file_panel[PANEL_ID_RIGHT], app_root_folder[PANEL_ID_RIGHT]->device_number_, app_root_folder[PANEL_ID_RIGHT]->unit_number_);
+	Panel_SetCurrentDrive(&app_file_panel[PANEL_ID_LEFT], app_root_folder[PANEL_ID_LEFT]->device_number_);
+	Panel_SetCurrentDrive(&app_file_panel[PANEL_ID_RIGHT], app_root_folder[PANEL_ID_RIGHT]->device_number_);
 	app_file_panel[PANEL_ID_LEFT].active_ = true;	// we always start out with left panel being the active one
 	app_file_panel[PANEL_ID_RIGHT].active_ = false;	// we always start out with left panel being the active one
 
