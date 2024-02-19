@@ -177,7 +177,10 @@ void Screen_DrawFileMenuItems(bool as_active);
 
 // have screen function draw the sort triangle in the right place
 void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function);
-	
+
+// display information about f/manager, the machine, and the MicroKernel
+void Screen_ShowAboutInfo(void);
+
 // load strings into memory and set up string pointers
 void App_LoadStrings(void);
 

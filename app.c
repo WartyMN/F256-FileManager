@@ -211,10 +211,9 @@ void App_Initialize(void)
 
 	Buffer_Clear();
 
-	// show app name, version, and credit
-	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
-	Buffer_NewMessage(global_string_buff1);
-	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));
+	// show info about the host F256 and environment, as well as copyright, version of f/manager
+	App_LoadOverlay(OVERLAY_SCREEN);
+	Screen_ShowAboutInfo();
 
 	// set up the dialog template we'll use throughout the app
 	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;

@@ -89,7 +89,22 @@
 #define RANDOM_NUM_GEN_LOW				0xd6a4		// both the SEEDL and the RNDL (depends on bit 1 of RND_CTRL)
 #define RANDOM_NUM_GEN_HI				0xd6a5		// both the SEEDH and the RNDH (depends on bit 1 of RND_CTRL)
 #define RANDOM_NUM_GEN_ENABLE			0xd6a6		// bit 0: enable/disable. bit 1: seed mode on/off. "RND_CTRL"
+
 #define MACHINE_ID_REGISTER				0xd6a7		// will be '2' for F256JR
+#define MACHINE_PCB_ID_0				0xd6a8
+#define MACHINE_PCB_ID_1				0xd6a9
+#define MACHINE_PCB_MAJOR				0xd6eb		// error in manual? this and next 4 all show same addr. changing here to go up by 1.
+#define MACHINE_PCB_MINOR				0xd6ec
+#define MACHINE_PCB_DAY					0xd6ed
+#define MACHINE_PCB_MONTH				0xd6ef
+#define MACHINE_PCB_YEAR				0xd6f0
+#define MACHINE_FPGA_SUBV_LOW			0xd6aa		// CHSV0 chip subversion in BCD (low)
+#define MACHINE_FPGA_SUBV_HI			0xd6ab		// CHSV1 chip subversion in BCD (high)
+#define MACHINE_FPGA_VER_LOW			0xd6ac		// CHV0 chip version in BCD (low)
+#define MACHINE_FPGA_VER_HI				0xd6ad		// CHV1 chip version in BCD (high)
+#define MACHINE_FPGA_NUM_LOW			0xd6ae		// CHN0 chip number in BCD (low)
+#define MACHINE_FPGA_NUM_HI				0xd6af		// CHN1 chip number in BCD (high)
+
 #define TEXT_FORE_LUT					0xd800		// FG_CHAR_LUT_PTR	Text Foreground Look-Up Table
 #define TEXT_BACK_LUT					0xd840		// BG_CHAR_LUT_PTR	Text Background Look-Up Table
 
@@ -128,14 +143,16 @@
 // machine model numbers - for decoding s_sys_info.model - value read from MACHINE_ID_REGISTER (see above)
 #define MACHINE_C256_FMX		0	///< for s_sys_info.model
 #define MACHINE_C256_U			1	///< for s_sys_info.model
-#define MACHINE_F256_JR			2	///< for s_sys_info.model
+#define MACHINE_F256_JR			0x02	///< for s_sys_info.model
 #define MACHINE_C256_GENX		4	///< for s_sys_info.model
 #define MACHINE_C256_UPLUS		5	///< for s_sys_info.model
 #define MACHINE_A2560U_PLUS		6	///< for s_sys_info.model
 #define MACHINE_A2560X			7	///< for s_sys_info.model
 #define MACHINE_A2560U			9	///< for s_sys_info.model
-#define MACHINE_A2560K			13	///< for s_sys_info.model
-		
+#define MACHINE_F256K			0x12	///< for s_sys_info.model
+#define MACHINE_A2560K			0x0b	///< for s_sys_info.model
+
+#define MACHINE_MODEL_MASK		0x1F		
 
 typedef uint8_t	ColorIdx;
 
@@ -166,6 +183,7 @@ typedef uint8_t	ColorIdx;
 #define CH_TAB          9
 #define CH_SPACE		32
 #define CH_RUNSTOP		3
+#define CH_COPYRIGHT	215
 
 /*****************************************************************************/
 /*                             Named Characters                              */

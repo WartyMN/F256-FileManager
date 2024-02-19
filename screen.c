@@ -61,6 +61,8 @@ static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] =
 /*****************************************************************************/
 
 extern char*				global_string[NUM_STRINGS];
+extern char*				global_string_buff1;
+extern char*				global_string_buff2;
 
 extern uint8_t				zp_bank_num;
 extern uint8_t				io_bank_value_kernel;	// stores value for the physical bank pointing to C000-DFFF whenever we change it, so we can restore it.
@@ -410,3 +412,72 @@ void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function
 		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
 	}
 }
+
+
+// display information about f/manager, the machine, and the MicroKernel
+void Screen_ShowAboutInfo(void)
+{
+	// LOGIC:
+	//    hardware info is in VICKY
+	//    info on MicroKernel build version is *** SOMEWHERE ELSE, ASK GADGET ****
+	//    maybe in future do this in a window, for now, do in comms buffer
+	
+	uint8_t		the_machine_id;
+	char 		year[2];
+	char		month[2];
+	char		day[2];
+	char		build[2];
+	char*		buffer = (char*)0xE008;
+
+	// show app name, version, and credit
+	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
+	Buffer_NewMessage(global_string_buff1);
+	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));
+
+	// show machine information	
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+
+	the_machine_id = (R8(MACHINE_ID_REGISTER) & MACHINE_MODEL_MASK);
+	
+	if (the_machine_id == MACHINE_F256K)
+	{
+		strcpy(global_string_buff1, "Hardware: F256K, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'");
+	}
+	else if (the_machine_id == MACHINE_F256_JR)
+	{
+		strcpy(global_string_buff1, "Hardware: F256JR, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'");
+	}
+	else
+	{
+		strcpy(global_string_buff1, "Hardware: <unknown hardware>, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'");
+	}
+	
+	sprintf(global_string_buff2, global_string_buff1, R8(MACHINE_FPGA_NUM_HI), R8(MACHINE_FPGA_NUM_LOW), R8(MACHINE_FPGA_VER_HI), R8(MACHINE_FPGA_VER_LOW), R8(MACHINE_FPGA_SUBV_HI), R8(MACHINE_FPGA_SUBV_LOW), R8(MACHINE_PCB_MAJOR), R8(MACHINE_PCB_MINOR), R8(MACHINE_PCB_ID_0), R8(MACHINE_PCB_ID_1));
+
+	Sys_RestoreIOPage();
+
+	Buffer_NewMessage(global_string_buff2);
+
+	// show MicroKernel information	
+	// data is (11 bytes), starting 8 bytes into 3f.bin, which happens to be mapped in to $E000 all the time. 
+	// format is MM/DD/YY, space, build #. eg: "01/02/24 21"
+	//General_Strlcpy(global_string_buff1, (char*)0xE008, 12); 
+	month[0] = *buffer++;
+	month[1] = *buffer++;
+	buffer++; // skip the slash
+	day[0] = *buffer++;
+	day[1] = *buffer++;
+	buffer++; // skip the slash
+	year[0] = *buffer++;
+	year[1] = *buffer++;
+	buffer++; // skip the space
+	build[0] = *buffer++;
+	build[1] = *buffer++;
+	
+	sprintf(global_string_buff1, "F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c.", 
+		CH_COPYRIGHT, year[0], year[1], build[0], build[1], year[0], year[1], month[0], month[1], day[0], day[1]
+	);
+	
+	Buffer_NewMessage(global_string_buff1);
+}
+
