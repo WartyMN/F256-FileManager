@@ -939,9 +939,14 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		//Buffer_NewMessage(global_string_buff1);
 		return ERROR_COULD_NOT_OPEN_DIR;
 	}
+	
     while ( (dirent = Kernel_ReadDir(dir)) != NULL )
     {
         // is this is the disk name, or a file?
+
+		//sprintf(global_string_buff1, "dirent->d_name='%s', dirent->d_type=%u, dirent->d_name[0]=%u", dirent->d_name, dirent->d_type, dirent->d_name[0]);
+		//Buffer_NewMessage(global_string_buff1);
+
 
         if (_DE_ISDIR(dirent->d_type))
         {
@@ -1017,10 +1022,12 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				// this is the internal SD card. give a more user-friendly name
 				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
 			}
-			else if (dirent->d_name[1] == NO_DISK_PRESENT_FILE_NAME)
+			else if (dirent->d_name[0] == NO_DISK_PRESENT_FILE_NAME || dirent->d_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
 			{
-				Buffer_NewMessage(General_GetString(ID_STR_ERROR_NO_DISK));
-				continue;
+				sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_NO_DISK), the_folder->device_number_);
+				Buffer_NewMessage(global_string_buff1);
+				the_error_code = ERROR_COULD_NOT_OPEN_DIR;
+				break;
 			}
 			else
 			{

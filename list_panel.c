@@ -437,8 +437,8 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 	if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
 	{		
 		LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
-		//sprintf(temp_buff, "pop err %u", the_error_code);
-		//Buffer_NewMessage(temp_buff);
+		//sprintf(global_string_buff1, "pop err %u", the_error_code);
+		//Buffer_NewMessage(global_string_buff1);
 		
 		Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
 		return false;

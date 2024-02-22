@@ -65,7 +65,7 @@
 63	74	No connected devices were detected. f/manager has died of loneliness. Bye!
 64	16	The disk is full
 65	21	A disk error occurred
-66	34	No disk detected in the disk drive
+66	33	No disk detected in disk drive %u
 67	31	Error: Could not open file '%s'
 68	31	Error: Could not list directory
 69	19	Out of memory error
