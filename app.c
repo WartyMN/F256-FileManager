@@ -600,11 +600,14 @@ int main(void)
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
 
+	// clear screen and draw logo
+	App_LoadOverlay(OVERLAY_SCREEN);
+	Screen_ShowLogo();
+	
 	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
 	Buffer_Initialize();
 	
 	// set up pointers to string data that is in EM
-	App_LoadOverlay(OVERLAY_SCREEN);
 	App_LoadStrings();
 	
 	// Initialize screen structures and do first draw

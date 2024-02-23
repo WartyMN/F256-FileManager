@@ -146,9 +146,9 @@ int32_t General_Round(double the_float);
 
 // **** NUMBER<>STRING UTILITIES *****
 
-// convert a file size in bytes to a human readable format using "10 bytes", "1.4 kb", "1 MB", etc. 
-//   NOTE: formatted_file_size string must have been allocated before passing here
-void General_MakeFileSizeReadable(unsigned long size_in_bytes, char* formatted_file_size);
+// // convert a file size in bytes to a human readable format using "10 bytes", "1.4 kb", "1 MB", etc. 
+// //   NOTE: formatted_file_size string must have been allocated before passing here
+// void General_MakeFileSizeReadable(unsigned long size_in_bytes, char* formatted_file_size);
 
 
 
