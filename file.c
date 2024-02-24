@@ -83,7 +83,7 @@ extern uint8_t				zp_bank_num;
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row)
+WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime)
 {
 	WB2KFileObject*		the_file;
 	bool				date_ok = false;
@@ -191,37 +191,13 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 
 	the_file->row_ = the_row;
 	
-// 	// remember date stamp, for sorting, display to user, etc. Use OS functions to convert the DateStamp we got from ExAll to a datetime and strings
-// 	// need 3 strings to hold date, each with max len LEN_DATSTRING
-// 
-// 	if ( (the_file->datetime_.dat_StrDate = (char*)calloc(LEN_DATSTRING + 1, sizeof(char)) ) != NULL)
-// 	{
-// 		if ( (the_file->datetime_.dat_StrDay = (char*)calloc(LEN_DATSTRING + 1, sizeof(char)) ) != NULL)
-// 		{
-// 			if ( (the_file->datetime_.dat_StrTime = (char*)calloc(LEN_DATSTRING + 1, sizeof(char)) ) != NULL)
-// 			{
-// 				the_file->datetime_.dat_Format = FORMAT_INT;
-// 				the_file->datetime_.dat_Flags = DTF_FUTURE;
-// 				the_file->datetime_.dat_Stamp.ds_Days = the_datetime.ds_Days;
-// 				the_file->datetime_.dat_Stamp.ds_Minute = the_datetime.ds_Minute;
-// 				the_file->datetime_.dat_Stamp.ds_Tick = the_datetime.ds_Tick;
-// 
-// 				if (DateToStr(&the_file->datetime_))
-// 				{
-// 					date_ok = true;
-// 				}
-// 			}
-// 			LOG_ALLOC(("%s %d:	__ALLOC__	the_file->datetime_.dat_StrDate	%p	size	%i", __func__ , __LINE__, the_file->datetime_.dat_StrDate, LEN_DATSTRING + 1));
-// 			LOG_ALLOC(("%s %d:	__ALLOC__	the_file->datetime_.dat_StrDay	%p	size	%i", __func__ , __LINE__, the_file->datetime_.dat_StrDay, LEN_DATSTRING + 1));
-// 			LOG_ALLOC(("%s %d:	__ALLOC__	the_file->datetime_.dat_StrTime	%p	size	%i", __func__ , __LINE__, the_file->datetime_.dat_StrTime, LEN_DATSTRING + 1));
-// 		}
-// 	}
-// 
-// 	if (date_ok == false)
-// 	{
-// 		LOG_ERR(("%s %d: could not process the file date", __func__ , __LINE__));
-// 		goto error;
-// 	}
+	// remember date stamp, for sorting, display to user, etc.
+	the_file->datetime_.year = the_datetime->year;
+	the_file->datetime_.month = the_datetime->month;
+	the_file->datetime_.day = the_datetime->day;
+	the_file->datetime_.hour = the_datetime->hour;
+	the_file->datetime_.min = the_datetime->min;
+	the_file->datetime_.sec = the_datetime->sec;
 
 	return the_file;
 
@@ -1221,9 +1197,11 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 		if (as_selected == true)
 		{
 			Text_InvertBox(x1, y, x2, y);
+			
 	
 			// show full path of file in the special status line under the file panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);
+// 			sprintf(global_string_buff1, "%s (20%02u-%02u-%02u %02u:%02u:%02u)", the_file->file_path_, the_file->datetime_.year, the_file->datetime_.month, the_file->datetime_.day, the_file->datetime_.hour, the_file->datetime_.min, the_file->datetime_.sec);
 			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_path_, COLOR_GREEN, APP_BACKGROUND_COLOR);
 		}
 	}

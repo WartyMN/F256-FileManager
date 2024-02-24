@@ -334,7 +334,8 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 	
 	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_NEW_FOLDER_TITLE), 36);
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_FOLDER_NAME), 70);
-
+	global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
+	
 	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, available_len);
 
 	// did user enter a name?
@@ -746,6 +747,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 // 	Buffer_NewMessage(global_string_buff1);
 // 	sprintf(global_string_buff1, "new filename='%s'", global_string_buff2);
 // 	Buffer_NewMessage(global_string_buff1);
+
 	strcpy(global_string_buff1, global_string_buff2); // get a copy of the filename because it won't be available after rename
 	
 	success = File_Rename(the_file, global_string_buff2, global_temp_path_1);

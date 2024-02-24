@@ -215,20 +215,13 @@ typedef uint8_t	ColorIdx;
 /*                                 Structs                                   */
 /*****************************************************************************/
 
-typedef struct DateStamp {
-	uint16_t	ds_Year;
-	uint32_t	ds_Days;
-	uint32_t	ds_Minute;
-	uint32_t	ds_Tick;
-} DateStamp;
-
 typedef struct DateTime {
-	DateStamp			dat_Stamp;		// DOS DateStamp
-	uint8_t				dat_Format;		// controls appearance of dat_StrDate
-	uint8_t				dat_Flags;		// see BITDEF's below
-	char*				dat_StrDay;		// day of the week string
-	char*				dat_StrDate;	// date string
-	char*				dat_StrTime;	// time string
+    uint8_t			year;
+    uint8_t			month;
+    uint8_t			day;
+    uint8_t			hour;
+    uint8_t			min;
+    uint8_t			sec;
 } DateTime;
 
 /*****************************************************************************/

@@ -203,6 +203,7 @@ void App_Initialize(void)
 	uint8_t				the_drive_index = 0;
 	WB2KFileObject*		root_folder_file_left;
 	WB2KFileObject*		root_folder_file_right;
+	DateTime			this_datetime;
 	char				drive_path[3];
 	char*				the_drive_path = drive_path;
 
@@ -249,7 +250,7 @@ void App_Initialize(void)
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
-	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0) ) == NULL)
+	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
 	}
@@ -279,7 +280,7 @@ void App_Initialize(void)
 		sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 	}
 
-	if ( (root_folder_file_right = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0) ) == NULL)
+	if ( (root_folder_file_right = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
 	}
@@ -600,15 +601,16 @@ int main(void)
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
 
-	// clear screen and draw logo
 	App_LoadOverlay(OVERLAY_SCREEN);
+	
+	// set up pointers to string data that is in EM
+	App_LoadStrings();
+
+	// clear screen and draw logo
 	Screen_ShowLogo();
 	
 	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
 	Buffer_Initialize();
-	
-	// set up pointers to string data that is in EM
-	App_LoadStrings();
 	
 	// Initialize screen structures and do first draw
 	Screen_InitializeUI();

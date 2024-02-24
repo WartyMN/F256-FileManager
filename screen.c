@@ -543,10 +543,11 @@ void Screen_ShowLogo(void)
 		color[i] = logo_color;
 	}
 
+	// instead of loading in custom logo colors, fill all foreground with black so we can fade the picture into view
 	// load in our custom logo colors to the text color luts
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	memcpy((uint8_t*)(TEXT_FORE_LUT), &logo_color_lut, 64);
 	memcpy((uint8_t*)(TEXT_BACK_LUT), &logo_color_lut, 64);
+	memset((uint8_t*)(TEXT_FORE_LUT), 0, 64);
 	Sys_RestoreIOPage();
 	
 	// clear screen and copy in chars and attrs for the logo
@@ -555,8 +556,28 @@ void Screen_ShowLogo(void)
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&logo_chars, 22, 7, 57, 51, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&logo_attrs, 22, 7, 57, 51, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR);
 	
+	// now fade the colors in, adding 1 color every round
+	vicky_lut_addr = (uint8_t*)(TEXT_FORE_LUT + 4); // skip over black
+	
+	for (i = 0; i < 15; i++)
+	{
+		Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+			
+		memcpy(vicky_lut_addr, color[i], 4);
+		vicky_lut_addr += 4;
+		
+		Sys_RestoreIOPage();
+		
+		General_DelayTicks(800);
+	}
+
+	// show app name
+	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
+	Text_DrawStringAtXY(24, 58, global_string_buff1, 15, COLOR_BLACK);
+	Text_DrawStringAtXY(28, 59, General_GetString(ID_STR_ABOUT_COPYRIGHT), 15, COLOR_BLACK);
+	
 	// now rotate the colors around a bit for a fun effect
-	for (j = 0; j < 255; j++)
+	for (j = 0; j < 225; j++)
 	{
 		temp_color = color[0];
 		
@@ -580,7 +601,7 @@ void Screen_ShowLogo(void)
 	
 		Sys_RestoreIOPage();
 		
-		General_DelayTicks(60);
+		General_DelayTicks(70);
 	}
 	
 	// reset colors (this is kind of clumsy, but lazy and it works)

@@ -64,7 +64,8 @@
 #define FILE_MAX_TEXT_PREVIEW_SIZE	255		// for info panel previews, the max # of bytes to read in and display
 #define FILE_TYPE_MAX_SIZE_NAME		4	// mostly PRG/REL, but allowed for SUBD
 #define FILE_SIZE_MAX_SIZE			16	// max size of human-readable file size. eg, "255 blocks", "1,200 MB"
-#define FILE_BYTES_PER_BLOCK		254	// 1 block = 256b but really only 254
+#define FILE_BYTES_PER_BLOCK_IEC	254	// for CBM DOS, 1 block = 256b but really only 254
+#define FILE_BYTES_PER_BLOCK		256	// for FAT32, 1 block = 256b
 #define MAX_NUM_FILES_IEC			144 // The directory track should be contained totally on track 18. Sectors 1-18 contain the entries and sector 0 contains the BAM (Block Availability Map) and disk name/ID. Since the directory is only 18 sectors large (19 less one for the BAM), and each sector can contain only 8 entries (32 bytes per entry), the maximum number of directory entries is 18 * 8 = 144. http://justsolve.archiveteam.org/wiki/CBMFS
 // BUT... 1581 supported 296 entries. hmm. 
 

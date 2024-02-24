@@ -22,6 +22,7 @@
 #include "text.h"
 
 // C includes
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -897,6 +898,10 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	uint8_t				the_len;
 	uint16_t			file_cnt = 0;
 	WB2KFileObject*		this_file;
+	DateTime			this_datetime;
+	uint16_t			the_block_size;
+
+	//	uint8_t* 	temp_ptr;// = (uint8_t*)&dirent->d_blocks;
 	
 	if (the_folder == NULL)
 	{
@@ -929,6 +934,18 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	// reset panel's file count, as we will be starting over from zero
 	the_folder->file_count_ = 0;
 
+	// account for FAT32 sectors vs IEC blocks when estimating file szie
+	if (the_folder->device_number_ == 0)
+	{
+		// SD-card = FAT32
+		the_block_size = FILE_BYTES_PER_BLOCK;
+	}
+	else
+	{
+		// a floppy = CBMDOS
+		the_block_size = FILE_BYTES_PER_BLOCK_IEC;
+	}
+	
     /* print directory listing */
 
 	dir = Kernel_OpenDir(the_folder->folder_file_->file_path_);
@@ -943,8 +960,12 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
     while ( (dirent = Kernel_ReadDir(dir)) != NULL )
     {
         // is this is the disk name, or a file?
-
+		//temp_ptr = (uint8_t*)&dirent->d_bytes;
+		//temp_ptr = (uint8_t*)&dirent->d_blocks;
 		//sprintf(global_string_buff1, "dirent->d_name='%s', dirent->d_type=%u, dirent->d_name[0]=%u", dirent->d_name, dirent->d_type, dirent->d_name[0]);
+		//sprintf(global_string_buff1, "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X", temp_ptr[0], temp_ptr[1], temp_ptr[2], temp_ptr[3], temp_ptr[4], temp_ptr[5], temp_ptr[6], temp_ptr[7], temp_ptr[8], temp_ptr[9]);
+		//sprintf(global_string_buff1, "%s %02X %02X %02X %02X %02X %02X %02X %02X", dirent->d_name, temp_ptr[0], temp_ptr[1], temp_ptr[2], temp_ptr[3], temp_ptr[4], temp_ptr[5], temp_ptr[6], temp_ptr[7]);
+		
 		//Buffer_NewMessage(global_string_buff1);
 
 
@@ -991,7 +1012,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
 				//Buffer_NewMessage(global_string_buff1);
 			
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt);
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt, &this_datetime);
 	
 				if (this_file == NULL)
 				{
@@ -1042,9 +1063,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
         else if (_DE_ISREG(dirent->d_type))
         {
 			this_file_name = dirent->d_name;
-			//General_Strlcpy(global_temp_path_2, global_temp_path_1, FILE_MAX_PATHNAME_SIZE);
-			//General_Strlcat(global_temp_path_2, this_file_name, FILE_MAX_PATHNAME_SIZE);
-			
+		
 			if (this_file_name[0] == '.')
 			{
 				// this is a file starting with '.'. probably macOS junk. don't need to see it.
@@ -1062,7 +1081,15 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
 				}
 	
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_REG, file_cnt);
+// 				this_datetime.year = dirent->year;
+// 				this_datetime.month = dirent->month;
+// 				this_datetime.day = dirent->day;
+// 				this_datetime.hour = dirent->hour;
+// 				this_datetime.min = dirent->min;
+// 				this_datetime.sec = dirent->sec;
+
+				
+				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
 	
 				if (this_file == NULL)
 				{
@@ -1082,6 +1109,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		
 				++file_cnt;
 				
+				//sprintf(global_string_buff1, "file '%s' datetime=%u-%u-%u %u:%u:%u", dirent->d_name, this_datetime.year, this_datetime.month, this_datetime.day, this_datetime.hour, this_datetime.min, this_datetime.sec);
+				//Buffer_NewMessage(global_string_buff1);
 				//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
 				//Buffer_NewMessage(global_string_buff1);
 				//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);

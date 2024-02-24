@@ -83,7 +83,7 @@ typedef struct WB2KFileObject
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row);
+WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime);
 
 
 // duplicator

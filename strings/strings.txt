@@ -80,4 +80,4 @@
 78	5	F256K
 79	18	<unknown hardware>
 80	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
-81	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+81	74	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c.

@@ -41,14 +41,22 @@
 
 
 
+#include <stdint.h>
 typedef struct DIR DIR;
 
 #define _DE_MAX_NAME
 
 struct dirent {
-    unsigned d_type;
-    unsigned d_blocks;
-    char d_name[30];  // The kernel supports up to 256.
+    uint16_t		d_type;		// 
+    uint16_t		d_blocks;	// size in blocks (256 for FAT32, 254 for IEC)
+    uint8_t			year;		// kernel extended buffer
+    uint8_t			month;		// kernel extended buffer
+    uint8_t			day;		// kernel extended buffer
+    uint8_t			hour;		// kernel extended buffer
+    uint8_t			min;		// kernel extended buffer
+    uint8_t			sec;   		// kernel extended buffer
+	//uint16_t		d_bytes;	// size in bytes. get from kernel extended buffer.
+	char			d_name[256];  // file name
 };
 
 #define _DE_ISREG(t)  (t == 0)

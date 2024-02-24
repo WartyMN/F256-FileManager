@@ -439,10 +439,14 @@ Kernel_ReadDir(DIR* dir)
             
         case EVENT(directory.FILE): 
             
-            args.common.buf = &dirent.d_blocks;
-            args.common.buflen = sizeof(dirent.d_blocks);
-            CALL(ReadExt);
-            dirent.d_type = (dirent.d_blocks == 0);
+            // common.ext isn't returning expected values. i think it's not meant to be used for reading like this. 
+           	 	//args.common.ext = &dirent.d_blocks;
+				// args.common.extlen = sizeof(dirent.d_blocks) + 6; // 6 to pick up the 6 bytes of date info
+			// common.buf returns blocks, 2 bytes of 0s, then a filename, looks like maybe the last-read file's filename. probably just junk from previous event. 
+			args.common.buf = &dirent.d_blocks;
+			args.common.buflen = sizeof(dirent.d_blocks) + 6; // 6 to pick up the 6 bytes of date info
+			CALL(ReadExt);
+			dirent.d_type = (dirent.d_blocks == 0);
             break;
                 
         case EVENT(directory.FREE):
