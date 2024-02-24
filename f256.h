@@ -184,6 +184,7 @@ typedef uint8_t	ColorIdx;
 #define CH_SPACE		32
 #define CH_RUNSTOP		3
 #define CH_COPYRIGHT	215
+#define CH_ZERO			48		// this is just so we can do match to convert a char '5' into an integer 5, etc.
 
 /*****************************************************************************/
 /*                             Named Characters                              */

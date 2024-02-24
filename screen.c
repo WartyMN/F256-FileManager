@@ -568,7 +568,7 @@ void Screen_ShowLogo(void)
 		
 		Sys_RestoreIOPage();
 		
-		General_DelayTicks(800);
+		General_DelayTicks(700);
 	}
 
 	// show app name

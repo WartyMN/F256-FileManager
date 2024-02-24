@@ -779,8 +779,9 @@ bool Kernal_RunMod(char* the_path)
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunExe(char* the_path)
 {
-    char		stream;
+    uint8_t		stream;
     uint8_t		path_len;
+    int8_t		the_device_num;
 	
 	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
 	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for '- filetorun.pgz'
@@ -789,8 +790,16 @@ bool Kernal_RunExe(char* the_path)
 	args.common.buf = (char*)0x0200; //"-";
 	args.common.buflen = 2;
 	
-    // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
-    the_path += 2;	// get past 0:, 1:, 2:, etc.     
+    // as of 2024-02-24, pexec now supports device nums, and if not found, will default to "0:"
+    //  this means that for SD card (0), we can leave it off, which keeps compatibility for people who haven't
+    //  updated to pexec v0.64 or newer. 
+    the_device_num = the_path[0] - CH_ZERO; // get to 0, 1, 2
+    
+    if (the_device_num < 1)
+    {
+		the_path += 2;	// skip past 0: to keep compatibility with pre-0.64 versions of pexec     
+    }
+	
 	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
 
 	General_Strlcpy((char*)0x0202, the_path, path_len);
