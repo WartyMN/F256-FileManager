@@ -59,7 +59,6 @@ cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_D
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T list_panel.c -o $BUILD_DIR/list_panel.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T list.c -o $BUILD_DIR/list.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_1 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T screen.c -o $BUILD_DIR/screen.s
-cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T strings.c -o $BUILD_DIR/strings.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T sys.c -o $BUILD_DIR/sys.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T text.c -o $BUILD_DIR/text.s
 
@@ -79,7 +78,6 @@ ca65 -t $CC65TGT general.s
 ca65 -t $CC65TGT list_panel.s
 ca65 -t $CC65TGT list.s
 ca65 -t $CC65TGT screen.s
-ca65 -t $CC65TGT strings.s
 ca65 -t $CC65TGT sys.s
 ca65 -t $CC65TGT text.s
 
@@ -94,7 +92,7 @@ ca65 -t $CC65TGT ../memory.asm -o memory.o
 echo "\n**************************\nLD65 link start...\n**************************\n"
 
 # link files into an executable
-ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o comm_buffer.o file.o folder.o general.o list.o list_panel.o memory.o screen.o strings.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
+ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o comm_buffer.o file.o folder.o general.o list.o list_panel.o memory.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
 # $PROJECT/cc65/lib/common.lib
 
 #noTE: 2024-02-12: removed name.o as it was incompatible with the lichking-style memory map I want to use to get more memory

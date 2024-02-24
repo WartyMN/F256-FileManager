@@ -60,7 +60,8 @@
 /*****************************************************************************/
 
 
-extern char*			global_string[NUM_STRINGS];
+char*					global_string[NUM_STRINGS];
+
 extern char*			global_string_buff1;
 extern char*			global_string_buff2;
 
