@@ -578,7 +578,11 @@ void App_Exit(uint8_t the_error_number)
 	// turn cursor back on
 	Sys_EnableTextModeCursor(true);
 	
-	exit(0);	
+	R8(0xD6A2) = 0xDE;
+	R8(0xD6A3) = 0xAD;
+	R8(0xD6A0) = 0xF0;
+	R8(0xD6A0) = 0x00;
+	asm("JMP ($FFFC)");
 }
 
 
@@ -595,8 +599,7 @@ int main(void)
 	
 	if (Sys_InitSystem() == false)
 	{
-		//asm("JMP ($FFFC)");
-		exit(0);
+		App_Exit(0);
 	}
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
