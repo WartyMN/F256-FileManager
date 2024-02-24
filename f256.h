@@ -83,8 +83,12 @@
 #define BITMAP_L0_VRAM_ADDR_H			0xd103		//!> bitmap VRAM address pointer)		
 #define TILE_CTRL						0xd200		//!> tile control register		
 #define VICKY_PS2_INTERFACE				0xd640
-#define RTC_SECONDS						0xd690
-#define RTC_MINUTES						0xd692
+#define RTC_SECONDS						0xd690		//  654: second digit, 3210: 1st digit
+#define RTC_MINUTES						0xd692		//  654: second digit, 3210: 1st digit
+#define RTC_HOURS						0xd694		//   54: second digit, 3210: 1st digit
+#define RTC_DAY							0xd696		//   54: second digit, 3210: 1st digit
+#define RTC_MONTH						0xd699		//    4: second digit, 3210: 1st digit
+#define RTC_YEAR						0xd69a		// 7654: second digit, 3210: 1st digit
 #define RTC_CONTROL						0xd69e		// set bit 3 to disable update of reg, to read secs. 
 #define RANDOM_NUM_GEN_LOW				0xd6a4		// both the SEEDL and the RNDL (depends on bit 1 of RND_CTRL)
 #define RANDOM_NUM_GEN_HI				0xd6a5		// both the SEEDH and the RNDH (depends on bit 1 of RND_CTRL)

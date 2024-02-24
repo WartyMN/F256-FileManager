@@ -187,5 +187,8 @@ void App_LoadStrings(void);
 // clear screen, set logo palette, display logo on screen, rotate colors a bit
 void Screen_ShowLogo(void);
 
+// read the real time clock and display it
+void Screen_DisplayTime(void);
+
 
 #endif /* SCREEN_H_ */

@@ -352,6 +352,8 @@ uint8_t App_MainLoop(void)
 
 			user_input = getchar();
 	
+			Screen_DisplayTime();
+		
 			// first switch: for file menu only, and skip if file menu is inactive
 			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
 			//   note: we also put the sort commands here because it doesn't make sense to sort if no files
@@ -629,6 +631,9 @@ int main(void)
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 		Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
 	}
+	
+	App_LoadOverlay(OVERLAY_SCREEN);
+	Screen_DisplayTime();
 	
 	App_MainLoop();
 	
