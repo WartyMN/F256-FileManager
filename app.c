@@ -628,6 +628,9 @@ int main(void)
 
 	App_LoadOverlay(OVERLAY_SCREEN);
 	
+	// initialize the random number generator embedded in the Vicky
+	Startup_InitializeRandomNumGen();
+	
 	// set up pointers to string data that is in EM
 	App_LoadStrings();
 

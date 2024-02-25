@@ -198,5 +198,8 @@ void Screen_ShowLogo(void);
 // read the real time clock and display it
 void Screen_DisplayTime(void);
 
+// enable the random number generator, and seed it
+void Startup_InitializeRandomNumGen(void);
+
 
 #endif /* SCREEN_H_ */

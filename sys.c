@@ -666,7 +666,6 @@ bool Sys_UpdateRTC(char* datetime_from_user)
 	uint8_t*		rtc_addr;
 	uint8_t			old_rtc_control;
 	uint8_t			i;
-	//uint8_t			this_bcd_num;
 	int8_t			this_digit;
 	int8_t			tens_digit;
 	uint8_t			rtc_array[5];
