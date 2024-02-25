@@ -202,6 +202,9 @@ void Sys_SwapIOPage(uint8_t the_page_number);
 // restore the previous MMU setting, which was saved by Sys_SwapIOPage()
 void Sys_RestoreIOPage(void);
 
+// update the system clock with a date/time string in YY/MM/DD HH:MM format
+// returns true if format was acceptable (and thus update of RTC has been performed).
+bool Sys_UpdateRTC(char* datetime_from_user);
 
 
 

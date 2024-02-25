@@ -9,75 +9,81 @@
 7	2	OK
 8	6	Cancel
 9	15	Enter new name:
-10	20	Create new directory
-11	25	Enter new directory name:
-12	10	  DEVICE  
-13	6	n Next
-14	8	` Format
-15	9	(SD Card)
-16	9	DIRECTORY
-17	9	m New dir
-18	9	f Refresh
-19	7	T ~Type
-20	7	N ~Name
-21	7	S ~Size
-22	10	   FILE   
-23	10	c <<<<<<<<
-24	10	c >>>>>>>>
-25	8	x Delete
-26	10	d Duplicat
-27	8	r Rename
-28	10	t Txt View
-29	10	h Hex View
-30	6	l Load
-31	4	NAME
-32	4	DAYS
-33	4	TYPE
-34	4	SIZE
-35	22	Scanning for drives...
-36	15	%u drives found
-37	13	Formatting...
-38	10	Copying...
-39	11	Deleting...
-40	20	Reading directory...
-41	17	File '%s' deleted
-42	25	File '%s' renamed to '%s'
-43	4	Done
-44	6	(More)
-45	11	Hit any key
-46	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-47	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-48	3	 d 
-49	3	PRG
-50	3	REL
-51	3	SEQ
-52	3	 d 
-53	3	oth
-54	3	bas
-55	3	exe
-56	3	fnt
-57	3	mus
-58	3	img
-59	14	Fatal error %u
-60	21	Unable to delete file
-61	26	Unable to delete directory
-62	40	We don't need no stinkin' error messages
-63	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-64	16	The disk is full
-65	21	A disk error occurred
-66	33	No disk detected in disk drive %u
-67	31	Error: Could not open file '%s'
-68	31	Error: Could not list directory
-69	19	Out of memory error
-70	9	f/Manager
-71	32	f/Manager F256, version %u.%u.%u
-72	24	Copyright 2024 Micah Bly
-73	20	Cross-compiler: cc65
-74	41	Editor: BBEdit (the greatest of them all)
-75	76	This program is open source, using GPL 3 license. Please share improvements!
-76	46	https://github.com/WartyMN/F256jr-FileManager/
-77	6	F256JR
-78	5	F256K
-79	18	<unknown hardware>
-80	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
-81	74	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c.
+10	23	Set Current Date & Time
+11	39	Enter date and time as 'YY-MM-DD HH:mm'
+12	20	Create new directory
+13	25	Enter new directory name:
+14	7	  OTHER
+15	11	C Set clock
+16	7	a About
+17	6	q Quit
+18	10	  DEVICE  
+19	6	n Next
+20	8	` Format
+21	9	(SD Card)
+22	9	DIRECTORY
+23	9	m New dir
+24	9	f Refresh
+25	7	T ~Type
+26	7	N ~Name
+27	7	S ~Size
+28	10	   FILE   
+29	10	c <<<<<<<<
+30	10	c >>>>>>>>
+31	8	x Delete
+32	10	d Duplicat
+33	8	r Rename
+34	10	t Txt View
+35	10	h Hex View
+36	6	l Load
+37	4	NAME
+38	4	DAYS
+39	4	TYPE
+40	4	SIZE
+41	22	Scanning for drives...
+42	15	%u drives found
+43	13	Formatting...
+44	10	Copying...
+45	11	Deleting...
+46	20	Reading directory...
+47	17	File '%s' deleted
+48	25	File '%s' renamed to '%s'
+49	4	Done
+50	6	(More)
+51	11	Hit any key
+52	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+53	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
+54	3	 d 
+55	3	PRG
+56	3	REL
+57	3	SEQ
+58	3	 d 
+59	3	oth
+60	3	bas
+61	3	exe
+62	3	fnt
+63	3	mus
+64	3	img
+65	14	Fatal error %u
+66	21	Unable to delete file
+67	26	Unable to delete directory
+68	40	We don't need no stinkin' error messages
+69	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+70	16	The disk is full
+71	21	A disk error occurred
+72	33	No disk detected in disk drive %u
+73	31	Error: Could not open file '%s'
+74	31	Error: Could not list directory
+75	19	Out of memory error
+76	9	f/Manager
+77	32	f/Manager F256, version %u.%u.%u
+78	24	Copyright 2024 Micah Bly
+79	46	https://github.com/WartyMN/F256jr-FileManager/
+80	6	F256JR
+81	5	F256K
+82	18	<unknown hardware>
+83	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
+84	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+85	20	Cross-compiler: cc65
+86	41	Editor: BBEdit (the greatest of them all)
+87	76	This program is open source, using GPL 3 license. Please share improvements!

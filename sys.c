@@ -29,6 +29,7 @@
 
 // cc65 includes
 #include "f256.h"
+#include "text.h"
 
 
 /*****************************************************************************/
@@ -103,11 +104,29 @@ static uint8_t standard_text_color_lut[64] =
 // enable or disable the gamma correction 
 void Sys_SetGammaMode(bool enable_it);
 
+// convert a decimal number to BCD format (for use with RTC)
+uint8_t Sys_DecimalToBCD(uint8_t dec_number);
 
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
+
+// convert a decimal number to BCD format (for use with RTC)
+uint8_t Sys_DecimalToBCD(uint8_t dec_number)
+{
+	uint8_t		bcd_number = 0;
+	
+	while (dec_number >= 10)
+	{
+		++bcd_number;
+		dec_number -= 10;
+	}
+	
+	bcd_number = bcd_number << 4;
+	
+	return (bcd_number | dec_number);
+}
 
 
 // // interrupt 1 is PS2 keyboard, interrupt 2 is A2560K keyboard
@@ -639,3 +658,87 @@ void Sys_RestoreIOPage(void)
 	asm("sta $01");	// switch back to the previous IO setting
 }	
 	
+
+// update the system clock with a date/time string in YY/MM/DD HH:MM format
+// returns true if format was acceptable (and thus update of RTC has been performed).
+bool Sys_UpdateRTC(char* datetime_from_user)
+{
+	uint8_t*		rtc_addr;
+	uint8_t			old_rtc_control;
+	uint8_t			i;
+	//uint8_t			this_bcd_num;
+	int8_t			this_digit;
+	int8_t			tens_digit;
+	uint8_t			rtc_array[5];
+	static uint8_t	string_offsets[5] = {12,9,6,3,0};	// array is order by RTC order of min-hr-day-month-year
+	static uint8_t	rtc_offsets[5] = {0,2,2,3,1};	// starting at min=d692
+	static uint8_t	bounds[5] = {60,24,31,12,99};	// starting at min=d692
+	
+	for (i = 0; i < 5; i++)
+	{
+		this_digit = datetime_from_user[string_offsets[i]];
+		
+		if (this_digit < CH_ZERO || this_digit > CH_NINE)
+		{
+			return false;
+		}
+		
+		tens_digit = this_digit - CH_ZERO;
+		this_digit = datetime_from_user[string_offsets[i] + 1];
+		
+		if (this_digit < CH_ZERO || this_digit > CH_NINE)
+		{
+			return false;
+		}
+		
+		rtc_array[i] = (this_digit - CH_ZERO) + (tens_digit * 10);	
+	}
+
+	//sprintf(global_string_buff1, "%02X %02X %02X %02X %02X", rtc_array[4], rtc_array[3], rtc_array[2], rtc_array[1], rtc_array[0]);
+	//Text_DrawStringAtXY(0, 3, global_string_buff1, COLOR_BRIGHT_YELLOW, COLOR_BLACK);	
+
+	// check if any of the numbers are too high
+	for (i = 0; i < 5; i++)
+	{
+		if (rtc_array[i] > bounds[i])
+		{
+			return false;
+		}
+	}
+
+	// numbers are all good, convert to BCD
+	for (i = 0; i < 5; i++)
+	{
+		rtc_array[i] = Sys_DecimalToBCD(rtc_array[i]);
+	}
+
+	//sprintf(global_string_buff1, "20%02X-%02X-%02X %02X:%02X", rtc_array[4], rtc_array[3], rtc_array[2], rtc_array[1], rtc_array[0]);
+	//Text_DrawStringAtXY(25, 3, global_string_buff1, COLOR_BRIGHT_YELLOW, COLOR_BLACK);	
+
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	
+	// need to have vicky registers available
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	
+	// stop RTC from updating external registers. Required!
+	old_rtc_control = R8(RTC_CONTROL);
+	R8(RTC_CONTROL) = old_rtc_control | 0x08; // stop it from updating external registers
+
+	rtc_addr = (uint8_t*)RTC_MINUTES;
+	
+	for (i = 0; i < 5; i++)
+	{
+		R8(MMU_IO_CTRL) = VICKY_IO_PAGE_REGISTERS; // just make sure i/o page is still up. 
+		rtc_addr += rtc_offsets[i];		
+		R8(rtc_addr) = rtc_array[i];
+	}
+	
+	// restore timer control to what it had been
+	R8(RTC_CONTROL) = old_rtc_control;
+
+	Sys_RestoreIOPage();	
+	asm("CLI"); // restore interrupts
+
+	return true;
+}

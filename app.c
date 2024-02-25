@@ -480,6 +480,22 @@ uint8_t App_MainLoop(void)
 				case ACTION_NEW_FOLDER:
 					success = Panel_MakeDir(the_panel);
 					break;
+
+				case ACTION_SET_TIME:
+					General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_SET_CLOCK_TITLE), COMM_BUFFER_MAX_STRING_LEN);
+					General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_SET_CLOCK_BODY), APP_DIALOG_WIDTH);
+					global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
+					
+					success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 14); //YY-MM-DD HH-MM = 14
+					
+					if (success)
+					{
+						// user entered a date/time string, now try to parse and save it.
+						success = Sys_UpdateRTC(global_string_buff2);
+						Screen_DisplayTime();
+					}
+					
+					break;
 					
 				case MOVE_UP:
 				case MOVE_UP_ALT:
