@@ -131,6 +131,7 @@ GETIN()
     while (1) {
         
         CALL(NextEvent);
+        
         if (error) {
             asm("jsr %w", VECTOR(Yield));
             continue;
@@ -150,6 +151,28 @@ GETIN()
         }
         
         return event.key.ascii;
+    }
+}
+
+
+// check for any kernel key press. return true if any key was pressed, otherwise false
+// NOTE: the key press in question will be lost! only use when you want to check, but not wait for, a user key press
+bool Kernal_AnyKeyEvent()
+{
+    while (1) {
+        
+        CALL(NextEvent);
+        
+        if (error) {
+            asm("jsr %w", VECTOR(Yield));
+            return false;
+        }
+        
+        if (event.type == EVENT(key.PRESSED)) {
+            return true;
+        }
+        
+        return false;
     }
 }
 

@@ -36,4 +36,9 @@ bool __fastcall__ Kernel_DeleteFile(const char* name);
 // returns false in all error conditions
 bool __fastcall__ Kernel_DeleteFolder(const char* name);
 
+// check for any kernel key press. return true if any key was pressed, otherwise false
+// NOTE: the key press in question will be lost! only use when you want to check, but not wait for, a user key press
+bool Kernal_AnyKeyEvent();
+
+
 #endif /* KERNEL_H_ */
