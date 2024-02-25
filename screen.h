@@ -36,7 +36,7 @@
 /*****************************************************************************/
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					14
+#define NUM_BUTTONS					17
 
 #define BUTTON_ID_COPY				0
 #define BUTTON_ID_DELETE			1
@@ -54,10 +54,15 @@
 #define BUTTON_ID_SORT_BY_NAME		12
 #define BUTTON_ID_SORT_BY_SIZE		13
 
+// app menu buttons
+#define BUTTON_ID_SET_CLOCK			14
+#define BUTTON_ID_ABOUT				15
+#define BUTTON_ID_QUIT				16
+
 #define FIRST_ACTIVATING_BUTTON		BUTTON_ID_COPY
 #define LAST_ACTIVATING_BUTTON		BUTTON_ID_LOAD
 #define FIRST_PERMSTATE_BUTTON		BUTTON_ID_NEXT_DEVICE
-#define LAST_PERMSTATE_BUTTON		BUTTON_ID_SORT_BY_SIZE
+#define LAST_PERMSTATE_BUTTON		BUTTON_ID_QUIT
 
 #define DEVICE_ID_UNSET				-1
 #define DEVICE_ID_ERROR				-2
@@ -78,6 +83,9 @@
 
 #define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DIR_CMD_Y + 5)
 #define UI_MIDDLE_AREA_FILE_CMD_Y		(UI_MIDDLE_AREA_FILE_MENU_Y + 3)
+
+#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 8)
+#define UI_MIDDLE_AREA_APP_CMD_Y		(UI_MIDDLE_AREA_APP_MENU_Y + 3)
 
 #define UI_PANEL_INNER_WIDTH			33
 #define UI_PANEL_OUTER_WIDTH			(UI_PANEL_INNER_WIDTH + 2)

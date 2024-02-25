@@ -175,7 +175,6 @@
 #define ACTION_CANCEL				CH_ESC
 #define ACTION_CANCEL_ALT			CH_RUNSTOP
 #define ACTION_CONFIRM				CH_ENTER
-#define ACTION_QUIT					'q'
 #define ACTION_SORT_BY_NAME			'N'	// CH_F6
 #define ACTION_SORT_BY_DATE			'D'	// CH_F7
 #define ACTION_SORT_BY_SIZE			'S'	// CH_F8
@@ -191,6 +190,8 @@
 #define ACTION_FORMAT_DISK			'`'	// CH_F3
 
 #define ACTION_SET_TIME				'C' // c for set CLOCK
+#define ACTION_ABOUT				'a' 
+#define ACTION_QUIT					'q'
 
 #define ACTION_HELP					'?' // numpad key
 

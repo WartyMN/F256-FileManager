@@ -496,6 +496,10 @@ uint8_t App_MainLoop(void)
 					}
 					
 					break;
+
+				case ACTION_ABOUT:
+					Screen_ShowAboutInfo();
+					break;
 					
 				case MOVE_UP:
 				case MOVE_UP_ALT:
