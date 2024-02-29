@@ -318,7 +318,7 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 	temp_dialog_width = global_dlg.width_ - 2;
 	
 	// calculate the max length of the folder the user can enter, based on max path len - current len - 1 for separator
-	current_path_len = General_Strnlen(the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
+	current_path_len = General_Strnlen(the_panel->root_folder_->file_path_, FILE_MAX_PATHNAME_SIZE);
 	available_len = FILE_MAX_PATHNAME_SIZE - current_path_len - 1;
 
 	// we are hard limited by max window width at this point. 80-2 for box chars.
@@ -344,14 +344,7 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	if (current_path_len == 2)
-	{
-		sprintf(global_temp_path_1, "%s%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
-	}
-	else
-	{
-		sprintf(global_temp_path_1, "%s/%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
-	}
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, global_string_buff2);
 
 	//sprintf(global_string_buff1, "new folder path='%s', drive=%u", global_temp_path_1, the_panel->drive_index_);
 	//Buffer_NewMessage(global_string_buff1);
@@ -431,6 +424,11 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
 	}
+
+	// reset the first visible row to 0 from whatever it might have been if user had scrolled down
+	the_panel->content_top_ = 0;
+
+	Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 	
 	// have root folder populate its list of files
 	App_LoadOverlay(OVERLAY_FOLDER);
@@ -732,17 +730,9 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	//General_Strlcpy(global_string_buff1, the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
-	//General_Strlcat(global_temp_path_1, global_string_buff2, FILE_MAX_PATHNAME_SIZE);
-	if (General_Strnlen(the_panel->root_folder_->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) == 2)
-	{
-		sprintf(global_temp_path_1, "%s%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
-	}
-	else
-	{
-		sprintf(global_temp_path_1, "%s/%s", the_panel->root_folder_->folder_file_->file_path_, global_string_buff2);
-	}
-	
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_panel->root_folder_->file_path_, global_string_buff2);
+
 // 	sprintf(global_string_buff1, "new path='%s'", global_temp_path_1);
 // 	Buffer_NewMessage(global_string_buff1);
 // 	sprintf(global_string_buff1, "new filename='%s'", global_string_buff2);
@@ -750,7 +740,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 
 	strcpy(global_string_buff1, global_string_buff2); // get a copy of the filename because it won't be available after rename
 	
-	success = File_Rename(the_file, global_string_buff2, global_temp_path_1);
+	success = File_Rename(the_file, global_string_buff2, global_temp_path_1, global_temp_path_2);
 	
 	if (success == false)
 	{
@@ -784,24 +774,25 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	strcpy(global_temp_path_1, the_file->file_path_);
+	
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 	
 	if (the_file->file_type_ == FNX_FILETYPE_FONT)
 	{
-		success = File_ReadFontData(the_file);
+		success = File_ReadFontData(global_temp_path_1);
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_EXE || the_file->file_type_ == FNX_FILETYPE_IMAGE)
 	{
 		// this works because pexec can display images as well as log executables
-		success = Kernal_RunExe(the_file->file_path_);
+		success = Kernal_RunExe(global_temp_path_1);
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
 	{
-		success = Kernal_RunMod(the_file->file_path_);
+		success = Kernal_RunMod(global_temp_path_1);
 	}
 // 	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 // 	{
-// 		success = Kernal_RunBASIC(the_file->file_path_);
+// 		success = Kernal_RunBASIC(global_temp_path_1);
 // 	}
 	else
 	{
@@ -847,7 +838,9 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	success = File_Delete(the_file, NULL);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+
+	success = File_Delete(global_temp_path_1, the_file->is_directory_);
 	
 	if (success == false)
 	{
@@ -898,10 +891,12 @@ bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
 		return false;
 	}
 	
-	//sprintf(global_string_buff1, "trying to set path '%s' as new root folder", the_file->file_path_);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+
+	//sprintf(global_string_buff1, "trying to set path '%s' as new root folder, from path '%s', file '%s'", global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 	//Buffer_NewMessage(global_string_buff1);
 
-	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, the_file->file_path_) == false))
+	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1) == false))
 	{
 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -925,9 +920,7 @@ bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
 // 	Buffer_NewMessage("folder reset called ok");
 	
 	Folder_RefreshListing(the_panel->root_folder_);
-	//Buffer_NewMessage("refresh listing called ok");
 	Panel_Init(the_panel);
-	//Buffer_NewMessage("panel init called ok");
 	
 	return true;
 }
@@ -993,7 +986,8 @@ bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetHexContents(the_file);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+	success = File_GetHexContents(global_temp_path_1);
 	
 	return success;
 }
@@ -1016,7 +1010,8 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 	}
 
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	success = File_GetTextContents(the_file);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+	success = File_GetTextContents(global_temp_path_1);
 	
 	return success;
 }
@@ -1313,6 +1308,8 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 	// no files?
 	if ( the_item == NULL )
 	{
+		//sprintf(global_string_buff1, "this folder ('%s') shows a file count of %u but file list seems to be empty!", the_panel->root_folder_->folder_file_->file_name_, num_files);
+		//Buffer_NewMessage(global_string_buff1);
 		LOG_ERR(("%s %d: this folder ('%s') shows a file count of %u but file list seems to be empty!", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_, num_files));
 		App_Exit(ERROR_NO_FILES_IN_FILE_LIST); // crash early, crash often
 	}
@@ -1334,6 +1331,9 @@ void Panel_ReflowContent(WB2KViewPanel* the_panel)
 
 		// store the icon's x, y, and rect info so we can use it for mouse detection
 		File_UpdatePos(this_file, the_panel->x_, file_display_row, row);
+
+		//sprintf(global_string_buff1, "file '%s' display row=%i, row=%u, first_viz_row=%u", this_file->file_name_, file_display_row, row, first_viz_row);
+		//Buffer_NewMessage(global_string_buff1);
 		
 		// get next node
 		the_item = the_item->next_item_;

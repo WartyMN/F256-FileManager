@@ -34,11 +34,12 @@
 #include <ctype.h>
 #include <limits.h>
 #include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 //#include <math.h>
 
 // F256 includes
 #include "f256.h"
-
 
 
 /*****************************************************************************/
@@ -80,7 +81,8 @@ extern uint8_t			zp_bank_num;
 								"[ALLOC]"
 							};
 
-	static FILE*			global_log_file;
+	//static FILE*			global_log_file;
+	static int16_t			global_log_file_handle;
 #endif
 
 
@@ -485,46 +487,48 @@ signed long General_Strnlen(const char* the_string, size_t max_len)
 // }
 
 
-// allocate and return the filename portion of the path passed.
-// calling method must free the string returned
-char* General_ExtractFilenameFromPathWithAlloc(const char* the_file_path)
-{
-	char*	the_file_name;
-
-	// get a string for the file name portion of the filepath
-	if ( (the_file_name = (char*)calloc(FILE_MAX_PATHNAME_SIZE, sizeof(char)) ) == NULL)
-	{
-		LOG_ERR(("%s %d: could not allocate memory for the filename", __func__ , __LINE__));
-		return NULL;
-	}
-	else
-	{
-		char*	the_file_name_part = General_NamePart(the_file_path);
-		int16_t	filename_len = General_Strnlen(the_file_name_part, FILE_MAX_PATHNAME_SIZE);
-
-		if (filename_len == 0)
-		{
-			// FilePart() might return a string with no text: that would indicate the file path is for the root of a file system or virtual device
-			// in that case, we just use the file path minus : as the name
-
-			// copy the part of the path minus the last char into the file name
-			int16_t		path_len = General_Strnlen(the_file_path, FILE_MAX_PATHNAME_SIZE);
-			General_Strlcpy(the_file_name, the_file_path, path_len);
-		}
-		else
-		{
-			General_Strlcpy(the_file_name, the_file_name_part, filename_len + 1);
-		}
-		LOG_ALLOC(("%s %d:	__ALLOC__	the_file_name	%p	size	%i", __func__ , __LINE__, the_file_name, FILE_MAX_PATHNAME_SIZE));
-	}
-
-	return the_file_name;
-}
+// // allocate and return the filename portion of the path passed.
+// // calling method must free the string returned
+// char* General_ExtractFilenameFromPathWithAlloc(const char* the_file_path)
+// {
+// 	char*	the_file_name;
+// 
+// 	// get a string for the file name portion of the filepath
+// 	if ( (the_file_name = (char*)calloc(FILE_MAX_PATHNAME_SIZE, sizeof(char)) ) == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: could not allocate memory for the filename", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 	else
+// 	{
+// 		char*	the_file_name_part = General_NamePart(the_file_path);
+// 		int16_t	filename_len = General_Strnlen(the_file_name_part, FILE_MAX_PATHNAME_SIZE);
+// 
+// 		if (filename_len == 0)
+// 		{
+// 			// FilePart() might return a string with no text: that would indicate the file path is for the root of a file system or virtual device
+// 			// in that case, we just use the file path minus : as the name
+// 
+// 			// copy the part of the path minus the last char into the file name
+// 			int16_t		path_len = General_Strnlen(the_file_path, FILE_MAX_PATHNAME_SIZE);
+// 			General_Strlcpy(the_file_name, the_file_path, path_len);
+// 		}
+// 		else
+// 		{
+// 			General_Strlcpy(the_file_name, the_file_name_part, filename_len + 1);
+// 		}
+// 		LOG_ALLOC(("%s %d:	__ALLOC__	the_file_name	%p	size	%i", __func__ , __LINE__, the_file_name, FILE_MAX_PATHNAME_SIZE));
+// 	}
+// 
+// 	return the_file_name;
+// }
 
 
 // populates the passed string by safely combining the passed file path and name, accounting for cases where path is a disk root
+// also accounts for filename '..' which means the parent folder.
 void General_CreateFilePathFromFolderAndFile(char* the_combined_path, char* the_folder_path, char* the_file_name)
 {
+	uint16_t	path_len;
 	
 	General_Strlcpy(the_combined_path, the_folder_path, FILE_MAX_PATHNAME_SIZE);
 
@@ -533,6 +537,36 @@ void General_CreateFilePathFromFolderAndFile(char* the_combined_path, char* the_
 	if (the_file_name[0] == '\0')
 	{
 		return;
+	}
+
+	if (the_file_name[0] == '.' && the_file_name[1] == '.' && the_file_name[2] == 0)
+	{
+		// this is a link to the "parent directory", so instead of adding the name to the parent path, in fact go back and snip off the last part of path
+		path_len = General_PathPart(the_combined_path) - the_combined_path;
+		the_combined_path[path_len] = '\0';
+
+		if (General_Strnlen(the_combined_path, FILE_MAX_PATHNAME_SIZE) == 1)
+		{
+			// parent was the root (0:, 1:, or 2:), so we snipped it down too far, to just "0", "1", etc. 
+			the_combined_path[path_len++] = ':';
+			the_combined_path[path_len] = '\0';
+		}
+		
+		return;
+	}
+
+	path_len = General_Strnlen(the_combined_path, FILE_MAX_PATHNAME_SIZE);
+	
+	if (path_len == 2)
+	{
+		// this is a disk root, so path ends in : ("0:", "1:", etc.)
+		// no need to insert a separator
+	}
+	else
+	{
+		// this is at least one level deep, so need to add a path divider
+		the_combined_path[path_len++] = '/';
+		the_combined_path[path_len] = 0;
 	}
 	
 	General_Strlcat(the_combined_path, the_file_name, FILE_MAX_PATHNAME_SIZE);
@@ -812,17 +846,9 @@ void General_LogError(const char* format, ...)
 	vsprintf(debug_buffer, format, args);
 	va_end(args);
 
-#ifdef _SIMULATOR_
-	// f256jr emulator has a log to console feature:
-	// *((long *)-4) = (long)&debug_buffer;
-// 	__AX__ = &debug_buffer;
-// 	asm("cb $300");
-	Memory_DebugOut(); // calls a simple assembly routine that does "CB &debug_buffer". cc65's inline assembler only accepts valid 6502 opcodes.
-#else
-	// if not on simulator, write out to file
-	fprintf(global_log_file, "%s %s\n", kDebugFlag[LogError], debug_buffer);
-// 	printf("%s %s\r", kDebugFlag[LogError], debug_string);
-#endif
+	//fprintf(global_log_file, "%s %s\n", kDebugFlag[LogError], debug_buffer);
+	sprintf((char*)STORAGE_GETSTRING_BUFFER, "%s %s\n", kDebugFlag[LogError], debug_buffer);
+	write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
 }
 
 void General_LogWarning(const char* format, ...)
@@ -833,14 +859,9 @@ void General_LogWarning(const char* format, ...)
 	vsprintf(debug_buffer, format, args);
 	va_end(args);
 
-#ifdef _SIMULATOR_
-	// f256jr emulator has a log to console feature:
-	Memory_DebugOut(); // calls a simple assembly routine that does "CB &debug_buffer". cc65's inline assembler only accepts valid 6502 opcodes.
-#else
-	// if not on simulator, write out to file
-	fprintf(global_log_file, "%s %s\n", kDebugFlag[LogWarning], debug_buffer);
-// 	printf("%s %s\r", kDebugFlag[LogWarning], debug_string);
-#endif
+	//fprintf(global_log_file, "%s %s\n", kDebugFlag[LogWarning], debug_buffer);
+	sprintf((char*)STORAGE_GETSTRING_BUFFER, "%s %s\n", kDebugFlag[LogWarning], debug_buffer);
+	write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
 }
 
 void General_LogInfo(const char* format, ...)
@@ -851,14 +872,9 @@ void General_LogInfo(const char* format, ...)
 	vsprintf(debug_buffer, format, args);
 	va_end(args);
 
-#ifdef _SIMULATOR_
-	// f256jr emulator has a log to console feature:
-	Memory_DebugOut(); // calls a simple assembly routine that does "CB &debug_buffer". cc65's inline assembler only accepts valid 6502 opcodes.
-#else
-	// if not on simulator, write out to file
-	fprintf(global_log_file, "%s %s\n", kDebugFlag[LogInfo], debug_buffer);
-// 	printf("%s %s\r", kDebugFlag[LogInfo], debug_string);
-#endif
+	//fprintf(global_log_file, "%s %s\n", kDebugFlag[LogInfo], debug_buffer);
+	sprintf((char*)STORAGE_GETSTRING_BUFFER, "%s %s\n", kDebugFlag[LogInfo], debug_buffer);
+	write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
 }
 
 void General_DebugOut(const char* format, ...)
@@ -869,14 +885,9 @@ void General_DebugOut(const char* format, ...)
 	vsprintf(debug_buffer, format, args);
 	va_end(args);
 	
-#ifdef _SIMULATOR_
-	// f256jr emulator has a log to console feature:
-	Memory_DebugOut(); // calls a simple assembly routine that does "CB &debug_buffer". cc65's inline assembler only accepts valid 6502 opcodes.
-#else
-	// if not on simulator, write out to file
-	fprintf(global_log_file, "%s %s\n", kDebugFlag[LogDebug], debug_buffer);
-// 	printf("%s %s\r", kDebugFlag[LogDebug], debug_string);
-#endif
+	//fprintf(global_log_file, "%s %s\n", kDebugFlag[LogDebug], debug_buffer);
+	sprintf((char*)STORAGE_GETSTRING_BUFFER, "%s %s\n", kDebugFlag[LogDebug], debug_buffer);
+	write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
 }
 
 void General_LogAlloc(const char* format, ...)
@@ -887,29 +898,28 @@ void General_LogAlloc(const char* format, ...)
 	vsprintf(debug_buffer, format, args);
 	va_end(args);
 	
-#ifdef _SIMULATOR_
-	// f256jr emulator has a log to console feature:
-	Memory_DebugOut(); // calls a simple assembly routine that does "CB &debug_buffer". cc65's inline assembler only accepts valid 6502 opcodes.
-#else
-	// if not on simulator, write out to file
-	fprintf(global_log_file, "%s %s\n", kDebugFlag[LogAlloc], debug_buffer);
-// 	printf("%s %s\r", kDebugFlag[LogAlloc], debug_string);
-#endif
+	//fprintf(global_log_file, "%s %s\n", kDebugFlag[LogAlloc], debug_buffer);
+	sprintf((char*)STORAGE_GETSTRING_BUFFER, "%s %s\n", kDebugFlag[LogAlloc], debug_buffer);
+	write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
 }
 
 // initialize log file
 // globals for the log file
 bool General_LogInitialize(void)
 {
-	const char*		the_file_path = "fmanager_log.txt";
+	const char*		the_file_path = "0:fmanager_log.txt";
 
-	global_log_file = fopen( the_file_path, "w");
+	//global_log_file = fopen( the_file_path, "w");
+	global_log_file_handle = open(the_file_path, O_WRONLY);
 	
-	if (global_log_file == NULL)
+	if (global_log_file_handle < 1)
+	//if (global_log_file == NULL)
 	{
 		printf("General_LogInitialize: log file could not be opened! \n");
 		return false;
 	}
+	
+	write(global_log_file_handle, "started log file", 16);
 	
 	return true;
 }
@@ -917,9 +927,10 @@ bool General_LogInitialize(void)
 // close the log file
 void General_LogCleanUp(void)
 {
-	if (global_log_file != NULL)
+	if (global_log_file_handle > 0)
+	//if (global_log_file != NULL)
 	{
-		fclose(global_log_file);
+		close(global_log_file_handle);
 	}
 }
 

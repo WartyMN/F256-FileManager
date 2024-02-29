@@ -135,14 +135,14 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 			if ( bytes_read < 0)
 			{
 				//Buffer_NewMessage("bytes_read < 0");
-				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, bytes_read));
+				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_source_file_path, bytes_read));
 				goto error;
 			}
 	
 			if ( bytes_read == 0)
 			{
 				//Buffer_NewMessage("bytes_read == 0 (end of file)");
-				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
+				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_source_file_path));
 				keep_going = false;
 			}
 		
@@ -393,6 +393,14 @@ WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_cop
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->list_	%p	size	%i", __func__ , __LINE__, the_folder->list_, sizeof(WB2KList*)));
 
+	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(the_root_folder_file->file_name_, FILE_MAX_PATHNAME_SIZE)) == NULL)
+	{
+		//Buffer_NewMessage("could not allocate memory for the file path");
+		LOG_ERR(("%s %d: could not allocate memory for the file path", __func__ , __LINE__));
+		goto error;
+	}
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+
 	// LOGIC:
 	//   if required, duplicate the folder file
 	//   When doing Populate folder on window open, this is not generally desired: we have a folder file we can use, and no Folder object owns it yet.
@@ -460,14 +468,6 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char*
 		free(*this_string_p);
 	}
 	
-//Buffer_NewMessage("folder reset: 2");	
-	this_string_p = &the_folder->folder_file_->file_path_;
-	the_folder->folder_file_->file_path_ = NULL;
-	if (*this_string_p)
-	{
-		free(*this_string_p);
-	}
-	
 //Buffer_NewMessage("folder reset: 3");	
 	this_string_p = &the_folder->file_path_;
 	the_folder->file_path_ = NULL;
@@ -487,31 +487,22 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char*
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->list_	%p	size	%i", __func__ , __LINE__, the_folder->list_, sizeof(WB2KList*)));
 	
 	// reset some other props
+	the_folder->cur_row_ = 0;
 	the_folder->file_count_ = 0;
 	//the_folder->total_blocks_ = 0;
 	//the_folder->selected_blocks_ = 0;
 	the_folder->device_number_ = the_device_number;
 	
-	// set the folder filepath and folder file filepath to match device+":"
+	// set the folder filepath to match device+":"
 	//sprintf(path_buff, "%d:", the_device_number);
 
-	if ( (the_folder->folder_file_->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
-	{
-		//Buffer_NewMessage("could not allocate memory for the path name");
-		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->folder_file_->file_path_ General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-
-//Buffer_NewMessage("folder reset: folder file file_path_ set");	
-	
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the path name");
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
 		goto error;
 	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->folder_file_->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_ General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
 //Buffer_NewMessage("folder reset: folder file_path_ set");	
 	
@@ -531,6 +522,13 @@ void Folder_Destroy(WB2KFolderObject** the_folder)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_FOLDER_TO_DESTROY_WAS_NULL);	// crash early, crash often
+	}
+
+	if ((*the_folder)->file_path_ != NULL)
+	{
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_folder)->file_path_	%p	size	%i", __func__ , __LINE__, (*the_folder)->file_path_, General_Strnlen((*the_folder)->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+		free((*the_folder)->file_path_);
+		(*the_folder)->file_path_ = NULL;
 	}
 
 	if ((*the_folder)->folder_file_ != NULL)
@@ -895,7 +893,6 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	struct DIR*			dir;
 	struct dirent*		dirent;
 	uint8_t				the_error_code = ERROR_NO_ERROR;
-	uint8_t				the_len;
 	uint16_t			file_cnt = 0;
 	WB2KFileObject*		this_file;
 	DateTime			this_datetime;
@@ -917,19 +914,17 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		App_Exit(ERROR_FOLDER_FILE_WAS_NULL);	// crash early, crash often
 	}
 
-	if (the_folder->folder_file_->file_path_ == NULL)
+	if (the_folder->file_path_ == NULL)
 	{
-		//sprintf(global_string_buff1, "filepath for folder file '%s' as null", the_folder->folder_file_->file_path_);
+		//sprintf(global_string_buff1, "filepath for folder '%s' was null", the_folder->file_path_);
 		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: passed file's filepath was null", __func__ , __LINE__));
+		LOG_ERR(("%s %d: passed folder's filepath was null", __func__ , __LINE__));
 		App_Exit(ERROR_FOLDER_WAS_NULL);	// crash early, crash often
 	}
 
 	// set up base path for the folder + /. we will use this to build the filepaths for the files individually
 	
-	General_Strlcpy(global_temp_path_1, the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
-// 	path_len = General_Strnlen(the_folder->folder_file_->file_path_, FILE_MAX_PATHNAME_SIZE);
-// 	General_Strlcat(global_temp_path_1, (char*)"/", FILE_MAX_PATHNAME_SIZE);
+	General_Strlcpy(global_temp_path_1, the_folder->file_path_, FILE_MAX_PATHNAME_SIZE);
 
 	// reset panel's file count, as we will be starting over from zero
 	the_folder->file_count_ = 0;
@@ -948,11 +943,11 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	
     /* print directory listing */
 
-	dir = Kernel_OpenDir(the_folder->folder_file_->file_path_);
-	//dir = Kernel_OpenDir(".");
+	dir = Kernel_OpenDir(the_folder->file_path_);
+
 	if (! dir) {
-		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'. errno=%u", the_folder->folder_file_->file_path_, errno);
-		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'", the_folder->folder_file_->file_path_);
+		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'. errno=%u", the_folder->file_path_, errno);
+		//sprintf(global_string_buff1, "Kernel_OpenDir failed. filepath='%s'", the_folder->file_path_);
 		//Buffer_NewMessage(global_string_buff1);
 		return ERROR_COULD_NOT_OPEN_DIR;
 	}
@@ -962,6 +957,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
         // is this is the disk name, or a file?
 		//temp_ptr = (uint8_t*)&dirent->d_bytes;
 		//temp_ptr = (uint8_t*)&dirent->d_blocks;
+		//sprintf(global_string_buff1, "dirent->d_name='%s', dirent->d_type=%u,", dirent->d_name, dirent->d_type);
 		//sprintf(global_string_buff1, "dirent->d_name='%s', dirent->d_type=%u, dirent->d_name[0]=%u", dirent->d_name, dirent->d_type, dirent->d_name[0]);
 		//sprintf(global_string_buff1, "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X", temp_ptr[0], temp_ptr[1], temp_ptr[2], temp_ptr[3], temp_ptr[4], temp_ptr[5], temp_ptr[6], temp_ptr[7], temp_ptr[8], temp_ptr[9]);
 		//sprintf(global_string_buff1, "%s %02X %02X %02X %02X %02X %02X %02X %02X", dirent->d_name, temp_ptr[0], temp_ptr[1], temp_ptr[2], temp_ptr[3], temp_ptr[4], temp_ptr[5], temp_ptr[6], temp_ptr[7]);
@@ -980,45 +976,19 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 
 			}
 			else
-			{
-				if (this_file_name[0] == '.' && this_file_name[1] == '.' && this_file_name[2] == 0)
-				{
-					// this is the "parent directory", modify path to BE the parent path
-					the_len = (General_PathPart(global_temp_path_1) + 0) - global_temp_path_1;
-					memcpy(global_temp_path_2, global_temp_path_1, the_len);
-					global_temp_path_2[the_len] = '\0';
-	
-					if (General_Strnlen(global_temp_path_2, FILE_MAX_PATHNAME_SIZE) == 1)
-					{
-						// parent was the root (0:, 1:, or 2:), so we snipped it down too far, to just "0", "1", etc. 
-						global_temp_path_2[the_len++] = ':';
-						global_temp_path_2[the_len] = '\0';
-					}
-				}
-				else
-				{
-					// this is a normal directory, make path the parent + the filename
-					if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
-					{
-						// parent is the root (0:, 1:, or 2:), so don't append /
-						sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
-					}
-					else
-					{
-						sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
-					}
-				}
-				
+			{				
 				//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
 				//Buffer_NewMessage(global_string_buff1);
 			
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt, &this_datetime);
+				this_file = File_New(this_file_name, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt, &this_datetime);
 	
 				if (this_file == NULL)
 				{
 					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
 					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
-					goto error;
+					sprintf(global_string_buff1, "Could not allocate memory for file object '%s'", this_file_name);
+					Buffer_NewMessage(global_string_buff1);
+				goto error;
 				}
 	
 				// Add this file to the list of files
@@ -1032,8 +1002,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		
 				++file_cnt;
 				
-	// 			sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
-	// 			Buffer_NewMessage(global_string_buff1);
+	 			//sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
+	 			//Buffer_NewMessage(global_string_buff1);
 			}
 		}
         else if (_DE_ISLBL(dirent->d_type))
@@ -1057,8 +1027,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			
 			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
 			
-// 			sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
-// 			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
+			//Buffer_NewMessage(global_string_buff1);
 		}
         else if (_DE_ISREG(dirent->d_type))
         {
@@ -1071,15 +1041,6 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			}
 			else
 			{
-				if (General_Strnlen(global_temp_path_1, FILE_MAX_PATHNAME_SIZE) == 2)
-				{
-					// parent is the root (0:, 1:, or 2:), so don't append /
-					sprintf(global_temp_path_2, "%s%s", global_temp_path_1, this_file_name);
-				}
-				else
-				{
-					sprintf(global_temp_path_2, "%s/%s", global_temp_path_1, this_file_name);
-				}
 	
 // 				this_datetime.year = dirent->year;
 // 				this_datetime.month = dirent->month;
@@ -1089,7 +1050,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 // 				this_datetime.sec = dirent->sec;
 
 				
-				this_file = File_New(this_file_name, global_temp_path_2, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
+				this_file = File_New(this_file_name, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
 	
 				if (this_file == NULL)
 				{
@@ -1129,6 +1090,9 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 // 	List_Print(the_folder->list_, &File_Print);
 // 	DEBUG_OUT(("%s %d: Total bytes %lu", __func__ , __LINE__, the_folder->total_bytes_));
 // 	Folder_Print(the_folder);
+
+	sprintf(global_string_buff1, General_GetString(ID_STR_N_FILES_FOUND), file_cnt);
+	Buffer_NewMessage(global_string_buff1);
 	
 	return (the_error_code);
 	
@@ -1269,7 +1233,8 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		}
 		
 		// build a file path for target file, based on FileMover's current target folder path and source file name
-		the_target_folder_path = the_target_folder->folder_file_->file_path_;
+		the_target_folder_path = the_target_folder->file_path_;
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, the_file->file_name_);
 		General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_target_folder_path, folder_temp_filename);
 		
 		//sprintf(global_string_buff1, "tgt path='%s', tgt file='%s'", global_temp_path_2, folder_temp_filename);
@@ -1277,10 +1242,10 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		//Buffer_NewMessage(global_string_buff1);
 
 		// call function to copy file bits
-		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_path_, global_temp_path_2));
+		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_name_, global_temp_path_2));
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
 		
-		bytes_copied = Folder_CopyFileBytes(the_file->file_path_, global_temp_path_2);
+		bytes_copied = Folder_CopyFileBytes(global_temp_path_1, global_temp_path_2);
 		
 		if (bytes_copied < 0)
 		{
@@ -1299,49 +1264,51 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 }
 
 
-// deletes the passed file/folder. If a folder, it must have been previously emptied of files.
-bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed)
-{
-	WB2KFileObject*		the_file;
-	//bool				result_doesnt_matter;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	the_file = (WB2KFileObject*)the_item->payload_;
-	
-// 	FileMover_SetCurrentFileName(App_GetFileMover(global_app), the_file->file_name_);
-	
-	// delete the files
-	if (File_Delete(the_file, NULL) == false)
-	{
-		return false;
-	}
-
-// 	FileMover_IncrementProcessedFileCount(App_GetFileMover(global_app));
-
-	LOG_INFO(("%s %d: deleted file '%s' from disk", __func__ , __LINE__, the_file->file_name_));
-
-// 	// if this was a folder file, check if any open windows were representing its contents, and close them. 
-// 	if (the_file->is_directory_)
+// // deletes the passed file/folder. If a folder, it must have been previously emptied of files.
+// bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed)
+// {
+// 	WB2KFileObject*		the_file;
+// 	//bool				result_doesnt_matter;
+// 
+// 	if (the_folder == NULL)
 // 	{
-// 		WB2KList*			the_window_item;
-// 	
-// 		while ((the_window_item = App_FindSurfaceListItemByFilePath(global_app, the_file->file_path_)) != NULL)
-// 		{
-// 			// a window was open with this volume / file as its root folder. close the window
-// 			App_CloseOneWindow(global_app, the_window_item);
-// 		}
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
 // 	}
 // 
-	// update the count of files and remove this item from the folder's list of files
-	Folder_RemoveFileListItem(the_folder, the_item, DESTROY_FILE_OBJECT);
-	
-	return true;
-}
+// 	the_file = (WB2KFileObject*)the_item->payload_;
+// 
+// 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, the_file->file_name_);
+// 	
+// // 	FileMover_SetCurrentFileName(App_GetFileMover(global_app), the_file->file_name_);
+// 	
+// 	// delete the files
+// 	if (File_Delete(global_temp_path_1, the_file->is_directory_) == false)
+// 	{
+// 		return false;
+// 	}
+// 
+// // 	FileMover_IncrementProcessedFileCount(App_GetFileMover(global_app));
+// 
+// 	LOG_INFO(("%s %d: deleted file '%s' from disk", __func__ , __LINE__, the_file->file_name_));
+// 
+// // 	// if this was a folder file, check if any open windows were representing its contents, and close them. 
+// // 	if (the_file->is_directory_)
+// // 	{
+// // 		WB2KList*			the_window_item;
+// // 	
+// // 		while ((the_window_item = App_FindSurfaceListItemByFilePath(global_app, the_file->file_path_)) != NULL)
+// // 		{
+// // 			// a window was open with this volume / file as its root folder. close the window
+// // 			App_CloseOneWindow(global_app, the_window_item);
+// // 		}
+// // 	}
+// // 
+// 	// update the count of files and remove this item from the folder's list of files
+// 	Folder_RemoveFileListItem(the_folder, the_item, DESTROY_FILE_OBJECT);
+// 	
+// 	return true;
+// }
 
 
 // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
@@ -1507,7 +1474,7 @@ bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, b
 // 	the_datetime = General_GetCurrentDateStampWithAlloc();
 // 	
 // 	// make WB2K file object for the folder that now exists on disk
-// 	the_file = File_New(the_target_file_name, the_target_folder_path, PARAM_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
+// 	the_file = File_New(the_target_file_name, PARAM_FILE_IS_FOLDER, the_folder->icon_rport_, 0, *the_datetime, NULL);
 // 
 // 	LOG_ALLOC(("%s %d:	__ALLOC__	the_datetime	%p	size	%i", __func__ , __LINE__, the_datetime, sizeof(struct DateStamp)));
 // 	free(the_datetime);
@@ -1537,7 +1504,7 @@ bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, b
 // 
 // 		// TODO: do more robust/elegant solution for showing size of a default folder info file. user could have set their system up with a huge info file
 // 
-// 		the_info_file = InfoFile_New(the_target_file_name, the_target_folder_path, NULL, FOLDER_UGLY_HACK_DEFAULT_FOLDER_INFO_FILE_SIZE);
+// 		the_info_file = InfoFile_New(the_target_file_name, NULL, FOLDER_UGLY_HACK_DEFAULT_FOLDER_INFO_FILE_SIZE);
 // 
 // 		if ( the_info_file == NULL)
 // 		{

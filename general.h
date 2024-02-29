@@ -233,13 +233,13 @@ signed long General_Strnlen(const char *the_string, size_t max_len);
 
 
 
-// allocate and return  the portion of the path passed, minus the filename. In other words: return a path to the parent file.
-// calling method must free the string returned
-char* General_ExtractPathToParentFolderWithAlloc(const char* the_file_path);
+// // allocate and return  the portion of the path passed, minus the filename. In other words: return a path to the parent file.
+// // calling method must free the string returned
+// char* General_ExtractPathToParentFolderWithAlloc(const char* the_file_path);
 
-// allocate and return the filename portion of the path passed.
-// calling method must free the string returned
-char* General_ExtractFilenameFromPathWithAlloc(const char* the_file_path);
+// // allocate and return the filename portion of the path passed.
+// // calling method must free the string returned
+// char* General_ExtractFilenameFromPathWithAlloc(const char* the_file_path);
 
 // populates the passed string by safely combining the passed file path and name, accounting for cases where path is a disk root
 void General_CreateFilePathFromFolderAndFile(char* the_combined_path, char* the_folder_path, char* the_file_name);

@@ -62,7 +62,6 @@ typedef struct WB2KFileObject
 	uint8_t				x_;
 	int8_t				display_row_;		// offset from the first displayed row of parent panel. -1 if not to be visible.
 	uint8_t				row_;				// row_ is relative to the first file in the folder. 
-	char*				file_path_;
 	char*				file_name_;
 	//char*				file_size_string_;	// human-readable version of file size
 } WB2KFileObject;
@@ -83,7 +82,7 @@ typedef struct WB2KFileObject
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime);
+WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime);
 
 
 // duplicator
@@ -130,13 +129,13 @@ char* File_GetFileSizeStringCopy(WB2KFileObject* the_file);
 
 // Populates the primary font data area in VICKY with bytes read from disk
 // Returns false on any error
-bool File_ReadFontData(WB2KFileObject* the_file);
+bool File_ReadFontData(char* the_file_path);
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetTextContents(WB2KFileObject* the_file);
+bool File_GetTextContents(char* the_file_path);
 
 // populate a buffer with a hex dump of the file, reading the specified number of bytes into the buffer. Returns false on any error
-bool File_GetHexContents(WB2KFileObject* the_file);
+bool File_GetHexContents(char* the_file_path);
 
 // get the free disk space on the parent disk of the file
 // returns -1 in event of error
@@ -146,10 +145,10 @@ int16_t File_GetFreeBytesOnDisk(WB2KFileObject* the_file);
 // **** OTHER FUNCTIONS *****
 
 // delete the passed file/folder. If a folder, it must have been previously emptied of files.
-bool File_Delete(WB2KFileObject* the_file, void* not_needed);
+bool File_Delete(char* the_file_path, bool is_directory);
 
 // renames a file and its info file, if present
-bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* new_file_path);
+bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* old_file_path, const char* new_file_path);
 
 // mark file as selected, and refresh display accordingly
 bool File_MarkSelected(WB2KFileObject* the_file, int8_t y_offset);

@@ -205,8 +205,8 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
 bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file);
 
-// deletes the passed file/folder. If a folder, it must have been previously emptied of files.
-bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed);
+// // deletes the passed file/folder. If a folder, it must have been previously emptied of files.
+// bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed);
 
 // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
 void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item, bool destroy_the_file_object);

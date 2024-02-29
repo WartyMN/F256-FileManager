@@ -191,15 +191,11 @@ uint8_t Sys_DecimalToBCD(uint8_t dec_number)
 bool Sys_InitSystem(void)
 {	
 	// open log file, if on real hardware, and built with calypsi, and debugging flags were passed
-	#ifdef LOG_LEVEL_5
-		#ifndef _SIMULATOR_
-			#ifdef __CALYPSI__
-				if (General_LogInitialize() == false)
-				{
-					printf("%s %d: failed to open log file for writing \n", __func__, __LINE__);
-				}
-			#endif
-		#endif
+	#if defined LOG_LEVEL_1 || defined LOG_LEVEL_2 || defined LOG_LEVEL_3 || defined LOG_LEVEL_4 || defined LOG_LEVEL_5
+		if (General_LogInitialize() == false)
+		{
+			printf("%s %d: failed to open log file for writing \n", __func__, __LINE__);
+		}
 	#endif
 	
 	//DEBUG_OUT(("%s %d: Initializing System...", __func__, __LINE__));

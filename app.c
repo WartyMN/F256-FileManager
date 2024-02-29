@@ -250,7 +250,7 @@ void App_Initialize(void)
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
-	if ( (root_folder_file_left = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
+	if ( (root_folder_file_left = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
 	}
@@ -280,7 +280,7 @@ void App_Initialize(void)
 		sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 	}
 
-	if ( (root_folder_file_right = File_New("", the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
+	if ( (root_folder_file_right = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
 	}
@@ -596,6 +596,11 @@ void App_Exit(uint8_t the_error_number)
 		
 		Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
 	}
+
+	// close log file if debugging flags were passed
+	#if defined LOG_LEVEL_1 || defined LOG_LEVEL_2 || defined LOG_LEVEL_3 || defined LOG_LEVEL_4 || defined LOG_LEVEL_5
+		General_LogCleanUp();
+	#endif
 	
 	// turn cursor back on
 	Sys_EnableTextModeCursor(true);
@@ -614,11 +619,6 @@ int main(void)
 {
 	kernel_init();
 
-// 	// open log file, if debugging flags were passed
-// 	#ifdef LOG_LEVEL_5
-// 		General_LogInitialize();
-// 	#endif
-	
 	if (Sys_InitSystem() == false)
 	{
 		App_Exit(0);
@@ -646,12 +646,10 @@ int main(void)
 
 	App_Initialize();
 	
-	Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 	Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
 
 	if (app_connected_drive_count > 1)
 	{
-		Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 		Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
 	}
 	

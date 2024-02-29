@@ -83,7 +83,7 @@ extern uint8_t				zp_bank_num;
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime)
+WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime)
 {
 	WB2KFileObject*		the_file;
 	bool				date_ok = false;
@@ -94,34 +94,15 @@ WB2KFileObject* File_New(const char* the_file_name, const char* the_file_path, b
 		LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
 		goto error;
 	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
+	//LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
 
-	// if a populated file name was passed, use it. otherwise, extract it from the filepath
-	if ( the_file_name == NULL)
-	{
-		the_file->file_name_ = General_ExtractFilenameFromPathWithAlloc(the_file_path);
-		LOG_WARN(("%s %d: null passed for file name; extracting from filepath '%s'", __func__ , __LINE__, the_file_path));
-	}
-	else
-	{
-		the_file->file_name_ = General_StrlcpyWithAlloc(the_file_name, FILE_MAX_FILENAME_SIZE);
-		LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%i", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
-	}
-
-	if ( the_file->file_name_ == NULL)
+	if ( (the_file->file_name_ = General_StrlcpyWithAlloc(the_file_name, FILE_MAX_FILENAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the file name");
 		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
 		goto error;
 	}
-
-	if ( (the_file->file_path_ = General_StrlcpyWithAlloc(the_file_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
-	{
-		//Buffer_NewMessage("could not allocate memory for the path name");
-		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%li", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
@@ -234,13 +215,6 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_name_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_name_, General_Strnlen(the_duplicate_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
 
-	if ( (the_duplicate_file->file_path_ = General_StrlcpyWithAlloc(the_original_file->file_path_, FILE_MAX_PATHNAME_SIZE)) == NULL)
-	{
-		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_path_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_path_, General_Strnlen(the_duplicate_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_duplicate_file->size_ = the_original_file->size_;
 
@@ -318,41 +292,11 @@ void File_Destroy(WB2KFileObject** the_file)
 		App_Exit(ERROR_FILE_TO_DESTROY_WAS_NULL);	// crash early, crash often
 	}
 
-// 	// free the date time structure's child strings
-// 	if ((*the_file)->datetime_.dat_StrDate)
-// 	{
-// 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->datetime_.dat_StrDate	%p	size	%i", __func__ , __LINE__, (*the_file)->datetime_.dat_StrDate, LEN_DATSTRING + 1));
-// 		free((*the_file)->datetime_.dat_StrDate);
-// 		(*the_file)->datetime_.dat_StrDate = NULL;
-// 	}
-// 	
-// 	if ((*the_file)->datetime_.dat_StrDay)	
-// 	{
-// 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->datetime_.dat_StrDay	%p	size	%i", __func__ , __LINE__, (*the_file)->datetime_.dat_StrDay, LEN_DATSTRING + 1));
-// 		free((*the_file)->datetime_.dat_StrDay);
-// 		(*the_file)->datetime_.dat_StrDay = NULL;
-// 	}
-// 	
-// 	if ((*the_file)->datetime_.dat_StrTime)
-// 	{
-// 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->datetime_.dat_StrTime	%p	size	%i", __func__ , __LINE__, (*the_file)->datetime_.dat_StrTime, LEN_DATSTRING + 1));
-// 		free((*the_file)->datetime_.dat_StrTime);
-// 		(*the_file)->datetime_.dat_StrTime = NULL;
-// 	}
-// 	
-
 	if ((*the_file)->file_name_ != NULL)
 	{
 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_name_	%p	size	%i", __func__ , __LINE__, (*the_file)->file_name_, General_Strnlen((*the_file)->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
 		free((*the_file)->file_name_);
 		(*the_file)->file_name_ = NULL;
-	}
-	
-	if ((*the_file)->file_path_ != NULL)
-	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_path_	%p	size	%i", __func__ , __LINE__, (*the_file)->file_path_, General_Strnlen((*the_file)->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-		free((*the_file)->file_path_);
-		(*the_file)->file_path_ = NULL;
 	}
 	
 // 	if ((*the_file)->file_size_string_ != NULL)
@@ -453,27 +397,27 @@ bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 }
 
 
-// update the existing file path to the passed one, freeing any previous one and allocating anew.
-bool File_UpdateFilePath(WB2KFileObject* the_file, const char* new_file_path)
-{	
-	if (the_file == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return false;
-	}
-
-	if (the_file->file_path_ != NULL)
-	{
-		LOG_ALLOC(("%s %d:	__FREE__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-		free(the_file->file_path_);
-		the_file->file_path_ = NULL;
-	}
-	
-	the_file->file_path_ = General_StrlcpyWithAlloc(new_file_path, FILE_MAX_PATHNAME_SIZE);
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-	
-	return ( (the_file->file_path_ != NULL) );
-}
+// // update the existing file path to the passed one, freeing any previous one and allocating anew.
+// bool File_UpdateFilePath(WB2KFileObject* the_file, const char* new_file_path)
+// {	
+// 	if (the_file == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return false;
+// 	}
+// 
+// 	if (the_file->file_path_ != NULL)
+// 	{
+// 		LOG_ALLOC(("%s %d:	__FREE__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+// 		free(the_file->file_path_);
+// 		the_file->file_path_ = NULL;
+// 	}
+// 	
+// 	the_file->file_path_ = General_StrlcpyWithAlloc(new_file_path, FILE_MAX_PATHNAME_SIZE);
+// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_path_	%p	size	%i", __func__ , __LINE__, the_file->file_path_, General_Strnlen(the_file->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+// 	
+// 	return ( (the_file->file_path_ != NULL) );
+// }
 
 
 
@@ -589,7 +533,7 @@ bool File_IsSelected(WB2KFileObject* the_file)
 
 // Populates the primary font data area in VICKY with bytes read from disk
 // Returns false on any error
-bool File_ReadFontData(WB2KFileObject* the_file)
+bool File_ReadFontData(char* the_file_path)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -604,7 +548,7 @@ bool File_ReadFontData(WB2KFileObject* the_file)
 	uint16_t	bytes_still_needed; // kernel read() expects uint16_t for num bytes to read
 	FILE*		the_file_handler;
 
-	if (the_file == NULL)
+	if (the_file_path == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
@@ -616,13 +560,13 @@ bool File_ReadFontData(WB2KFileObject* the_file)
 	bytes_still_needed = TEXT_FONT_BYTE_SIZE;
 	
 	//Open file
-	the_file_handler = fopen((char*)the_file->file_path_, "r");	
+	the_file_handler = fopen(the_file_path, "r");	
 
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file->file_path_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file_path);
 		Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
+		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file_path));
 		goto error;
 	}
 
@@ -637,7 +581,7 @@ bool File_ReadFontData(WB2KFileObject* the_file)
 		{
 			// error condition
 			Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
-			LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
+			LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file_path, bytes_read));
 			goto error;
 		}
 		else if (bytes_read == 0)
@@ -671,7 +615,7 @@ error:
 
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetTextContents(WB2KFileObject* the_file)
+bool File_GetTextContents(char* the_file_path)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -692,7 +636,7 @@ bool File_GetTextContents(WB2KFileObject* the_file)
 	bool		keep_going = true;
 	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
 
-	if (the_file == NULL)
+	if (the_file_path == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
@@ -700,13 +644,13 @@ bool File_GetTextContents(WB2KFileObject* the_file)
 
 // 	Buffer_NewMessage("starting text read...");
 	
-	the_file_handler = fopen((char*)the_file->file_path_, "r");
+	the_file_handler = fopen((char*)the_file_path, "r");
 	
 	if (the_file_handler == NULL)
 	{
-		//sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file->file_path_);
+		//sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file_path);
 		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
+		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file_path));
 		goto error;
 	}
 	
@@ -718,7 +662,7 @@ bool File_GetTextContents(WB2KFileObject* the_file)
 	{
 		y = 0;
 		Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_TEXT_VIEW_INSTRUCTIONS), the_file->file_name_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_TEXT_VIEW_INSTRUCTIONS), the_file_path);
 		Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 				
 		// per-row loop
@@ -729,14 +673,14 @@ bool File_GetTextContents(WB2KFileObject* the_file)
 			if ( s_bytes_read_from_disk < 0)
 			{
 				//Buffer_NewMessage("s_bytes_read_from_disk < 0");
-				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
+				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file_path, s_bytes_read_from_disk));
 				goto error;
 			}
 	
 			if ( s_bytes_read_from_disk == 0)
 			{
 				//Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
-				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
+				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file_path));
 				keep_going = false;
 			}
 		
@@ -772,7 +716,7 @@ error:
 
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetHexContents(WB2KFileObject* the_file)
+bool File_GetHexContents(char* the_file_path)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -795,7 +739,7 @@ bool File_GetHexContents(WB2KFileObject* the_file)
 	uint8_t*	loc_in_file = 0x000;	// will track the location within the file, so we can show to users on left side. 
 	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
 
-	if (the_file == NULL)
+	if (the_file_path == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
@@ -803,13 +747,13 @@ bool File_GetHexContents(WB2KFileObject* the_file)
 
 // 	Buffer_NewMessage("starting text read...");
 	
-	the_file_handler = fopen((char*)the_file->file_path_, "r");
+	the_file_handler = fopen((char*)the_file_path, "r");
 	
 	if (the_file_handler == NULL)
 	{
-		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file->file_path_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_FAIL_OPEN_FILE), the_file_path);
 		Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file->file_path_));
+		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file_path));
 		goto error;
 	}
 	
@@ -821,7 +765,7 @@ bool File_GetHexContents(WB2KFileObject* the_file)
 	{
 		y = 0;
 		Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_HEX_VIEW_INSTRUCTIONS), the_file->file_name_);
+		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_HEX_VIEW_INSTRUCTIONS), the_file_path);
 		Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 				
 		// per-row loop
@@ -834,14 +778,14 @@ bool File_GetHexContents(WB2KFileObject* the_file)
 			if ( s_bytes_read_from_disk < 0)
 			{
 				//Buffer_NewMessage("s_bytes_read_from_disk < 0");
-				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file->file_name_, s_bytes_read_from_disk));
+				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file_path, s_bytes_read_from_disk));
 				goto error;
 			}
 	
 			if ( s_bytes_read_from_disk == 0)
 			{
 				//Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
-				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file->file_name_));
+				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file_path));
 				keep_going = false;
 			}
 		
@@ -967,33 +911,27 @@ error:
 
 
 // delete the passed file/folder. If a folder, it must have been previously emptied of files.
-bool File_Delete(WB2KFileObject* the_file, void* not_needed)
+bool File_Delete(char* the_file_path, bool is_directory)
 {
 	bool	success;
 	
-	if (the_file == NULL)
+	if (is_directory)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return false;
-	}
-
-	if (the_file->is_directory_)
-	{
-		success = Kernel_DeleteFile(the_file->file_path_);
+		success = Kernel_DeleteFile(the_file_path);
 	}
 	else
 	{
-		success = Kernel_DeleteFolder(the_file->file_path_);
+		success = Kernel_DeleteFolder(the_file_path);
 	}
 	
 	if (success == false)
 	{
-		LOG_ERR(("%s %d: not able to delete file '%s' @ '%s'", __func__ , __LINE__, the_file->file_name_, the_file->file_path_));
+		LOG_ERR(("%s %d: not able to delete file '%s'", __func__ , __LINE__, the_file_path));
 		goto error;
 	}
 	else
 	{
-		LOG_INFO(("%s %d: deleted '%s'", __func__ , __LINE__, the_file->file_path_));
+		LOG_INFO(("%s %d: deleted '%s'", __func__ , __LINE__, the_file_path));
 	}
 
 	return true;
@@ -1053,7 +991,7 @@ error:
 
 
 // renames a file and its info file, if present
-bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* new_file_path)
+bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char* old_file_path, const char* new_file_path)
 {
 	//char	temp_buff[80];
 	int8_t	result_code;
@@ -1070,7 +1008,7 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 	//sprintf(global_string_buff1, "old path: '%s', new path: '%s'", the_file->file_path_, new_file_path);
 	//Buffer_NewMessage(global_string_buff1);
 	
-	if ( (result_code = rename( the_file->file_path_, new_file_path )) < 0)
+	if ( (result_code = rename( old_file_path, new_file_path )) < 0)
 	{
 		//sprintf(temp_buff, "rename returned err code %i", result_code);
 		//Buffer_NewMessage((char*)&temp_buff);
@@ -1085,12 +1023,6 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 		if (File_UpdateFileName(the_file, new_file_name) == false)
 		{
 			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file name", __func__ , __LINE__, new_file_name));
-			goto error;
-		}
-		
-		if (File_UpdateFilePath(the_file, new_file_path) == false)
-		{
-			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file path", __func__ , __LINE__, new_file_path));
 			goto error;
 		}
 	}
@@ -1202,7 +1134,8 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 			// show full path of file in the special status line under the file panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);
 // 			sprintf(global_string_buff1, "%s (20%02u-%02u-%02u %02u:%02u:%02u)", the_file->file_path_, the_file->datetime_.year, the_file->datetime_.month, the_file->datetime_.day, the_file->datetime_.hour, the_file->datetime_.min, the_file->datetime_.sec);
-			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_path_, COLOR_GREEN, APP_BACKGROUND_COLOR);
+			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_name_, COLOR_GREEN, APP_BACKGROUND_COLOR);
+			//Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_path_, COLOR_GREEN, APP_BACKGROUND_COLOR); // as of beta 16, files no longer know their path. until I add a "parent_folder_" property or similar, there's not a good way to get full path from this functino.
 		}
 	}
 	else

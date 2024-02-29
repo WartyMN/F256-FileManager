@@ -50,40 +50,42 @@
 48	25	File '%s' renamed to '%s'
 49	4	Done
 50	6	(More)
-51	11	Hit any key
-52	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
-53	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
-54	3	 d 
-55	3	PRG
-56	3	REL
-57	3	SEQ
-58	3	 d 
-59	3	oth
-60	3	bas
-61	3	exe
-62	3	fnt
-63	3	mus
-64	3	img
-65	14	Fatal error %u
-66	21	Unable to delete file
-67	26	Unable to delete directory
-68	40	We don't need no stinkin' error messages
-69	74	No connected devices were detected. f/manager has died of loneliness. Bye!
-70	16	The disk is full
-71	21	A disk error occurred
-72	33	No disk detected in disk drive %u
-73	31	Error: Could not open file '%s'
-74	31	Error: Could not list directory
-75	19	Out of memory error
-76	9	f/Manager
-77	32	f/Manager F256, version %u.%u.%u
-78	24	Copyright 2024 Micah Bly
-79	46	https://github.com/WartyMN/F256jr-FileManager/
-80	6	F256JR
-81	5	F256K
-82	18	<unknown hardware>
-83	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
-84	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-85	20	Cross-compiler: cc65
-86	35	Editor: BBEdit (for those who know)
-87	76	This program is open source, using GPL 3 license. Please share improvements!
+51	14	%u files found
+52	27	Available memory: %zu bytes
+53	11	Hit any key
+54	65	****** Hex view of '%s' -- Hit SPACE for more; Esc to stop ******
+55	66	****** Text view of '%s' -- Hit SPACE for more; Esc to stop ******
+56	3	 d 
+57	3	PRG
+58	3	REL
+59	3	SEQ
+60	3	 d 
+61	3	oth
+62	3	bas
+63	3	exe
+64	3	fnt
+65	3	mus
+66	3	img
+67	14	Fatal error %u
+68	21	Unable to delete file
+69	26	Unable to delete directory
+70	40	We don't need no stinkin' error messages
+71	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+72	16	The disk is full
+73	21	A disk error occurred
+74	33	No disk detected in disk drive %u
+75	31	Error: Could not open file '%s'
+76	31	Error: Could not list directory
+77	19	Out of memory error
+78	9	f/Manager
+79	32	f/Manager F256, version %u.%u.%u
+80	24	Copyright 2024 Micah Bly
+81	46	https://github.com/WartyMN/F256jr-FileManager/
+82	6	F256JR
+83	5	F256K
+84	18	<unknown hardware>
+85	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
+86	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+87	20	Cross-compiler: cc65
+88	35	Editor: BBEdit (for those who know)
+89	76	This program is open source, using GPL 3 license. Please share improvements!
