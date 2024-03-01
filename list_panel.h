@@ -154,11 +154,8 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel);
 // delete the currently selected file
 bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel);
 
-// Launch current file if EXE, or load font if FNT
-bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel);
-
-// attempt to open the current file, if it is a directory, and display it in the same panel
-bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel);
+// Launch current file if EXE, or load font if FNT, open directory if dir, etc.
+bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel);
 
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel);

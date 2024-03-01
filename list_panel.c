@@ -757,8 +757,8 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 }
 
 
-// Launch current file if EXE, or load font if FNT
-bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
+// Launch current file if EXE, or load font if FNT, open directory if dir, etc.
+bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 {
 	WB2KFileObject*		the_file;
 	int16_t				the_current_row;
@@ -777,7 +777,18 @@ bool Panel_LoadCurrentFile(WB2KViewPanel* the_panel)
 	
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 	
-	if (the_file->file_type_ == FNX_FILETYPE_FONT)
+	if (the_file->file_type_ == _CBM_T_DIR)
+	{
+		if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1) == false))
+		{
+			LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+			App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+		}
+
+		Folder_RefreshListing(the_panel->root_folder_);
+		Panel_Init(the_panel);
+	}
+	else if (the_file->file_type_ == FNX_FILETYPE_FONT)
 	{
 		success = File_ReadFontData(global_temp_path_1);
 	}
@@ -868,63 +879,6 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 }
 
 
-// attempt to open the current file, if it is a directory, and display it in the same panel
-bool Panel_OpenCurrentFileFolder(WB2KViewPanel* the_panel)
-{
-	int16_t				the_current_row;
-	WB2KFileObject*		the_file;
-	bool				success;
-
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-	if (the_current_row < 0)
-	{
-		return false;
-	}
-	
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-
-	if (the_file->file_type_ != _CBM_T_DIR)
-	{
-		return false;
-	}
-	
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-
-	//sprintf(global_string_buff1, "trying to set path '%s' as new root folder, from path '%s', file '%s'", global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	//Buffer_NewMessage(global_string_buff1);
-
-	if ((success = Folder_Reset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1) == false))
-	{
-		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-	
-// 	if (success)
-// 	{
-//		Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
-// 	}
-// 	else
-// 	{
-// 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
-// 	}
-	
-// 	// renew file listing
-// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_) == false)
-// 	{
-// 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
-// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-// 	}
-// 	Buffer_NewMessage("folder reset called ok");
-	
-	Folder_RefreshListing(the_panel->root_folder_);
-	Panel_Init(the_panel);
-	
-	return true;
-}
-
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
 {
@@ -953,14 +907,6 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
 	}
-	
-// 	// renew file listing
-// 	if (Folder_Reset(the_other_panel->root_folder_, the_other_panel->drive_index_) == false)
-// 	{
-// 		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
-// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-// 	}
-// 	Buffer_NewMessage("folder reset called ok");
 	
 	Folder_RefreshListing(the_other_panel->root_folder_);
 	Panel_Init(the_other_panel);

@@ -431,13 +431,10 @@ uint8_t App_MainLoop(void)
 						break;
 
 					case ACTION_SELECT:
-						// if the current file is a directory, open it, and redisplay the panel with the contents
-						success = Panel_OpenCurrentFileFolder(the_panel);	// tell panel to open the dir, if it is a dir						
-						break;
-					
 					case ACTION_LOAD:
-						// if the current file is an exe, run it with pexec. if a font, load it into memory.
-						success = Panel_LoadCurrentFile(the_panel);
+						// if the current file is a directory, open it, and redisplay the panel with the contents
+						// if the current file is an exe, run it with pexec. if a font, load it into memory, etc.
+						success = Panel_OpenCurrentFileOrFolder(the_panel);					
 						break;
 						
 					default:
