@@ -914,14 +914,17 @@ error:
 bool File_Delete(char* the_file_path, bool is_directory)
 {
 	bool	success;
+
+	//sprintf(global_string_buff1, "the_file_path to delete: '%s', is dir=%u", the_file_path, is_directory);
+	//Buffer_NewMessage(global_string_buff1);
 	
 	if (is_directory)
 	{
-		success = Kernel_DeleteFile(the_file_path);
+		success = Kernel_DeleteFolder(the_file_path);
 	}
 	else
 	{
-		success = Kernel_DeleteFolder(the_file_path);
+		success = Kernel_DeleteFile(the_file_path);
 	}
 	
 	if (success == false)
