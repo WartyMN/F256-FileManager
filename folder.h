@@ -52,8 +52,8 @@
 #define PARAM_MAKE_COPY_OF_FOLDER_FILE			true	// for Folder_New()
 #define PARAM_DO_NOT_MAKE_COPY_OF_FOLDER_FILE	false	// for Folder_New()
 
-#define DO_NOT_DESTROY_FILE_OBJECT	false	// for Folder_RemoveFileListItem()
-#define DESTROY_FILE_OBJECT			true	// for Folder_RemoveFileListItem()
+// #define DO_NOT_DESTROY_FILE_OBJECT	false	// for Folder_RemoveFileListItem()
+// #define DESTROY_FILE_OBJECT			true	// for Folder_RemoveFileListItem()
 
 #define PROCESS_FOLDER_FILE_BEFORE_CHILDREN	true	// for Folder_ProcessContents()
 #define PROCESS_FOLDER_FILE_AFTER_CHILDREN	false	// for Folder_ProcessContents()
@@ -181,9 +181,9 @@ WB2KFileObject* Folder_GetFirstFile(WB2KFolderObject* the_folder);
 uint16_t Folder_GetMinOrMaxSelectedRowOrCol(WB2KFolderObject* the_folder, bool find_max, bool find_row);
 // looks through all files in the file list, comparing the passed string to the filename_ of each file.
 
-// Returns NULL if nothing matches, or returns pointer to first FileObject with a filename that starts with the same string as the one passed
-// DOES NOT REQUIRE a match to the full filename
-WB2KFileObject* Folder_FindFileByFileNameStartsWith(WB2KFolderObject* the_folder, char* string_to_match, int compare_len);
+// // Returns NULL if nothing matches, or returns pointer to first FileObject with a filename that starts with the same string as the one passed
+// // DOES NOT REQUIRE a match to the full filename
+// WB2KFileObject* Folder_FindFileByFileNameStartsWith(WB2KFolderObject* the_folder, char* string_to_match, int compare_len);
 
 // looks through all files in the file list, comparing the passed row to that of each file.
 // Returns NULL if nothing matches, or returns pointer to first matching FileObject
@@ -200,20 +200,20 @@ bool Folder_AddNewFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file);
 // NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
 bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_file);
 
-// removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Does NOT delete the file object.
-// returns true if a matching file was found and successfully removed.
-// NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
-bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file);
+// // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Does NOT delete the file object.
+// // returns true if a matching file was found and successfully removed.
+// // NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
+// bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file);
 
 // // deletes the passed file/folder. If a folder, it must have been previously emptied of files.
 // bool Folder_DeleteFile(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed);
 
-// removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
-void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item, bool destroy_the_file_object);
+// // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
+// void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item, bool destroy_the_file_object);
 
-// Create a new folder on disk, and a new file object for it, and assign it to this folder. 
-// if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
-bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful);
+// // Create a new folder on disk, and a new file object for it, and assign it to this folder. 
+// // if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
+// bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful);
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
 bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder);

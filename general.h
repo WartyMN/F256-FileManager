@@ -244,11 +244,11 @@ signed long General_Strnlen(const char *the_string, size_t max_len);
 // populates the passed string by safely combining the passed file path and name, accounting for cases where path is a disk root
 void General_CreateFilePathFromFolderAndFile(char* the_combined_path, char* the_folder_path, char* the_file_name);
 
-// return the first char of the last part of a file path
-// if no path part detected, returns the original string
-// not guaranteed that this is a FILENAME, as if you passed a path to a dir, it would return the DIR name
-// amigaDOS compatibility function (see FilePart)
-char* General_NamePart(const char* the_file_path);
+// // return the first char of the last part of a file path
+// // if no path part detected, returns the original string
+// // not guaranteed that this is a FILENAME, as if you passed a path to a dir, it would return the DIR name
+// // amigaDOS compatibility function (see FilePart)
+// char* General_NamePart(const char* the_file_path);
 
 // return everything to the left of the filename in a path. 
 char* General_PathPart(const char* the_file_path);

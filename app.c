@@ -263,6 +263,9 @@ void App_Initialize(void)
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
 	}
 
+	// we had Folder_New make a copy, so we can free the file object we passed it.
+	File_Destroy(&root_folder_file_left);
+	
 	app_file_panel[PANEL_ID_LEFT].drive_index_ = the_drive_index;
 
 
@@ -291,6 +294,9 @@ void App_Initialize(void)
 	{
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT);
 	}
+
+	// we had Folder_New make a copy, so we can free the file object we passed it.
+	File_Destroy(&root_folder_file_right);
 
 	app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
 
@@ -594,6 +600,10 @@ void App_Exit(uint8_t the_error_number)
 		Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
 	}
 
+	// free some last things. not sure if this matters, as we're about to exit, but... 
+	Folder_Destroy(&app_root_folder[0]);
+	Folder_Destroy(&app_root_folder[1]);
+	
 	// close log file if debugging flags were passed
 	#if defined LOG_LEVEL_1 || defined LOG_LEVEL_2 || defined LOG_LEVEL_3 || defined LOG_LEVEL_4 || defined LOG_LEVEL_5
 		General_LogCleanUp();

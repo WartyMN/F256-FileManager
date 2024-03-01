@@ -575,23 +575,23 @@ void General_CreateFilePathFromFolderAndFile(char* the_combined_path, char* the_
 }
 
 
-// return the first char of the last part of a file path
-// if no path part detected, returns the original string
-// not guaranteed that this is a FILENAME, as if you passed a path to a dir, it would return the DIR name
-// amigaDOS compatibility function (see FilePart)
-char* General_NamePart(const char* the_file_path)
-{
-	char*	last_slash;
-	
-	last_slash = strchr(the_file_path, '/');
-	
-	if (last_slash && ++last_slash)
-	{
-		return last_slash;
-	}
-	
-	return (char*)the_file_path;
-}
+// // return the first char of the last part of a file path
+// // if no path part detected, returns the original string
+// // not guaranteed that this is a FILENAME, as if you passed a path to a dir, it would return the DIR name
+// // amigaDOS compatibility function (see FilePart)
+// char* General_NamePart(const char* the_file_path)
+// {
+// 	char*	last_slash;
+// 	
+// 	last_slash = strchr(the_file_path, '/');
+// 	
+// 	if (last_slash && ++last_slash)
+// 	{
+// 		return last_slash;
+// 	}
+// 	
+// 	return (char*)the_file_path;
+// }
 
 
 // return everything to the left of the filename in a path. 

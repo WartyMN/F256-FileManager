@@ -572,17 +572,17 @@ void Folder_SetCurrentRow(WB2KFolderObject* the_folder, int16_t the_row_number)
 
 // **** GETTERS *****
 
-// returns the list of files associated with the folder
-WB2KList** Folder_GetFileList(WB2KFolderObject* the_folder)
-{
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-	
-	return the_folder->list_;
-}
+// // returns the list of files associated with the folder
+// WB2KList** Folder_GetFileList(WB2KFolderObject* the_folder)
+// {
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 	
+// 	return the_folder->list_;
+// }
 
 
 // // returns the file object for the root folder
@@ -807,42 +807,42 @@ int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder)
 // }
 
 
-// looks through all files in the file list, comparing the passed string to the filename_ of each file.
-// Returns NULL if nothing matches, or returns pointer to first FileObject with a filename that starts with the same string as the one passed
-// DOES NOT REQUIRE a match to the full filename. case insensitive search is used.
-WB2KFileObject* Folder_FindFileByFileNameStartsWith(WB2KFolderObject* the_folder, char* string_to_match, int compare_len)
-{
-	// LOGIC:
-	//   iterate through all files in the panel's list
-	//   when comparing, the int compare_len is used to limit the number of chars of filename that are searched
-
-	WB2KList*		the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	the_item = *(the_folder->list_);
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-
-		// is this the item we are looking for?
-		if ( General_Strncasecmp(string_to_match, this_file->file_name_, compare_len) == 0)
-		{
-			return this_file;
-		}
-
-		the_item = the_item->next_item_;
-	}
-
-	DEBUG_OUT(("%s %d: couldn't find filename match for '%s'. compare_len=%i", __func__ , __LINE__, string_to_match, compare_len));
-
-	return NULL;
-}
+// // looks through all files in the file list, comparing the passed string to the filename_ of each file.
+// // Returns NULL if nothing matches, or returns pointer to first FileObject with a filename that starts with the same string as the one passed
+// // DOES NOT REQUIRE a match to the full filename. case insensitive search is used.
+// WB2KFileObject* Folder_FindFileByFileNameStartsWith(WB2KFolderObject* the_folder, char* string_to_match, int compare_len)
+// {
+// 	// LOGIC:
+// 	//   iterate through all files in the panel's list
+// 	//   when comparing, the int compare_len is used to limit the number of chars of filename that are searched
+// 
+// 	WB2KList*		the_item;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	the_item = *(the_folder->list_);
+// 
+// 	while (the_item != NULL)
+// 	{
+// 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+// 
+// 		// is this the item we are looking for?
+// 		if ( General_Strncasecmp(string_to_match, this_file->file_name_, compare_len) == 0)
+// 		{
+// 			return this_file;
+// 		}
+// 
+// 		the_item = the_item->next_item_;
+// 	}
+// 
+// 	DEBUG_OUT(("%s %d: couldn't find filename match for '%s'. compare_len=%i", __func__ , __LINE__, string_to_match, compare_len));
+// 
+// 	return NULL;
+// }
 
 
 // looks through all files in the file list, comparing the passed row to that of each file.
@@ -1311,82 +1311,77 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // }
 
 
-// removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
-void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item, bool destroy_the_file_object)
-{
-	WB2KFileObject*		the_file;
-	uint32_t			bytes_removed = 0;
-	uint16_t			blocks_removed = 0;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	the_file = (WB2KFileObject*)(the_item->payload_);
-	
-	// before removing, count up the bytes for the file and it's info file, if any. 
-// 	bytes_removed = the_file->size_;
-// 	blocks_removed = the_file->num_blocks_;
-	
-	//DEBUG_OUT(("%s %d: file '%s' is being removed from folder '%s' (current bytes=%lu, bytes being removed=%lu)", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_removed));
-	
-	if (destroy_the_file_object)
-	{
-		File_Destroy(&the_file);
-	}
-	
-	--the_folder->file_count_;
-// 	the_folder->total_bytes_ -= bytes_removed;
-// 	the_folder->total_blocks_ -= blocks_removed;
-	List_RemoveItem(the_folder->list_, the_item);
-	LOG_ALLOC(("%s %d:	__FREE__	the_item	%p	size	%i", __func__ , __LINE__, the_item, sizeof(WB2KList)));
-	free(the_item);
-	the_item = NULL;
-	
-	return;
-}
-
-
-// removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Does NOT delete the file object.
-// returns true if a matching file was found and successfully removed.
-// NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
-bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file)
-{
-	WB2KList*		the_item;
-	
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
-
-	the_item = Folder_FindListItemByFileName(the_folder, the_file->file_name_);
-	
-	if (the_item == NULL)
-	{
-		// just means this folder never contained a version of this file
-		return false;
-	}
-	
-	Folder_RemoveFileListItem(the_folder, the_item, DO_NOT_DESTROY_FILE_OBJECT);
-	
-	//DEBUG_OUT(("%s %d: file '%s' was removed from folder '%s'", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_));
-	
-	return true;
-}
+// // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Optionally frees the file object.
+// void Folder_RemoveFileListItem(WB2KFolderObject* the_folder, WB2KList* the_item, bool destroy_the_file_object)
+// {
+// 	WB2KFileObject*		the_file;
+// 	uint32_t			bytes_removed = 0;
+// 	uint16_t			blocks_removed = 0;
+// 
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	the_file = (WB2KFileObject*)(the_item->payload_);
+// 	
+// 	// before removing, count up the bytes for the file and it's info file, if any. 
+// // 	bytes_removed = the_file->size_;
+// // 	blocks_removed = the_file->num_blocks_;
+// 	
+// 	//DEBUG_OUT(("%s %d: file '%s' is being removed from folder '%s' (current bytes=%lu, bytes being removed=%lu)", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_removed));
+// 	
+// 	if (destroy_the_file_object)
+// 	{
+// 		File_Destroy(&the_file);
+// 	}
+// 	
+// 	--the_folder->file_count_;
+// // 	the_folder->total_bytes_ -= bytes_removed;
+// // 	the_folder->total_blocks_ -= blocks_removed;
+// 	List_RemoveItem(the_folder->list_, the_item);
+// 	LOG_ALLOC(("%s %d:	__FREE__	the_item	%p	size	%i", __func__ , __LINE__, the_item, sizeof(WB2KList)));
+// 	free(the_item);
+// 	the_item = NULL;
+// 	
+// 	return;
+// }
 
 
-// Create a new folder on disk, and a new file object for it, and assign it to this folder. 
-// if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
-bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful)
-{
-	// NOTE 2023/01/14: b128 doesn't support subdirectories, and F256 SD card stuff is not ready yet, so look at this later. 
-	return true;
+// // removes the passed list item from the list of files in the folder. Does NOT delete file from disk. Does NOT delete the file object.
+// // returns true if a matching file was found and successfully removed.
+// // NOTE: this is part of series of functions designed to be called by Window_ModifyOpenFolders(), and all need to return bools.
+// bool Folder_RemoveFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file)
+// {
+// 	WB2KList*		the_item;
+// 	
+// 	if (the_folder == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 	}
+// 
+// 	the_item = Folder_FindListItemByFileName(the_folder, the_file->file_name_);
+// 	
+// 	if (the_item == NULL)
+// 	{
+// 		// just means this folder never contained a version of this file
+// 		return false;
+// 	}
+// 	
+// 	Folder_RemoveFileListItem(the_folder, the_item, DO_NOT_DESTROY_FILE_OBJECT);
+// 	
+// 	//DEBUG_OUT(("%s %d: file '%s' was removed from folder '%s'", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_));
+// 	
+// 	return true;
+// }
 
-	
 
+// // Create a new folder on disk, and a new file object for it, and assign it to this folder. 
+// // if try_until_successful is set, will rename automatically with trailing number until it can make a new folder (by avoiding already-used names)
+// bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, bool try_until_successful)
+// {
 // 	WB2KFileObject*		the_file;
 // 	bool				created_file_ok = false;
 // 	BPTR 				the_dir_lock;
@@ -1526,7 +1521,7 @@ bool Folder_CreateNewFolder(WB2KFolderObject* the_folder, char* the_file_name, b
 // 	}
 // 		
 // 	return true;
-}
+// }
 
 	
 // Add a file object to the list of files without checking for duplicates.
