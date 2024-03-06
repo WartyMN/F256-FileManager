@@ -49,6 +49,9 @@
 
 static uint8_t		temp_file_extension_buffer[FILE_MAX_EXTENSION_SIZE];	// 8 probably larger than needed, but... 
 
+
+
+
 /*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
@@ -921,6 +924,13 @@ bool File_Delete(char* the_file_path, bool is_directory)
 	if (is_directory)
 	{
 		success = Kernel_DeleteFolder(the_file_path);
+		
+		// kernel doesn't actually detect folders, it just sets anything to directory if it has size=0. so incorrectly created files can't be deleted
+		// try again with Delete FILE
+		if (!success)
+		{
+			success = Kernel_DeleteFile(the_file_path);
+		}
 	}
 	else
 	{

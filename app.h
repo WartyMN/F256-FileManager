@@ -317,10 +317,17 @@ typedef struct Overlay
 /*                       Public Function Prototypes                          */
 /*****************************************************************************/
 
+// Draws the progress bar frame on the screen
+void App_ShowProgressBar(void);
+
+// Hides the progress bar frame on the screen
+void App_HideProgressBar(void);
+
+// draws the 'bar' part of the progress bar, according to a % complete passed (0-100 integer)
+void App_UpdateProgressBar(uint8_t progress_bar_total);
 
 // display error message, wait for user to confirm, and exit
 void App_Exit(uint8_t the_error_number);
-
 
 // Brings the requested overlay into memory
 void App_LoadOverlay(uint8_t the_overlay_id);

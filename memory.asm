@@ -43,10 +43,6 @@
 	.exportzp	_zp_temp_4
 	.exportzp	_zp_other_byte
 
-	.exportzp	_global_buffer_vis
-	.exportzp	_global_first_map_appearance
-	.exportzp	_global_player_last_action
-	.exportzp	_global_player
 	.exportzp	_global_string_buffer
 	.exportzp	_global_string_buffer2
 	
@@ -100,6 +96,8 @@ screen_id_tinker		= 8
 
 .segment "ZEROPAGE_LK" : zeropage
 
+; -- ZErOPAGE_LK starts at $10
+
 _zp_bank_slot:			.res 1;
 _zp_bank_num:			.res 1;
 _zp_old_bank_num:		.res 1;
@@ -119,12 +117,8 @@ _zp_temp_2:				.res 1;
 _zp_temp_3:				.res 1;
 _zp_temp_4:				.res 1;
 _zp_other_byte:			.res 1;
-_zp_old_io_page:		.res 1;
+_zp_old_io_page:		.res 1;	;-- $20
 
-_global_buffer_vis:				.res 1;
-_global_first_map_appearance:	.res 1;
-_global_player_last_action:		.res 1;
-_global_player:					.res 2;
 _global_string_buffer:			.res 2;
 _global_string_buffer2:			.res 2;
 	

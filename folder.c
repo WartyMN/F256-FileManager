@@ -11,6 +11,7 @@
 /*****************************************************************************/
 
 // project includes
+#include "api.h"
 #include "app.h"
 #include "comm_buffer.h"
 #include "file.h"
@@ -61,7 +62,6 @@ extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 
 
-
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
@@ -86,7 +86,7 @@ WB2KList* Folder_FindListItemByFilePath(WB2KFolderObject* the_folder, char* the_
 WB2KFileObject* Folder_FindFileByFilePath(WB2KFolderObject* the_folder, char* the_file_path, short the_compare_len);
 
 // copy file bytes. Returns number of bytes copied, or -1 in event of any error
-signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path);
+int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path, int32_t expected_bytes);
 
 
 /*****************************************************************************/
@@ -95,14 +95,22 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 
 
 // copy file bytes. Returns number of bytes copied, or -1 in event of any error
-signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path)
+int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path, int32_t expected_bytes)
 {
+	FILEmimic*  target_mimic;
 	FILE*		the_source_handle;
 	FILE*		the_target_handle;
 	uint8_t*	the_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
+	uint8_t		tries_made = 0;
 	int16_t		bytes_read = 0;
 	int16_t		total_bytes_read = 0;
+	uint32_t	percent_read = 0;
+	bool		good_tgt_handle = false;
 	bool		keep_going = true;
+	
+
+	// prepare to use progress bar
+	App_ShowProgressBar();
 	
 	// Open source file for Reading
 	the_source_handle = fopen(the_source_file_path, "r");
@@ -117,12 +125,42 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 	else
 	{
 		// Open target file for Writing
-		the_target_handle = fopen(the_target_file_path, "w");
-	
-		if (the_target_handle == NULL)
+		// NOTE: this is in a loop because I was getting cases where the 2nd copy operation would get a bad handle. then 3rd would work, etc. 
+		
+		while (good_tgt_handle == false && tries_made < 6)
 		{
-			//sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
+			the_target_handle = fopen(the_target_file_path, "w");
+		
+			if (the_target_handle == NULL)
+			{
+				//sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
+				//Buffer_NewMessage(global_string_buff1);
+				LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+				goto error;
+			}
+
+			target_mimic = (FILEmimic*)the_target_handle;
+			
+			//sprintf(global_string_buff1, "tries=%u, tgt file f_fd=%x, f_flags=%x, f_pushback=%x, tgt FILE=%p", tries_made, target_mimic->f_fd, target_mimic->f_flags, target_mimic->f_pushback, the_target_handle);
 			//Buffer_NewMessage(global_string_buff1);
+			
+			if (target_mimic->f_fd != 1)
+			{
+				good_tgt_handle = true;
+			}
+			else
+			{
+				//fclose(the_target_handle);
+				// NOTE: if I close the "bad" target handle, the system will keep reselecting it. and since it's bad, it will never work
+				//   leaving it open seems to basically have the effect of "forgetting" this file handle, which lets it move on to the
+				//   next, which seems to work consistently. I don't know what cc65 is doing here, or why this happens. 
+			}
+			
+			++tries_made;
+		}
+		
+		if (good_tgt_handle == false)
+		{
 			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
 			goto error;
 		}
@@ -157,17 +195,29 @@ signed int Folder_CopyFileBytes(const char* the_source_file_path, const char* th
 			fwrite(the_buffer, 1, bytes_read, the_target_handle);
 			total_bytes_read += bytes_read;
 			
+			percent_read = (uint32_t)total_bytes_read;	// REALLY don't want to do math with signed ints
+			percent_read = (percent_read * 100) / (uint32_t)expected_bytes;
+			
+			//sprintf(global_string_buff1, "bytes read=%d, percent_read=%lu, total_bytes_read=%i", bytes_read, percent_read, total_bytes_read);
+			//Buffer_NewMessage(global_string_buff1);
+
+			App_UpdateProgressBar((uint8_t)percent_read);
+			
 		} while (keep_going == true);
 		
 		fclose(the_source_handle);
 		fclose(the_target_handle);
 	}
-	
+
+	// clear the progress bar
+	App_HideProgressBar();
+		
 	return total_bytes_read;
 	
 error:
 	if (the_source_handle)	fclose(the_source_handle);
 	if (the_target_handle)	fclose(the_target_handle);
+	App_HideProgressBar();
 	
 	return -1;
 }
@@ -1107,7 +1157,7 @@ error:
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
 bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder)
 {
-	int16_t				bytes_copied;
+	int32_t				bytes_copied;
 	uint8_t				name_uniqueifier;
 	uint8_t				name_len;
 	uint8_t				tries = 0;
@@ -1237,15 +1287,14 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, the_file->file_name_);
 		General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_target_folder_path, folder_temp_filename);
 		
-		//sprintf(global_string_buff1, "tgt path='%s', tgt file='%s'", global_temp_path_2, folder_temp_filename);
-		//sprintf(global_string_buff1, "tgt path='%s', tgt fldr path='%s', src fname='%s', src path='%s'", global_temp_path_2, the_target_folder_path, the_file->file_name_, the_file->file_path_);
+		//sprintf(global_string_buff1, "copy file src path='%s', tgt path='%s', size=%lu", global_temp_path_1, global_temp_path_2, the_file->size_);
 		//Buffer_NewMessage(global_string_buff1);
 
 		// call function to copy file bits
-		DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_name_, global_temp_path_2));
-		Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
+		//DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_name_, global_temp_path_2));
+		//Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
 		
-		bytes_copied = Folder_CopyFileBytes(global_temp_path_1, global_temp_path_2);
+		bytes_copied = Folder_CopyFileBytes(global_temp_path_1, global_temp_path_2, the_file->size_);
 		
 		if (bytes_copied < 0)
 		{

@@ -29,6 +29,7 @@
 
 #include "app.h"
 #include "text.h"
+#include <stdint.h>
 
 
 /*****************************************************************************/
@@ -133,9 +134,18 @@
 
 #define UI_FULL_PATH_LINE_Y				(UI_LEFT_PANEL_BODY_Y2 + 1)	// row, not in any boxes, under file panels, above comms panel, for showing full path of a file.
 
+#define UI_COPY_PROGRESS_Y				(UI_MIDDLE_AREA_FILE_CMD_Y)
+#define UI_COPY_PROGRESS_LEFTMOST		(UI_MIDDLE_AREA_START_X + 3)
+#define UI_COPY_PROGRESS_RIGHTMOST		(UI_COPY_PROGRESS_LEFTMOST + 5)
+
+#define CH_PROGRESS_BAR_SOLID_CH1		134		// for drawing progress bars that use solid bars, this is the first char (least filled in)
+#define CH_PROGRESS_BAR_CHECKER_CH1		207		// for drawing progress bars that use checkerboard bars, this is the first char (least filled in)
+#define CH_INVERSE_SPACE				7		// useful for progress bars as a slot fully used up
+#define CH_CHECKERBOARD					199		// useful for progress bars as a slot fully used up
 #define CH_UNDERSCORE					148		// this is one line up from a pure underscore, but works if text right under it. 0x5f	// '_'
 #define CH_OVERSCORE					0x0e	// opposite of '_'
 #define CH_SORT_ICON					248		// downward disclosure triangle in f256 fonts
+
 
 /*****************************************************************************/
 /*                               Enumerations                                */

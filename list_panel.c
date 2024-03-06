@@ -871,6 +871,9 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	Folder_RefreshListing(the_panel->root_folder_);
 	Panel_Init(the_panel);
 
+	// try to select the file that was selected before the deleted one
+	Panel_SetFileSelectionByRow(the_panel, the_current_row, true);
+	
 	// now send the message
 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_DELETE_SUCCESS), delete_file_name);
 	Buffer_NewMessage(global_string_buff1);

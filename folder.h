@@ -89,6 +89,15 @@ typedef enum folder_error_code
 /*                                 Structs                                   */
 /*****************************************************************************/
 
+// this is a duplicate of the FILE struct defined in cc65. defined to make it possible to access the f_fd and f_flags bytes easily.
+// it is defined in cc65/asminc/_file.inc in ASM fully, but in include/stdio.h it is only typedef'ed, without the definition.
+typedef struct FILEmimic
+{
+	uint8_t		f_fd;
+	uint8_t		f_flags;
+	uint8_t		f_pushback;
+} FILEmimic;
+
 
 typedef struct WB2KFolderObject
 {

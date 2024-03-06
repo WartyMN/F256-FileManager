@@ -49,7 +49,12 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
-
+#define CH_PROGRESS_BAR_FULL	CH_CHECKERBOARD
+#define PROGRESS_BAR_Y			(COMM_BUFFER_FIRST_ROW - 4)
+#define PROGRESS_BAR_START_X	UI_MIDDLE_AREA_START_X
+#define PROGRESS_BAR_WIDTH		10	// number of characters in progress bar
+#define PROGRESS_BAR_DIVISOR	8	// number of slices in one char: divide % by this to get # of blocks to draw.
+#define COLOR_PROGRESS_BAR		COLOR_CYAN
 
 
 /*****************************************************************************/
@@ -60,6 +65,18 @@
 static WB2KFolderObject*	app_root_folder[2];
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
 static uint8_t				app_connected_drive_count;
+
+static uint8_t				app_progress_bar_char[8] = 
+{
+	CH_SPACE,
+	CH_PROGRESS_BAR_CHECKER_CH1,
+	CH_PROGRESS_BAR_CHECKER_CH1+1,
+	CH_PROGRESS_BAR_CHECKER_CH1+2,
+	CH_PROGRESS_BAR_CHECKER_CH1+3,
+	CH_PROGRESS_BAR_CHECKER_CH1+4,
+	CH_PROGRESS_BAR_CHECKER_CH1+5,
+	CH_PROGRESS_BAR_CHECKER_CH1+6,
+};
 
 /*****************************************************************************/
 /*                             Global Variables                              */
@@ -574,6 +591,60 @@ uint8_t App_MainLoop(void)
 /*****************************************************************************/
 /*                        Public Function Definitions                        */
 /*****************************************************************************/
+
+
+// Draws the progress bar frame on the screen
+void App_ShowProgressBar(void)
+{
+	Text_DrawHLine(UI_MIDDLE_AREA_START_X, PROGRESS_BAR_Y - 1, UI_MIDDLE_AREA_WIDTH, CH_UNDERSCORE, MENU_ACCENT_COLOR, APP_BACKGROUND_COLOR, CHAR_AND_ATTR);
+	Text_DrawHLine(UI_MIDDLE_AREA_START_X, PROGRESS_BAR_Y,     UI_MIDDLE_AREA_WIDTH, CH_SPACE,      MENU_ACCENT_COLOR, APP_BACKGROUND_COLOR, CHAR_AND_ATTR);
+	Text_DrawHLine(UI_MIDDLE_AREA_START_X, PROGRESS_BAR_Y + 1, UI_MIDDLE_AREA_WIDTH, CH_OVERSCORE,  MENU_ACCENT_COLOR, APP_BACKGROUND_COLOR, CHAR_AND_ATTR);
+}
+
+// Hides the progress bar frame on the screen
+void App_HideProgressBar(void)
+{
+	Text_FillBox(UI_MIDDLE_AREA_START_X, PROGRESS_BAR_Y - 1, (UI_MIDDLE_AREA_START_X + UI_MIDDLE_AREA_WIDTH - 1), PROGRESS_BAR_Y + 1, CH_SPACE, MENU_ACCENT_COLOR, APP_BACKGROUND_COLOR);
+}
+
+
+// draws the 'bar' part of the progress bar, according to a % complete passed (0-100 integer)
+void App_UpdateProgressBar(uint8_t progress_bar_total)
+{
+	// logic:
+	//  - has access to 40 positions worth of status: 5 characters each with 8 slots
+	//  - so 2.5% complete = |, 5% = ||, 25%=||||||||  || (imagine PETSCII) 
+	//  - draws spaces for not-yet-reached char spaces
+	//  - integer division (with non-signed) goes to floor. so 15/8 = 1 r7. 1 is the number of full blocks, 7 (minus 1) is the index to the partial block char
+
+	uint8_t		i;
+	uint8_t		full_blocks;
+	uint8_t		the_char_code;
+	uint8_t		progress_bar_char_index;
+
+	progress_bar_total = (progress_bar_total > 100) ? 100 : progress_bar_total;
+	
+	full_blocks = progress_bar_total / PROGRESS_BAR_DIVISOR;
+	progress_bar_char_index = progress_bar_total % PROGRESS_BAR_DIVISOR; // remainders will be 0-7: index to app_progress_bar_char[]
+
+	for (i = 0; i < PROGRESS_BAR_WIDTH; i++)
+	{
+		if (i < full_blocks)
+		{
+			the_char_code = CH_PROGRESS_BAR_FULL;
+		}
+		else if (i == full_blocks && progress_bar_char_index > 0)
+		{
+			the_char_code = app_progress_bar_char[progress_bar_char_index];
+		}
+		else
+		{
+			the_char_code = CH_SPACE;
+		}
+
+		Text_SetCharAndColorAtXY(PROGRESS_BAR_START_X + i, PROGRESS_BAR_Y, the_char_code, COLOR_PROGRESS_BAR, COLOR_BLACK);
+	}
+}
 
 
 // Brings the requested overlay into memory
