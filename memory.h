@@ -37,21 +37,29 @@
 #define ZP_BANK_SLOT		0x10	// zero-page address holding the LUT slot to be modified (0-7) (eg, if 0, will be $08,if 1, $09, etc.)
 #define ZP_BANK_NUM			0x11	// zero-page address holding the new LUT bank# to be set in the ZP_BANK_SLOT
 #define ZP_OLD_BANK_NUM		0x12	// zero-page address holding the original LUT bank # before being changed
-#define ZP_X				0x13	// zero-page address we will use for passing X coordinate to assembly routines
-#define ZP_Y				0x14	// zero-page address we will use for passing Y coordinate to assembly routines
-#define ZP_SCREEN_ID		0x15	// zero-page address we will use for passing the screen ID to assembly routines
-#define ZP_PHYS_ADDR_LO		0x16	// zero-page address pointing to a 20-bit physical memory address
-#define ZP_PHYS_ADDR_MI		0x17	// zero-page address pointing to a 20-bit physical memory address
-#define ZP_PHYS_ADDR_HI		0x18	// zero-page address pointing to a 20-bit physical memory address
-#define ZP_CPU_ADDR_LO		0x19	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
-#define ZP_CPU_ADDR_HI		0x1A	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
-#define ZP_TEMP_1			0x1B	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_2			0x1C	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_3			0x1D	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_4			0x1E	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_OTHER_PARAM		0x1F	// zero-page address we will use for communicating 1 byte to/from assembly routines
-#define ZP_OLD_IO_PAGE		0x20	// zero-page address holding the original IO page # before being changed
+#define ZP_TO_ADDR			0x13	// zero-page address holding address to copy to, for ML copy routine (3b)
+#define ZP_FROM_ADDR		0x16	// zero-page address holding address to copy from, for ML copy routine (3b)
+#define ZP_COPY_LEN			0x19	// zero-page address holding number of bytes to copy, for ML copy routine (3b)
+#define ZP_PHYS_ADDR_LO		0x1C	// zero-page address pointing to a 20-bit physical memory address
+#define ZP_PHYS_ADDR_MI		0x1D	// zero-page address pointing to a 20-bit physical memory address
+#define ZP_PHYS_ADDR_HI		0x1E	// zero-page address pointing to a 20-bit physical memory address
+#define ZP_CPU_ADDR_LO		0x1F	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
+#define ZP_CPU_ADDR_HI		0x20	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
+#define ZP_TEMP_1			0x21	// zero-page address we will use for temp variable storage in assembly routines
+#define ZP_TEMP_2			0x22	// zero-page address we will use for temp variable storage in assembly routines
+#define ZP_TEMP_3			0x23	// zero-page address we will use for temp variable storage in assembly routines
+#define ZP_TEMP_4			0x24	// zero-page address we will use for temp variable storage in assembly routines
+#define ZP_OTHER_PARAM		0x25	// zero-page address we will use for communicating 1 byte to/from assembly routines
+#define ZP_OLD_IO_PAGE		0x26	// zero-page address holding the original IO page # before being changed
+//#define ZP_X				0x13	// zero-page address we will use for passing X coordinate to assembly routines
+//#define ZP_Y				0x14	// zero-page address we will use for passing Y coordinate to assembly routines
+//#define ZP_SCREEN_ID		0x15	// zero-page address we will use for passing the screen ID to assembly routines
 
+
+// starting point for all storage to extended memory. if larger than 8K, increment as necessary
+#define EM_STORAGE_START_PHYS_ADDR            0x28000	// when copying file data to EM, the starting physical address (20 bit)
+#define EM_STORAGE_START_SLOT                 0x05		// the slot to map it into, if at all
+#define EM_STORAGE_START_VALUE                0x14		// the slot it is physically located in
 
 
 /*****************************************************************************/
@@ -101,7 +109,13 @@ void __fastcall__ Memory_DebugOut(void);
 // set zp_to_addr, zp_from_addr, zp_copy_len before calling.
 // this version uses the F256's DMA capabilities to copy, so addresses can be 24 bit (system memory, not CPU memory)
 // in other words, no need to page either dst or src into CPU space
-// void __fastcall__ Memory_CopyWithDMA(void);
+void __fastcall__ Memory_CopyWithDMA(void);
+
+// call to a routine in memory.asm that fills the specified number of bytes to the dst
+// set zp_to_addr, zp_copy_len to num bytes to fill, and zp_other_byte to the fill value before calling.
+// this version uses the F256's DMA capabilities to fill, so addresses can be 24 bit (system memory, not CPU memory)
+// in other words, no need to page either dst into CPU space
+//void __fastcall__ Memory_FillWithDMA(void);
 
 
 #endif /* MEMORY_H_ */

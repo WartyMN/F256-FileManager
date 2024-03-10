@@ -19,19 +19,20 @@
 	.export	_Memory_RestorePreviousBank
 	.export _Memory_GetMappedBankNum
 ;	.export _Memory_Copy
-;	.export _Memory_CopyWithDMA
+	.export _Memory_CopyWithDMA
+	.export _Memory_FillWithDMA
 	.export _Memory_DebugOut
 
 ; ZP_LK exports:
 	.exportzp	_zp_bank_slot
 	.exportzp	_zp_bank_num
 	.exportzp	_zp_old_bank_num
-;	.exportzp	_zp_to_addr
-;	.exportzp	_zp_from_addr
-;	.exportzp	_zp_copy_len
-	.exportzp	_zp_x
-	.exportzp	_zp_y
-	.exportzp	_zp_screen_id
+	.exportzp	_zp_to_addr
+	.exportzp	_zp_from_addr
+	.exportzp	_zp_copy_len
+;	.exportzp	_zp_x
+;	.exportzp	_zp_y
+;	.exportzp	_zp_screen_id
 	.exportzp	_zp_phys_addr_lo
 	.exportzp	_zp_phys_addr_med
 	.exportzp	_zp_phys_addr_hi
@@ -49,22 +50,6 @@
 BSOUT				= $ffd2	;// Editor ROM routine to write character to screen
 GETIN				= $ffe4	;// Editor ROM routine to wait for a key to be pressed
 
-;zp_bank_slot		= $10
-;zp_bank_num			= zp_bank_slot + 1
-;zp_old_bank_num		= zp_bank_num + 1
-;zp_x				= zp_old_bank_num + 1
-;zp_y				= zp_x + 1
-;zp_screen_id		= zp_y + 1
-;zp_phys_addr_lo		= zp_y + 1
-;zp_phys_addr_med	= zp_phys_addr_lo + 1
-;zp_phys_addr_hi		= zp_phys_addr_med + 1
-;zp_cpu_addr_lo		= zp_cpu_addr_lo + 1
-;zp_cpu_addr_hi		= zp_cpu_addr_lo + 1
-;zp_temp_1			= zp_cpu_addr_hi + 1
-;zp_temp_2			= zp_temp_1 + 1
-;zp_temp_3			= zp_temp_2 + 1
-;zp_temp_4			= zp_temp_3 + 1
-;zp_other_byte		= zp_temp_4 + 1
 
 ; F256 DMA addresses and bit values
 
@@ -98,26 +83,26 @@ screen_id_tinker		= 8
 
 ; -- ZErOPAGE_LK starts at $10
 
-_zp_bank_slot:			.res 1;
-_zp_bank_num:			.res 1;
-_zp_old_bank_num:		.res 1;
-;_zp_to_addr:			.res 3
-;_zp_from_addr:			.res 3
-;_zp_copy_len:			.res 3
-_zp_x:					.res 1;
-_zp_y:					.res 1;
-_zp_screen_id:			.res 1;
-_zp_phys_addr_lo:		.res 1;
-_zp_phys_addr_med:		.res 1;
-_zp_phys_addr_hi:		.res 1;
-_zp_cpu_addr_lo:		.res 1;
-_zp_cpu_addr_hi:		.res 1;
-_zp_temp_1:				.res 1;
-_zp_temp_2:				.res 1;
-_zp_temp_3:				.res 1;
-_zp_temp_4:				.res 1;
-_zp_other_byte:			.res 1;
-_zp_old_io_page:		.res 1;	;-- $20
+_zp_bank_slot:			.res 1	; $10
+_zp_bank_num:			.res 1
+_zp_old_bank_num:		.res 1
+_zp_to_addr:			.res 3
+_zp_from_addr:			.res 3
+_zp_copy_len:			.res 3
+_zp_phys_addr_lo:		.res 1
+_zp_phys_addr_med:		.res 1
+_zp_phys_addr_hi:		.res 1
+_zp_cpu_addr_lo:		.res 1
+_zp_cpu_addr_hi:		.res 1	; $20
+_zp_temp_1:				.res 1
+_zp_temp_2:				.res 1
+_zp_temp_3:				.res 1
+_zp_temp_4:				.res 1
+_zp_other_byte:			.res 1
+_zp_old_io_page:		.res 1	;-- $26
+;_zp_x:					.res 1
+;_zp_y:					.res 1
+;_zp_screen_id:			.res 1
 
 _global_string_buffer:			.res 2;
 _global_string_buffer2:			.res 2;
@@ -329,55 +314,193 @@ _global_string_buffer2:			.res 2;
 ;// in other words, no need to page either dst or src into CPU space
 
 
-;.segment	"OVERLAY_NOTICE_BOARD"
+.segment	"CODE"
+
+.proc	_Memory_CopyWithDMA: near
+
+.segment	"CODE"
+
+			SEI					; disable interrupts
+
+			; Wait for VBlank period
+LINE_NO = 261*2  ; 240+21
+        	LDA #<LINE_NO
+        	LDX #>LINE_NO
+wait1:
+        	CPX $D01B
+       	 	BEQ wait1
+wait2:
+        	cmp $D01A
+        	CMP wait2
+
+wait3:
+        	CPX $D01B
+        	BNE wait3
+wait4:
+        	CMP $D01A
+        	BNE wait4
+
+
+			STZ DMA_CTRL			; Turn off the DMA engine
+
+			NOP						; random experimenting with trying to prevent timing issue
+			NOP
+			NOP
+			NOP
+			NOP
+			
+			; Enable the DMA engine and set it up for a (1D) copy operation:
+			LDA #DMA_CTRL_ENABLE
+			STA DMA_CTRL
+
+			NOP						; random experimenting with trying to prevent timing issue
+			NOP
+			NOP
+			NOP
+			NOP
+			
+			;Source address (3 byte):
+			LDA _zp_from_addr
+			STA DMA_SRC_ADDR
+			LDA _zp_from_addr+1
+			STA DMA_SRC_ADDR+1
+			LDA _zp_from_addr+2
+			AND #$07
+			STA DMA_SRC_ADDR+2
+
+			;Destination address (3 byte):
+			LDA _zp_to_addr
+			STA DMA_DST_ADDR
+			LDA _zp_to_addr+1
+			STA DMA_DST_ADDR+1
+			LDA _zp_to_addr+2
+			AND #$07
+			STA DMA_DST_ADDR+2
+
+			; Num bytes to copy
+			LDA _zp_copy_len
+			STA DMA_COUNT
+			LDA _zp_copy_len+1
+			STA DMA_COUNT+1
+			LDA _zp_copy_len+2
+			STA DMA_COUNT+2
+
+			; flip the START flag to trigger the DMA operation
+			LDA DMA_CTRL
+			ORA #DMA_CTRL_START
+			STA DMA_CTRL
+			; wait for it to finish
+
+wait_dma:	LDA DMA_STATUS
+			BMI wait_dma            ; Wait until DMA is not busy 
+			
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+
+			STZ DMA_CTRL			; Turn off the DMA engine
+			
+			NOP
+			NOP
+			NOP
+			NOP
+			NOP
+			
+			CLI						; re-enable interrupts
+			
+			RTS
+.endproc
+
+
+; ---------------------------------------------------------------
+; void __fastcall__ Memory_FillWithDMA(void)
+; ---------------------------------------------------------------
+;// call to a routine in memory.asm that fills the specified number of bytes to the dst
+;// set zp_to_addr, zp_copy_len to num bytes to fill, and zp_other_byte to the fill value before calling.
+;// this version uses the F256's DMA capabilities to fill, so addresses can be 24 bit (system memory, not CPU memory)
+;// in other words, no need to page either dst into CPU space
+
+
+;.segment	"CODE"
 ;
-;.proc	_Memory_CopyWithDMA: near
+;.proc	_Memory_FillWithDMA: near
 ;
-;.segment	"OVERLAY_NOTICE_BOARD"
+;.segment	"CODE"
 ;
-;			; Enable the DMA engine and set it up for a (1D) copy operation:
-;			LDA #DMA_CTRL_ENABLE
+;			SEI					; disable interrupts
+;
+;LINE_NO = 261*2  ; 240+21
+;        lda #<LINE_NO
+;        ldx #>LINE_NO
+;wait1:
+;        cpx $D01B
+;        beq wait1
+;wait2:
+;        cmp $D01A
+;        beq wait2
+;
+;wait3:
+;        cpx $D01B
+;        bne wait3
+;wait4:
+;        cmp $D01A
+;        bne wait4
+;
+;			STZ DMA_CTRL			; Turn off the DMA engine
+;			
+;			; Enable the DMA engine and set it up for a FILL operation:
+;			LDA #DMA_CTRL_FILL | DMA_CTRL_ENABLE
 ;			STA DMA_CTRL
 ;
-;			;Source address (3 byte):
-;			LDA #_zp_from_addr
-;			STA DMA_SRC_ADDR
-;			LDA #_zp_from_addr+1
-;			STA DMA_SRC_ADDR+1
-;			LDA #_zp_from_addr+2
-;			AND #$03
-;			STA DMA_SRC_ADDR+2
-;
+;			; the fill value
+;            lda _zp_other_byte
+;            sta DMA_FILL_VAL
+;            
 ;			;Destination address (3 byte):
-;			LDA #_zp_to_addr
+;			LDA _zp_to_addr
 ;			STA DMA_DST_ADDR
-;			LDA #_zp_to_addr+2
+;			LDA _zp_to_addr+1
 ;			STA DMA_DST_ADDR+1
-;			LDA #_zp_to_addr+3
-;			AND #$03
+;			LDA _zp_to_addr+2
+;			AND #$07
 ;			STA DMA_DST_ADDR+2
 ;
-;			; Num bytes to copy
-;			LDA #_zp_copy_len
+;			; Num bytes to fill
+;			LDA _zp_copy_len
 ;			STA DMA_COUNT
-;			LDA #_zp_copy_len+1
+;			LDA _zp_copy_len+1
 ;			STA DMA_COUNT+1
-;			LDA #_zp_copy_len+2
+;			LDA _zp_copy_len+2
 ;			STA DMA_COUNT+2
 ;
-;			; flip the START flag to trigger the DMA operation and wait for it to complete:
+;			; flip the START flag to trigger the DMA operation
 ;			LDA DMA_CTRL
 ;			ORA #DMA_CTRL_START
 ;			STA DMA_CTRL
-;wait_dma:	LDA DMA_STATUS
-;			AND #DMA_STAT_BUSY
-;			CMP #DMA_STAT_BUSY		; Wait until DMA is not busy
-;			BEQ wait_dma
-;			STZ DMA_CTRL			; Turn off the DMA engine
+;			; wait for it to finish
 ;
+;wait_dma:	LDA DMA_STATUS
+;			BMI wait_dma            ; Wait until DMA is not busy 
+;			
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			
+;			NOP
+;			NOP
+;
+;			NOP
+;			NOP
+;			
+;			CLI						; re-enable interrupts
+;			
 ;			RTS
 ;.endproc
-
 
 
 

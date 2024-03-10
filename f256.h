@@ -109,6 +109,12 @@
 #define MACHINE_FPGA_NUM_LOW			0xd6ae		// CHN0 chip number in BCD (low)
 #define MACHINE_FPGA_NUM_HI				0xd6af		// CHN1 chip number in BCD (high)
 
+#define DMA_CTRL						0xdf00		// VICKY's DMA control register
+#define DMA_STATUS						0xdf01		// DMA status register (Read Only)
+#define DMA_SRC_ADDR					0xdf04		// Source address (system bus - 3 byte)
+#define DMA_DST_ADDR					0xdf08		// Destination address (system bus - 3 byte)
+#define DMA_COUNT						0xdf0c		// Number of bytes to fill or copy - must be EVEN
+
 #define TEXT_FORE_LUT					0xd800		// FG_CHAR_LUT_PTR	Text Foreground Look-Up Table
 #define TEXT_BACK_LUT					0xd840		// BG_CHAR_LUT_PTR	Text Background Look-Up Table
 

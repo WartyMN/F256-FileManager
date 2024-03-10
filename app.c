@@ -647,6 +647,88 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 }
 
 
+// copy 256b chunks of data from 6502 space to a fixed starting address in EM, without bank switching
+// chunk_num is used to calculate distance from the base EM address
+void App_CopyDataToEM(uint8_t* cpu_source_addr, uint8_t chunk_num)
+{
+	uint32_t	sys_dest_addr;	// physical memory address (20 bit)
+
+	// LOGIC:
+	//   DMA will be used to copy directly from extended memory: no bank switching takes place
+	//   sys address is physical machine 19-bit address.
+	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on chunk_num passed
+	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
+	//   cpu address is $0000-$FFFF range that CPU can access
+	
+	
+	// add the offset to the base address for EM data get to the right place for this chunk's copy
+	sys_dest_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
+	
+	//sprintf(global_string_buff1, "DMA copy chunk_num=%u, sys_dest_addr=%lu", chunk_num, sys_dest_addr);
+	//Buffer_NewMessage(global_string_buff1);
+	
+	// set up for both a FILL operation to set whole page to 0s, and a copy operaiton
+	//  FILL: we don't know if file will contain terminated values, and we don't know exact
+	//    byte length of the file. Operations that depend on processing the data in memory may require a 0 to help them know where data ends. 
+	*(uint16_t*)ZP_TO_ADDR = sys_dest_addr & 0xFFFF;
+	*(uint8_t*)(ZP_TO_ADDR + 2) = ((uint32_t)EM_STORAGE_START_PHYS_ADDR >> 16) & 0xFF;
+
+	*(char**)ZP_FROM_ADDR = (char*)cpu_source_addr;
+	*(uint8_t*)(ZP_FROM_ADDR + 2) = 0;	// this buffer is in local / CPU memory, so: 0x00 0500 (etc)
+
+	//*(uint8_t*)(ZP_OTHER_PARAM) = 0;	// the fill value.
+
+	*(char**)ZP_COPY_LEN = (char*)STORAGE_FILE_BUFFER_1_LEN;	// same length used for copy and fill = 256b
+	*(uint8_t*)(ZP_COPY_LEN + 2) = 0;
+
+	//sprintf(global_string_buff1, "ZP_TO_ADDR=%02x,%02x,%02x; ZP_FROM_ADDR=%02x,%02x,%02x; ZP_COPY_LEN=%02x,%02x,%02x; ", *(uint8_t*)(ZP_TO_ADDR+0), *(uint8_t*)(ZP_TO_ADDR+1), *(uint8_t*)(ZP_TO_ADDR+2), *(uint8_t*)(ZP_FROM_ADDR+0), *(uint8_t*)(ZP_FROM_ADDR+1), *(uint8_t*)(ZP_FROM_ADDR+2), *(uint8_t*)(ZP_COPY_LEN+0), *(uint8_t*)(ZP_COPY_LEN+1), *(uint8_t*)(ZP_COPY_LEN+2));
+	//Buffer_NewMessage(global_string_buff1);
+
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);	
+ 	Memory_CopyWithDMA();	
+	Sys_RestoreIOPage();
+}
+
+
+// copy 256b chunks of data to 6502 space from a fixed starting address in EM, without bank switching
+// chunk_num is used to calculate distance from the base EM address
+void App_CopyDataFromEM(uint8_t* cpu_dest_addr, uint8_t chunk_num)
+{
+	uint32_t	sys_source_addr;	// physical memory address (20 bit)
+
+	// LOGIC:
+	//   DMA will be used to copy directly from extended memory: no bank switching takes place
+	//   sys address is physical machine 19-bit address.
+	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on chunk_num passed
+	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
+	//   cpu address is $0000-$FFFF range that CPU can access
+	
+	
+	// add the offset to the base address for EM data get to the right place for this chunk's copy
+	sys_source_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
+	
+	//sprintf(global_string_buff1, "DMA copy chunk_num=%u, sys_dest_addr=%lu", chunk_num, sys_dest_addr);
+	//Buffer_NewMessage(global_string_buff1);
+	
+	// set up for copy
+	*(uint16_t*)ZP_FROM_ADDR = sys_source_addr & 0xFFFF;
+	*(uint8_t*)(ZP_FROM_ADDR + 2) = ((uint32_t)EM_STORAGE_START_PHYS_ADDR >> 16) & 0xFF;
+
+	*(char**)ZP_TO_ADDR = (char*)cpu_dest_addr;
+	*(uint8_t*)(ZP_TO_ADDR + 2) = 0;	// this buffer is in local / CPU memory, so: 0x00 0500 (etc)
+
+	*(char**)ZP_COPY_LEN = (char*)STORAGE_FILE_BUFFER_1_LEN;	
+	*(uint8_t*)(ZP_COPY_LEN + 2) = 0;
+
+	//sprintf(global_string_buff1, "ZP_TO_ADDR=%02x,%02x,%02x; ZP_FROM_ADDR=%02x,%02x,%02x; ZP_COPY_LEN=%02x,%02x,%02x; ", *(uint8_t*)(ZP_TO_ADDR+0), *(uint8_t*)(ZP_TO_ADDR+1), *(uint8_t*)(ZP_TO_ADDR+2), *(uint8_t*)(ZP_FROM_ADDR+0), *(uint8_t*)(ZP_FROM_ADDR+1), *(uint8_t*)(ZP_FROM_ADDR+2), *(uint8_t*)(ZP_COPY_LEN+0), *(uint8_t*)(ZP_COPY_LEN+1), *(uint8_t*)(ZP_COPY_LEN+2));
+	//Buffer_NewMessage(global_string_buff1);
+
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);	
+ 	Memory_CopyWithDMA();	
+	Sys_RestoreIOPage();
+}
+
+
 // Brings the requested overlay into memory
 void App_LoadOverlay(uint8_t the_overlay_id)
 {

@@ -617,6 +617,87 @@ error:
 }
 
 
+// Load the selected file into EM, starting at $28000.
+// Returns false on any error
+bool File_LoadFileToEM(char* the_file_path)
+{
+	// LOGIC
+	//   does not care about file type: any time of file will allowed
+	//   loads all data into $28000 using DMA calls. 
+	//   does not display anything
+	//   return false on any error
+	
+	FILE*		the_file_handler;
+	bool		keep_going = true;
+	uint8_t		chunk_num = 0;
+	int16_t		s_bytes_read_from_disk;
+	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
+
+	if (the_file_path == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		return false;
+	}
+
+	the_file_handler = fopen((char*)the_file_path, "r");
+	
+	if (the_file_handler == NULL)
+	{
+		//sprintf(global_string_buff1, "file '%s' could not be opened for text display", the_file_path);
+		//Buffer_NewMessage(global_string_buff1);
+		LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_file_path));
+		goto error;
+	}
+	
+
+	// loop until file is all read
+	do
+	{
+		// clear buffer so that on whatever the last read is, when data is smaller than buffer, it gets zero-terminated
+		memset(the_buffer,0,STORAGE_FILE_BUFFER_1_LEN);
+		
+		s_bytes_read_from_disk = fread(the_buffer, sizeof(char), STORAGE_FILE_BUFFER_1_LEN, the_file_handler);
+
+		if ( s_bytes_read_from_disk < 0)
+		{
+			//Buffer_NewMessage("s_bytes_read_from_disk < 0");
+			LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_file_path, s_bytes_read_from_disk));
+			goto error;
+		}
+
+		if ( s_bytes_read_from_disk == 0)
+		{
+			//Buffer_NewMessage("s_bytes_read_from_disk == 0 (end of file)");
+			LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_file_path));
+			keep_going = false;
+		}
+	
+		if ( s_bytes_read_from_disk < STORAGE_FILE_BUFFER_1_LEN )
+		{
+			// we hit end of file
+			//Buffer_NewMessage("s_bytes_read_from_disk was less than full row");
+			//LOG_ERR(("%s %d: reading file '%s' expected %u bytes, got %i bytes", __func__ , __LINE__, the_file->file_name_, num_bytes_to_read, s_bytes_read_from_disk));
+			
+			// add a final 0 to buffer, to help prevent problems with future consumers of the EM data
+			the_buffer[s_bytes_read_from_disk] = 0;
+			
+			keep_going = false;
+		}
+
+		App_CopyDataToEM((uint8_t*)STORAGE_FILE_BUFFER_1, chunk_num++);
+		
+	} while (keep_going == true);
+
+	fclose(the_file_handler);	
+	
+	return true;
+	
+error:
+	if (the_file_handler) fclose(the_file_handler);
+	return false;
+}
+
+
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
 bool File_GetTextContents(char* the_file_path)
 {

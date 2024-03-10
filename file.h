@@ -126,10 +126,13 @@ bool File_IsFolder(WB2KFileObject* the_file);
 // allocates and returns a copy of the file size as human readable string (for use with list mode headers or with info panel, etc.)
 char* File_GetFileSizeStringCopy(WB2KFileObject* the_file);
 
-
 // Populates the primary font data area in VICKY with bytes read from disk
 // Returns false on any error
 bool File_ReadFontData(char* the_file_path);
+
+// Load the selected file into EM, starting at $28000.
+// Returns false on any error
+bool File_LoadFileToEM(char* the_file_path);
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
 bool File_GetTextContents(char* the_file_path);
