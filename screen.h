@@ -37,7 +37,7 @@
 /*****************************************************************************/
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					17
+#define NUM_BUTTONS					19
 
 #define BUTTON_ID_COPY				0
 #define BUTTON_ID_DELETE			1
@@ -58,7 +58,9 @@
 // app menu buttons
 #define BUTTON_ID_SET_CLOCK			14
 #define BUTTON_ID_ABOUT				15
-#define BUTTON_ID_QUIT				16
+#define BUTTON_ID_EXIT_TO_BASIC		16
+#define BUTTON_ID_EXIT_TO_DOS		17
+#define BUTTON_ID_QUIT				18
 
 #define FIRST_ACTIVATING_BUTTON		BUTTON_ID_COPY
 #define LAST_ACTIVATING_BUTTON		BUTTON_ID_LOAD

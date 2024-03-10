@@ -24,6 +24,10 @@ bool Kernal_RunExe(char* the_path);
 // returns error on error, and never returns on success (because SuperBASIC took over)
 bool Kernal_RunBASIC(void);
 
+// calls DOS 
+// returns error on error, and never returns on success (because DOS took over)
+bool Kernal_RunDOS(void);
+
 // calls modojr and tells it to load the specified .mod file
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunMod(char* the_path);

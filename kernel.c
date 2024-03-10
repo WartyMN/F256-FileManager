@@ -745,6 +745,35 @@ bool Kernal_RunBASIC(void)
 }
 
 
+// calls DOS 
+// returns error on error, and never returns on success (because DOS took over)
+bool Kernal_RunDOS(void)
+{
+    char			stream;
+    static char*	named_prog = "dos";
+
+	// LOGIC:
+	//   SuperBASIC is not argument aware as of 2024/02/17
+	//   instead of putting the file path into $200 as we would for pexec,
+	//   we have to load the contents of the BASIC file into EM at $28000
+	//   load SuperBASIC, and have user type "xgo". This makes SuperBASIC get the listing from $28000
+	//   bring it into it's memory range, and run it. 
+	//   before this routine is called, we need to have loaded the file and warned user about XGO
+
+	args.common.buf = named_prog;
+	args.common.buflen = 3;
+
+	stream = CALL(RunNamed);
+    
+    if (error) 
+    {
+        return false;
+    }
+    
+    return true; // just so cc65 is happy; but will not be hit in event of success as SuperBASIC will already be running.
+}
+
+
 // calls modojr and tells it to load the specified .mod file
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunMod(char* the_path)

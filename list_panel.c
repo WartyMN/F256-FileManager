@@ -809,8 +809,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		
 		if (success)
 		{
-			sprintf(global_string_buff1, "The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.");
-			Buffer_NewMessage(global_string_buff1);
+			Buffer_NewMessage(General_GetString(ID_STR_MSG_BASIC_LOAD_INSTRUCTIONS));
 			getchar();
 						
 			success = Kernal_RunBASIC();
