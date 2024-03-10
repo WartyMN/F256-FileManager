@@ -135,7 +135,7 @@ bool File_ReadFontData(char* the_file_path);
 bool File_LoadFileToEM(char* the_file_path);
 
 // populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-bool File_GetTextContents(char* the_file_path);
+//bool File_GetTextContents(char* the_file_path);
 
 // populate a buffer with a hex dump of the file, reading the specified number of bytes into the buffer. Returns false on any error
 bool File_GetHexContents(char* the_file_path);
