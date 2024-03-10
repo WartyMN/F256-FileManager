@@ -30,6 +30,9 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
+#define PARAM_COPY_TO_EM			true	// App_EMDataCopy() parameter
+#define PARAM_COPY_FROM_EM			false	// App_EMDataCopy() parameter
+
 // hide __fastcall_ from everything but CC65 (to squash some warnings in LSP/BBEdit)
 #ifndef __CC65__
 	#define __fastcall__ 
@@ -41,7 +44,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	18
+#define UPDATE_VERSION	19
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -191,6 +194,8 @@
 
 #define ACTION_SET_TIME				'C' // c for set CLOCK
 #define ACTION_ABOUT				'a' 
+#define ACTION_EXIT_TO_BASIC		'b'
+#define ACTION_EXIT_TO_DOS			's'
 #define ACTION_QUIT					'q'
 
 #define ACTION_HELP					'?' // numpad key
@@ -326,13 +331,10 @@ void App_HideProgressBar(void);
 // draws the 'bar' part of the progress bar, according to a % complete passed (0-100 integer)
 void App_UpdateProgressBar(uint8_t progress_bar_total);
 
-// copy 256b chunks of data from 6502 space to a fixed starting address in EM, without bank switching
+// copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
 // chunk_num is used to calculate distance from the base EM address
-void App_CopyDataToEM(uint8_t* cpu_source_addr, uint8_t chunk_num);
-
-// copy 256b chunks of data to 6502 space from a fixed starting address in EM, without bank switching
-// chunk_num is used to calculate distance from the base EM address
-void App_CopyDataFromEM(uint8_t* cpu_dest_addr, uint8_t chunk_num);
+// set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
+void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
 
 // display error message, wait for user to confirm, and exit
 void App_Exit(uint8_t the_error_number);

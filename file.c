@@ -684,7 +684,7 @@ bool File_LoadFileToEM(char* the_file_path)
 			keep_going = false;
 		}
 
-		App_CopyDataToEM((uint8_t*)STORAGE_FILE_BUFFER_1, chunk_num++);
+		App_EMDataCopy((uint8_t*)STORAGE_FILE_BUFFER_1, chunk_num++, PARAM_COPY_TO_EM);
 		
 	} while (keep_going == true);
 

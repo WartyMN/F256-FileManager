@@ -20,7 +20,7 @@
 	.export _Memory_GetMappedBankNum
 ;	.export _Memory_Copy
 	.export _Memory_CopyWithDMA
-	.export _Memory_FillWithDMA
+;	.export _Memory_FillWithDMA
 	.export _Memory_DebugOut
 
 ; ZP_LK exports:
