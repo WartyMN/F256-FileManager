@@ -41,7 +41,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	17
+#define UPDATE_VERSION	18
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -242,7 +242,7 @@
 
 #define OVERLAY_SCREEN			0
 #define OVERLAY_FOLDER			1
-#define OVERLAY_CREATE_MAP		2
+#define OVERLAY_EM				2
 #define OVERLAY_CREATE_LEVEL	3
 #define OVERLAY_COMBAT			4
 #define OVERLAY_INVENTORY		5
@@ -325,6 +325,14 @@ void App_HideProgressBar(void);
 
 // draws the 'bar' part of the progress bar, according to a % complete passed (0-100 integer)
 void App_UpdateProgressBar(uint8_t progress_bar_total);
+
+// copy 256b chunks of data from 6502 space to a fixed starting address in EM, without bank switching
+// chunk_num is used to calculate distance from the base EM address
+void App_CopyDataToEM(uint8_t* cpu_source_addr, uint8_t chunk_num);
+
+// copy 256b chunks of data to 6502 space from a fixed starting address in EM, without bank switching
+// chunk_num is used to calculate distance from the base EM address
+void App_CopyDataFromEM(uint8_t* cpu_dest_addr, uint8_t chunk_num);
 
 // display error message, wait for user to confirm, and exit
 void App_Exit(uint8_t the_error_number);

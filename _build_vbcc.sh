@@ -59,6 +59,7 @@ cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_D
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T list_panel.c -o $BUILD_DIR/list_panel.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T list.c -o $BUILD_DIR/list.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_1 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T screen.c -o $BUILD_DIR/screen.s
+cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_3 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T overlay_em.c -o $BUILD_DIR/overlay_em.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T sys.c -o $BUILD_DIR/sys.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $STACK_CHECK -T text.c -o $BUILD_DIR/text.s
 
@@ -77,6 +78,7 @@ ca65 -t $CC65TGT folder.s
 ca65 -t $CC65TGT general.s
 ca65 -t $CC65TGT list_panel.s
 ca65 -t $CC65TGT list.s
+ca65 -t $CC65TGT overlay_em.s
 ca65 -t $CC65TGT screen.s
 ca65 -t $CC65TGT sys.s
 ca65 -t $CC65TGT text.s
@@ -92,7 +94,7 @@ ca65 -t $CC65TGT ../memory.asm -o memory.o
 echo "\n**************************\nLD65 link start...\n**************************\n"
 
 # link files into an executable
-ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o comm_buffer.o file.o folder.o general.o list.o list_panel.o memory.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
+ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o comm_buffer.o file.o folder.o general.o list.o list_panel.o memory.o overlay_em.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
 # $PROJECT/cc65/lib/common.lib
 
 #noTE: 2024-02-12: removed name.o as it was incompatible with the lichking-style memory map I want to use to get more memory
@@ -106,13 +108,14 @@ echo "\n**************************\nCC65 tasks complete\n***********************
 cp fmanager.rom ../release/
 cp fmanager.rom.1 ../release/
 cp fmanager.rom.2 ../release/
+cp fmanager.rom.3 ../release/
 cp ../strings/strings.bin ../release/
 
 
 #build pgZ
  cd ../release
- fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "strings.bin")
- addr=("990700" "000001" "002001" "004002")
+ fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "strings.bin")
+ addr=("990700" "000001" "002001" "004001" "004002")
 
  for ((i = 1; i <= $#fname; i++)); do
    v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
@@ -121,7 +124,7 @@ cp ../strings/strings.bin ../release/
  echo -n 'Z' >> pgZ_start.hdr
  echo -n '\x99\x07\x00\x00\x00\x00' >> pgZ_end.hdr
 
- cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
+ cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 fmanager.rom.3.hdr fmanager.rom.3 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
 
  rm *.hdr
 
