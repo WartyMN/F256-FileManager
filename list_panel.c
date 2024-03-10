@@ -27,6 +27,7 @@
 #include "kernel.h" // most kernel calls are covered by stdio.h etc, but mkfs was not, so added this header file
 #include "list.h"
 #include "memory.h"
+#include "overlay_em.h"
 #include "screen.h"
 #include "strings.h"
 #include "sys.h"
@@ -801,10 +802,20 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 	{
 		success = Kernal_RunMod(global_temp_path_1);
 	}
-// 	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
-// 	{
-// 		success = Kernal_RunBASIC(global_temp_path_1);
-// 	}
+	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
+	{
+		// until SuperBASIC will accept a file path, only thing we can do is load file into $28000, tell user to type "XGO" once basic loads, then switch to basic.
+		success = File_LoadFileToEM(global_temp_path_1);
+		
+		if (success)
+		{
+			sprintf(global_string_buff1, "The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.");
+			Buffer_NewMessage(global_string_buff1);
+			getchar();
+						
+			success = Kernal_RunBASIC();
+		}
+	}
 	else
 	{
 		return false;
@@ -960,7 +971,14 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	success = File_GetTextContents(global_temp_path_1);
+	
+	success = File_LoadFileToEM(global_temp_path_1);
+	
+	if (success)
+	{
+		App_LoadOverlay(OVERLAY_EM);
+		EM_DisplayAsText(the_file->size_/256);
+	}
 	
 	return success;
 }

@@ -20,9 +20,9 @@ bool Kernal_MkDir(char* the_folder_path, uint8_t drive_num);
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunExe(char* the_path);
 
-// // calls SuperBASIC and tells it to run the specified basic file
-// // returns error on error, and never returns on success (because SuperBASIC took over)
-// bool Kernal_RunBASIC(char* the_path);
+// calls SuperBASIC 
+// returns error on error, and never returns on success (because SuperBASIC took over)
+bool Kernal_RunBASIC(void);
 
 // calls modojr and tells it to load the specified .mod file
 // returns error on error, and never returns on success (because pexec took over)
