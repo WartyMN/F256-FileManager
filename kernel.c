@@ -788,6 +788,8 @@ bool Kernal_RunMod(char* the_path)
 	args.common.buf = (char*)0x0200; //"-";
 	args.common.buflen = 2;
 
+	*(uint8_t*)(0x0200) = '-';
+	*(uint8_t*)(0x0201) = 0;
 	General_Strlcpy((char*)0x0202, "modo.pgz", 9);
 	
     // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
@@ -841,6 +843,8 @@ bool Kernal_RunExe(char* the_path)
 	
 	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
 
+	*(uint8_t*)(0x0200) = '-';
+	*(uint8_t*)(0x0201) = 0;
 	General_Strlcpy((char*)0x0202, the_path, path_len);
 	
 	args.common.ext = (char*)0x0280;
