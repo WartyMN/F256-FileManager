@@ -800,10 +800,15 @@ bool Kernal_RunMod(char* the_path)
 	
 	args.common.ext = (char*)0x0280;
 	args.common.extlen = 8;
-	
-	*(char*)0x0284 = 0x0b;
-	*(char*)0x0285 = 0x02;
-	*(char*)0x0286 = 0x00;
+
+	// leave pointers for pexec so it knows where to find args
+	*(uint8_t*)0x0280 = 0x00;
+	*(uint8_t*)0x0281 = 0x02;	// first arg is at $0200
+	*(uint8_t*)0x0282 = 0x02;
+	*(uint8_t*)0x0283 = 0x02;	// second arg is at $0202
+	*(uint8_t*)0x0284 = 0x0b;
+	*(uint8_t*)0x0285 = 0x02;	// third arg (path to song file) is at $020b
+	*(uint8_t*)0x0286 = 0x00;	// terminator
 	
 	stream = CALL(RunNamed);
     
@@ -843,9 +848,17 @@ bool Kernal_RunExe(char* the_path)
 	
 	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
 
+	// set first arg: the named app (pexec in this case)
 	*(uint8_t*)(0x0200) = '-';
 	*(uint8_t*)(0x0201) = 0;
+	// set second arg: the path
 	General_Strlcpy((char*)0x0202, the_path, path_len);
+	// leave pointers for pexec so it knows where to find args
+	*(uint8_t*)0x0280 = 0x00;
+	*(uint8_t*)0x0281 = 0x02;	// first arg is at $0200
+	*(uint8_t*)0x0282 = 0x02;
+	*(uint8_t*)0x0283 = 0x02;	// second arg is at $0202
+	*(uint8_t*)0x0284 = 0x00;	// terminator
 	
 	args.common.ext = (char*)0x0280;
 	args.common.extlen = 4;

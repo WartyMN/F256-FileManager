@@ -24,6 +24,7 @@
 #include "file.h"
 #include "general.h"
 #include "kernel.h"
+#include "keyboard.h"
 #include "memory.h"
 #include "sys.h"
 #include "text.h"
@@ -427,14 +428,14 @@ void EM_DisplayAsText(uint8_t num_chunks)
 // 					sprintf(global_string_buff1, "displayed=%u, not_displayed=%i, line_buffer='%s'", bytes_displayed, bytes_not_displayed, line_buffer);
 // 					Buffer_NewMessage(global_string_buff1);
 
-			//user_input = getchar();
+			//user_input = Keyboard_GetChar();
 			
 			// check if we need to ask user to go on to a new screen
 			++y;
 			
 			if (y == MAX_TEXT_VIEW_ROWS_PER_PAGE)
 			{
-				user_input = getchar();
+				user_input = Keyboard_GetChar();
 				
 				if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 				{
@@ -451,7 +452,7 @@ void EM_DisplayAsText(uint8_t num_chunks)
 			{
 				// no, there are enough unprocessed bytes in the buffer to make up at least one full line
 				//Buffer_NewMessage("no need to copy more yet");
-				//getchar();
+				//Keyboard_GetChar();
 			}
 			else
 			{
@@ -483,7 +484,7 @@ void EM_DisplayAsText(uint8_t num_chunks)
 
 					memset(copy_buffer, 0, STORAGE_FILE_BUFFER_1_LEN);
 
-	 				//getchar();
+	 				//Keyboard_GetChar();
 					
 					unprocessed_bytes = 0;
 					
@@ -506,9 +507,9 @@ void EM_DisplayAsText(uint8_t num_chunks)
 	// if user hasn't already said they are done, give them a chance to look at the last displayed page
 	if (keep_going == true)
 	{
-		user_input = getchar();
+		user_input = Keyboard_GetChar();
 	}
 	
-	getchar();
+	Keyboard_GetChar();
 }
 

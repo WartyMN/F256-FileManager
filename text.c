@@ -19,6 +19,7 @@
 #include "app.h"
 #include "text.h"
 #include "general.h"
+#include "keyboard.h"
 #include "sys.h"
 
 // C includes
@@ -256,6 +257,32 @@ bool Text_CopyMemBoxLinearBuffer(uint8_t* the_buffer, uint8_t x1, uint8_t y1, ui
 
 	// LOGIC: 
 	//   On F256jr, the write len and write locs are same for char and attr memory, difference is IO page 2 or 3
+
+	// adjust the x, y, x2, y2, so that we are never trying to copy out of the physical screen box
+	if (x2 < x1)
+	{
+		x2 = x1;
+	}
+	if (y2 < y1)
+	{
+		y2 = y1;
+	}
+	if (x1 > SCREEN_LAST_COL)
+	{
+		return false;
+	}
+	if (x2 > SCREEN_LAST_COL)
+	{
+		x2 = SCREEN_LAST_COL;
+	}
+	if (y1 > SCREEN_LAST_ROW)
+	{
+		return false;
+	}
+	if (y2 > SCREEN_LAST_ROW)
+	{
+		y2 = SCREEN_LAST_ROW;
+	}
 
 	if (for_attr)
 	{
@@ -1137,7 +1164,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 	
 	do
 	{
-		player_input = getchar();
+		player_input = Keyboard_GetChar();
 		
 		if (player_input == CH_ESC || player_input == CH_RUNSTOP)
 		{
@@ -1321,7 +1348,7 @@ bool Text_GetStringFromUser(char* the_buffer, int8_t the_max_length, uint8_t sta
 	Text_SetCharAtXY(x, start_y, the_cursor_char_code);
 	//gotoxy(x, SPLASH_GET_NAME_INPUT_Y);
 	
-	while ( (the_char = getchar() ) != CH_ENTER)
+	while ( (the_char = Keyboard_GetChar() ) != CH_ENTER)
 	{
 		//DEBUG_OUT(("%s %d: input=%x ('%c')", __func__, __LINE__, the_char, the_char));
 		

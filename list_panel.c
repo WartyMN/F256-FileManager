@@ -25,6 +25,7 @@
 #include "folder.h"
 #include "general.h"
 #include "kernel.h" // most kernel calls are covered by stdio.h etc, but mkfs was not, so added this header file
+#include "keyboard.h"
 #include "list.h"
 #include "memory.h"
 #include "overlay_em.h"
@@ -810,7 +811,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		if (success)
 		{
 			Buffer_NewMessage(General_GetString(ID_STR_MSG_BASIC_LOAD_INSTRUCTIONS));
-			getchar();
+			Keyboard_GetChar();
 						
 			success = Kernal_RunBASIC();
 		}
@@ -1569,7 +1570,7 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 //     }
 // 
 //     if (doesclrscrafterexit ()) {
-//         getchar ();
+//         Keyboard_GetChar ();
 //     }
 // 
 //     free (devicedir);

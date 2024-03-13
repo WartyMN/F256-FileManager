@@ -67,6 +67,8 @@
 
 #define SCREEN_NUM_COLS			80	// physical screens are all 80 columns wide in f256jr
 #define SCREEN_NUM_ROWS			60
+#define SCREEN_LAST_COL			(SCREEN_NUM_COLS - 1)
+#define SCREEN_LAST_ROW			(SCREEN_NUM_ROWS - 1)
 #define SCREEN_TOTAL_BYTES		(SCREEN_NUM_COLS * SCREEN_NUM_ROWS)
 #define SCREEN_TEXT_MEMORY_LOC			0xC000	// start of text AND attribute memory for F256jr. text is is I/O page 2, attributes in I/O page 3. 
 

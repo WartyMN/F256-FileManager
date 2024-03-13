@@ -16,6 +16,7 @@
 #include "comm_buffer.h"
 #include "app.h"
 #include "general.h"
+#include "keyboard.h"
 #include "strings.h"
 #include "text.h"
 
@@ -84,7 +85,7 @@ void Buffer_ScrollUp(void);
 // 	
 // 	do
 // 	{
-// 		the_char = getchar();
+// 		the_char = Keyboard_GetChar();
 // 	}
 // 	while (the_char != 32);
 // 

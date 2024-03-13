@@ -21,6 +21,7 @@
 #include "file.h"
 #include "general.h"
 #include "kernel.h"
+#include "keyboard.h"
 #include "list_panel.h"
 #include "memory.h"
 #include "screen.h"
@@ -781,7 +782,7 @@ error:
 // 			++y;
 // 		} while (y < MAX_TEXT_VIEW_ROWS_PER_PAGE && keep_going == true);
 // 		
-// 		user_input = getchar();
+// 		user_input = Keyboard_GetChar();
 // 		
 // 		if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 // 		{
@@ -907,7 +908,7 @@ bool File_GetHexContents(char* the_file_path)
 		
 		} while (y < MAX_TEXT_VIEW_ROWS_PER_PAGE && keep_going == true);
 		
-		user_input = getchar();
+		user_input = Keyboard_GetChar();
 		
 		if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 		{

@@ -201,17 +201,8 @@ void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function
 // display information about f/manager, the machine, and the MicroKernel
 void Screen_ShowAboutInfo(void);
 
-// load strings into memory and set up string pointers
-void App_LoadStrings(void);
-
-// clear screen, set logo palette, display logo on screen, rotate colors a bit
-void Screen_ShowLogo(void);
-
 // read the real time clock and display it
 void Screen_DisplayTime(void);
-
-// enable the random number generator, and seed it
-void Startup_InitializeRandomNumGen(void);
 
 
 #endif /* SCREEN_H_ */

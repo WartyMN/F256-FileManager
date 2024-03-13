@@ -97,10 +97,6 @@ typedef struct System
 
 // **** System Initialization functions *****
 
-//! Initialize the system (primary entry point for all system initialization activity)
-//! Starts up the memory manager, creates the global system object, runs autoconfigure to check the system hardware, loads system and application fonts, allocates a bitmap for the screen.
-bool Sys_InitSystem(void);
-
 
 
 // **** Event-handling functions *****
@@ -109,23 +105,6 @@ bool Sys_InitSystem(void);
 
 
 // **** Screen mode/resolution/size functions *****
-
-//! Find out what kind of machine the software is running on, and determine # of screens available
-//! @param	the_system: valid pointer to system object
-//! @return	Returns false if the machine is known to be incompatible with this software. 
-bool Sys_AutoDetectMachine(void);
-
-//! Find out what kind of machine the software is running on, and configure the passed screen accordingly
-//! Configures screen settings, RAM addresses, etc. based on known info about machine types
-//! Configures screen width, height, total text rows and cols, and visible text rows and cols by checking hardware
-//! @param	the_system: valid pointer to system object
-//! @return	Returns false if the machine is known to be incompatible with this software. 
-bool Sys_AutoConfigure(void);
-
-//! Detect the current screen mode/resolution, and set # of columns, rows, H pixels, V pixels, accordingly
-//! @param	the_screen: valid pointer to the target screen to operate on
-//! @return	returns false on any error/invalid input.
-bool Sys_DetectScreenSize(void);
 
 // //! Change video mode to the one passed.
 // //! @param	the_screen: valid pointer to the target screen to operate on
@@ -145,13 +124,6 @@ bool Sys_DetectScreenSize(void);
 //! @param enable_it: If true, turns the hardware blinking cursor on. If false, hides the hardware cursor;
 //! @return	returns false on any error/invalid input.
 void Sys_EnableTextModeCursor(bool enable_it);
-
-//! Set the left/right and top/bottom borders
-//! This will reset the visible text columns as a side effect
-//! @param	border_width: width in pixels of the border on left and right side of the screen. Total border used with be the double of this.
-//! @param	border_height: height in pixels of the border on top and bottom of the screen. Total border used with be the double of this.
-//! @return	returns false on any error/invalid input.
-void Sys_SetBorderSize(uint8_t border_width, uint8_t border_height);
 
 
 

@@ -763,7 +763,7 @@ void General_DelayTicks(uint16_t ticks)
 // 	
 // 	the_char = Kernal_GetCharWithWait();
 // #else
-// 	the_char = getchar();
+// 	the_char = Keyboard_GetChar();
 // #endif
 // 
 // 	return the_char;

@@ -22,7 +22,9 @@
 #include "list_panel.h"
 #include "folder.h"
 #include "general.h"
+#include "keyboard.h"
 #include "memory.h"
+#include "overlay_startup.h"
 #include "text.h"
 #include "screen.h"
 #include "strings.h"
@@ -373,7 +375,7 @@ uint8_t App_MainLoop(void)
 			App_LoadOverlay(OVERLAY_SCREEN);
 			Screen_DrawFileMenuItems(file_menu_active);
 
-			user_input = getchar();
+			user_input = Keyboard_GetChar();
 	
 			Screen_DisplayTime();
 		
@@ -760,23 +762,25 @@ int main(void)
 {
 	kernel_init();
 
+	App_LoadOverlay(OVERLAY_STARTUP);
+	
 	if (Sys_InitSystem() == false)
 	{
 		App_Exit(0);
 	}
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
-
-	App_LoadOverlay(OVERLAY_SCREEN);
 	
 	// initialize the random number generator embedded in the Vicky
 	Startup_InitializeRandomNumGen();
 	
 	// set up pointers to string data that is in EM
-	App_LoadStrings();
+	Startup_LoadString();
 
 	// clear screen and draw logo
-	Screen_ShowLogo();
+	Startup_ShowLogo();
+
+	App_LoadOverlay(OVERLAY_SCREEN);
 	
 	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
 	Buffer_Initialize();
