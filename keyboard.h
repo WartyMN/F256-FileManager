@@ -81,6 +81,8 @@ char Keyboard_GetChar(void);
 // main event processor
 void Keyboard_ProcessEvents(void);
 
+// initiate the minute hand timer
+void Keyboard_InitiateMinuteHand(void);
 
 
 #endif /* KEYBOARD_H_ */

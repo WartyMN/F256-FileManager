@@ -73,7 +73,7 @@
 71	21	Unable to delete file
 72	26	Unable to delete directory
 73	40	We don't need no stinkin' error messages
-74	74	No connected devices were detected. f/manager has died of loneliness. Bye!
+74	75	No connected devices were detected. f/manager will probably die of boredom.
 75	16	The disk is full
 76	21	A disk error occurred
 77	33	No disk detected in disk drive %u

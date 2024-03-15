@@ -201,8 +201,5 @@ void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function
 // display information about f/manager, the machine, and the MicroKernel
 void Screen_ShowAboutInfo(void);
 
-// read the real time clock and display it
-void Screen_DisplayTime(void);
-
 
 #endif /* SCREEN_H_ */

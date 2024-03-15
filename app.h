@@ -44,7 +44,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	20
+#define UPDATE_VERSION	21
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -335,6 +335,9 @@ void App_UpdateProgressBar(uint8_t progress_bar_total);
 // chunk_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
 void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+
+// read the real time clock and display it
+void App_DisplayTime(void);
 
 // display error message, wait for user to confirm, and exit
 void App_Exit(uint8_t the_error_number);

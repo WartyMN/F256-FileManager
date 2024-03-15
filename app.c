@@ -255,11 +255,14 @@ void App_Initialize(void)
 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SHOW_DRIVE_COUNT), app_connected_drive_count);
 	Buffer_NewMessage(global_string_buff1);
 	
-	// if no drives connected, there's nothing for us to do. just quit. 
+	// if no drives connected, prior to beta 21, we just quit, but now we will continue
+	// as user could be using f/manager in the primary flash position, they'll need a 
+	// way to get to DOS and SuperBASIC
 	if (app_connected_drive_count < 1)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_NO_DRIVES_AVAILABLE));
-		App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
+		// App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
+		return;
 	}
 
 
@@ -377,8 +380,6 @@ uint8_t App_MainLoop(void)
 
 			user_input = Keyboard_GetChar();
 	
-			Screen_DisplayTime();
-		
 			// first switch: for file menu only, and skip if file menu is inactive
 			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
 			//   note: we also put the sort commands here because it doesn't make sense to sort if no files
@@ -514,7 +515,7 @@ uint8_t App_MainLoop(void)
 					{
 						// user entered a date/time string, now try to parse and save it.
 						success = Sys_UpdateRTC(global_string_buff2);
-						Screen_DisplayTime();
+						App_DisplayTime();
 					}
 					
 					break;
@@ -712,6 +713,50 @@ void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
 }
 
 
+// read the real time clock and display it
+void App_DisplayTime(void)
+{
+	// LOGIC: 
+	//   f256jr has a built in real time clock (RTC)
+	//   it works like this:
+	//     1) you enable it with bit 0 of RND_CTRL
+	//     2) you turn on seed mode by setting bit 1 of RND_CTRL to 1.
+	//     3) you populate RNDL and RNDH with a seed
+	//     4) you turn off see mode by unsetting bit 1 of RND_CTRL.
+	//     5) you get random numbers by reading RNDL and RNDH. every time you read them, it repopulates them. 
+	//     6) resulting 16 bit number you divide by 65336 (RAND_MAX_FOENIX) to get a number 0-1. 
+	//   I will use the real time clock to seed the number generator
+	
+	uint8_t		old_rtc_control;
+	
+	// need to have vicky registers available
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+	
+	// stop RTC from updating external registers. Required!
+	old_rtc_control = R8(RTC_CONTROL);
+	R8(RTC_CONTROL) = old_rtc_control | 0x08; // stop it from updating external registers
+	
+	// get year/month/day/hours/mins/second from RTC
+	// below is subtly wrong, and i dno't care. don't need the datetime in a struct anyway.
+	//global_datetime->year = R8(RTC_YEAR) & 0x0F + ((R8(RTC_YEAR) & 0xF0) >> 4) * 10;
+	//global_datetime->month = R8(RTC_MONTH) & 0x0F + ((R8(RTC_MONTH) & 0x20) >> 4) * 10;
+	//global_datetime->day = R8(RTC_DAY) & 0x0F + ((R8(RTC_DAY) & 0x30) >> 4) * 10;
+	//global_datetime->hour = R8(RTC_HOURS) & 0x0F + ((R8(RTC_HOURS) & 0x30) >> 4) * 10;
+	//global_datetime->min = R8(RTC_MINUTES) & 0x0F + ((R8(RTC_MINUTES) & 0x70) >> 4) * 10;
+	//global_datetime->sec = R8(RTC_SECONDS) & 0x0F + ((R8(RTC_SECONDS) & 0x70) >> 4) * 10;
+
+	sprintf(global_string_buff1, "20%02X-%02X-%02X %02X:%02X", R8(RTC_YEAR), R8(RTC_MONTH), R8(RTC_DAY), R8(RTC_HOURS), R8(RTC_MINUTES));
+	
+	// restore timer control to what it had been
+	R8(RTC_CONTROL) = old_rtc_control;
+
+	Sys_DisableIOBank();
+	
+	// draw at upper/right edge of screen, just under app title bar.
+	Text_DrawStringAtXY(64, 3, global_string_buff1, COLOR_BRIGHT_YELLOW, COLOR_BLACK);
+}
+
+
 // Brings the requested overlay into memory
 void App_LoadOverlay(uint8_t the_overlay_id)
 {
@@ -791,15 +836,18 @@ int main(void)
 
 	App_Initialize();
 	
-	Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
-
+	if (app_connected_drive_count > 0)
+	{
+		Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
+	}
+	
 	if (app_connected_drive_count > 1)
 	{
 		Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
 	}
 	
-	App_LoadOverlay(OVERLAY_SCREEN);
-	Screen_DisplayTime();
+	Keyboard_InitiateMinuteHand();
+	App_DisplayTime();
 	
 	App_MainLoop();
 	

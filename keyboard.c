@@ -39,6 +39,8 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
+#define MINUTE_TIMER_COOKIE		127		// hard-coded. just don't want it to start with 0, as that's what the keyboard cookie will start with
+
 #define KEYBOARD_QUEUE_SIZE		8
 
 #define VECTOR(member) (size_t) (&((struct call*) 0xff00)->member)
@@ -104,6 +106,9 @@ void Keyboard_ScheduleRepeatEvent(uint8_t next_frame_count);
 
 // add a character to the key buffer, if space is available
 void Keyboard_AddToQueue(uint8_t the_char);
+
+// schedule a repeat event for the minute clock
+void Keyboard_ScheduleMinuteHandRepeatEvent(void);
 
 
 /*****************************************************************************/
@@ -221,6 +226,12 @@ uint8_t Keyboard_ProcessKeyEvent(void)
 	{
 		// jmp     StopRepeat WHICH IS "inc     repeat.cookie -> rts"
 		keyboard_repeater.cookie++;
+
+		// prevent collision with the permanent minute hand cookie		
+		if (keyboard_repeater.cookie == MINUTE_TIMER_COOKIE)
+		{
+			keyboard_repeater.cookie++;
+		}
 	}
 
 	return this_char;
@@ -234,6 +245,12 @@ void Keyboard_StartTimerForKey(uint8_t the_key)
 	
 	keyboard_repeater.key = the_key;
 	keyboard_repeater.cookie++;			// set a new ID
+		
+	// prevent collision with the permanent minute hand cookie
+	if (keyboard_repeater.cookie == MINUTE_TIMER_COOKIE)
+	{
+		keyboard_repeater.cookie++;
+	}
 	
 	// Get the current frame counter
 	// including query makes the SetTimer call return the value of the current timer (in A)
@@ -259,9 +276,35 @@ void Keyboard_ScheduleRepeatEvent(uint8_t next_frame_count)
 }
 
 
+// schedule a repeat event for the minute clock
+void Keyboard_ScheduleMinuteHandRepeatEvent(void)
+{
+	args.timer.absolute = 60;	
+	args.timer.units = TIMER_SECONDS;
+	args.timer.cookie = MINUTE_TIMER_COOKIE;
+	
+	CALL(Clock.SetTimer);
+}
+
+
+// initiate the minute hand timer
+void Keyboard_InitiateMinuteHand(void)
+{
+	Keyboard_ScheduleMinuteHandRepeatEvent();
+}
+
+
 // returns 0 if it determined there was no repeat (yet). returns a key code if event resulted in a repeat.
 uint8_t Keyboard_HandleRepeatTimerEvent(void)
 {
+	// before checking for keyboard repeats, check if this is our minute-timer cookie
+	if (event.timer.cookie == MINUTE_TIMER_COOKIE)
+	{
+		App_DisplayTime();
+		Keyboard_ScheduleMinuteHandRepeatEvent();	// schedule the next one
+		return 0;
+	}
+
 	// ignore retired timers
 	if (event.timer.cookie != keyboard_repeater.cookie)
 	{
