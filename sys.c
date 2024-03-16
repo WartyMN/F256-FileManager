@@ -408,3 +408,19 @@ bool Sys_UpdateRTC(char* datetime_from_user)
 
 	return true;
 }
+
+
+// determine if f/manager started up from flash or from disk. 
+// returns true if started from flash, or false if from disk.
+bool Sys_StartedFromFlash(void)
+{
+	if ((R8(0x0200) != '-' && R8(0x0202) != 'f') && (R8(0x0200) != '/' && R8(0x0203) != 'f'))
+	{
+		// we started from disk if $200 has pexec '-' in it on f/manager startup. 
+		//  you can also start from DOS with "/- fm", and then / ends up in 200 slot.
+		// if from flash, $200 would be 'f', and $201 would be 'm', and $202 would be 0. 
+		return true;
+	}
+	
+	return false;
+}

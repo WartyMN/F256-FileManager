@@ -404,8 +404,13 @@ void Screen_ShowAboutInfo(void)
 	// show app name, version, and credit
 	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
 	Buffer_NewMessage(global_string_buff1);
-	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));	
-	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_FLASH_LOADER));
+	Buffer_NewMessage(General_GetString(ID_STR_ABOUT_COPYRIGHT));
+
+	// give credit for pexec flash loader, if we started from flash and not disk
+	if (Sys_StartedFromFlash() == true)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ABOUT_FLASH_LOADER));
+	}
 
 	// show machine information	
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);

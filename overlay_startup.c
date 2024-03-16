@@ -1055,7 +1055,7 @@ void Startup_ShowLogo(void)
 	
 	// determine if we started from flash or from disk
 	// if from flash, we want to show the machine logo before showing app (foenix) logo
-	if ((R8(0x0200) != '-' && R8(0x0202) != 'f') && (R8(0x0200) != '/' && R8(0x0203) != 'f'))
+	if (Sys_StartedFromFlash() == true)
 	{
 		// we started from disk if $200 has pexec '-' in it on f/manager startup. 
 		//  you can also start from DOS with "/- fm", and then / ends up in 200 slot.
