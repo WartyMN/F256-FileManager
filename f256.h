@@ -14,6 +14,7 @@
 /*                                Includes                                   */
 /*****************************************************************************/
 
+#include "api.h"
 #include <stdint.h>
 
 
@@ -82,7 +83,24 @@
 #define BITMAP_L0_VRAM_ADDR_M			0xd102		//!> bitmap VRAM address pointer)		
 #define BITMAP_L0_VRAM_ADDR_H			0xd103		//!> bitmap VRAM address pointer)		
 #define TILE_CTRL						0xd200		//!> tile control register		
+
+#define UART_BASE						0xd630		// starting point of serial-related registers
+#define UART_RBR						(UART_BASE + 0)
+#define UART_IER						(UART_BASE + 1)
+#define UART_IIR						(UART_BASE + 2)
+#define UART_LCR						(UART_BASE + 3)
+#define UART_MCR						(UART_BASE + 4)
+#define UART_LSR						(UART_BASE + 5)
+#define UART_MSR						(UART_BASE + 6)
+#define UART_SCR						(UART_BASE + 7)
+
+#define UART_THR						(UART_BASE + 0)	// write register when DLAB=0
+#define UART_FCR						(UART_BASE + 2)	// write register when DLAB=0
+#define UART_DLL						(UART_BASE + 0)	// read/write register when DLAB=1
+#define UART_DLM						(UART_BASE + 1)	// read/write register when DLAB=1
+
 #define VICKY_PS2_INTERFACE				0xd640
+
 #define RTC_SECONDS						0xd690		//  654: second digit, 3210: 1st digit
 #define RTC_MINUTES						0xd692		//  654: second digit, 3210: 1st digit
 #define RTC_HOURS						0xd694		//   54: second digit, 3210: 1st digit

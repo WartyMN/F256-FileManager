@@ -95,7 +95,7 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 	if ( (the_file = (WB2KFileObject*)calloc(1, sizeof(WB2KFileObject)) ) == NULL)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
-		LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
 		goto error;
 	}
 	//LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
@@ -201,7 +201,7 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 	
 	if (the_original_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return NULL;
 	}
 	
@@ -292,7 +292,7 @@ void File_Destroy(WB2KFileObject** the_file)
 
 	if (*the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_FILE_TO_DESTROY_WAS_NULL);	// crash early, crash often
 	}
 
@@ -346,7 +346,7 @@ void File_UpdatePos(WB2KFileObject* the_file, uint8_t x, int8_t display_row, uin
 {
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return;
 	}
 	
@@ -363,7 +363,7 @@ bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 	
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 	
@@ -434,7 +434,7 @@ bool File_IsSelected(WB2KFileObject* the_file)
 {
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -554,7 +554,7 @@ bool File_ReadFontData(char* the_file_path)
 
 	if (the_file_path == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -636,7 +636,7 @@ bool File_LoadFileToEM(char* the_file_path)
 
 	if (the_file_path == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -826,7 +826,7 @@ bool File_GetHexContents(char* the_file_path)
 
 	if (the_file_path == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -1096,7 +1096,7 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -1138,7 +1138,7 @@ bool File_MarkSelected(WB2KFileObject* the_file, int8_t y_offset)
 
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -1160,7 +1160,7 @@ bool File_MarkUnSelected(WB2KFileObject* the_file, int8_t y_offset)
 
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return false;
 	}
 
@@ -1194,7 +1194,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 	
 	if (the_file == NULL)
 	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		return;
 	}
 

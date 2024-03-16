@@ -119,7 +119,7 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 	{
 		//sprintf(global_string_buff1, "source file '%s' could not be opened", the_source_file_path);
 		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: file '%s' could not be opened for copying", __func__ , __LINE__, the_source_file_path));
+		//LOG_ERR(("%s %d: file '%s' could not be opened for reading", __func__ , __LINE__, the_source_file_path));
 		goto error;
 	}
 	else
@@ -161,7 +161,7 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 		
 		if (good_tgt_handle == false)
 		{
-			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+			//LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
 			goto error;
 		}
 
@@ -173,14 +173,14 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 			if ( bytes_read < 0)
 			{
 				//Buffer_NewMessage("bytes_read < 0");
-				LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_source_file_path, bytes_read));
+				//LOG_ERR(("%s %d: reading file '%s' resulted in error %i", __func__ , __LINE__, the_source_file_path, bytes_read));
 				goto error;
 			}
 	
 			if ( bytes_read == 0)
 			{
 				//Buffer_NewMessage("bytes_read == 0 (end of file)");
-				LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_source_file_path));
+				//LOG_ERR(("%s %d: reading file '%s' produced 0 bytes", __func__ , __LINE__, the_source_file_path));
 				keep_going = false;
 			}
 		
