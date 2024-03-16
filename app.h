@@ -30,8 +30,8 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
-#define PARAM_COPY_TO_EM			true	// App_EMDataCopy() parameter
-#define PARAM_COPY_FROM_EM			false	// App_EMDataCopy() parameter
+#define PARAM_COPY_TO_EM			true	// App_EMDataCopyDMA() parameter
+#define PARAM_COPY_FROM_EM			false	// App_EMDataCopyDMA() parameter
 
 // hide __fastcall_ from everything but CC65 (to squash some warnings in LSP/BBEdit)
 #ifndef __CC65__
@@ -334,7 +334,7 @@ void App_UpdateProgressBar(uint8_t progress_bar_total);
 // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
 // chunk_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
-void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
 
 // read the real time clock and display it
 void App_DisplayTime(void);

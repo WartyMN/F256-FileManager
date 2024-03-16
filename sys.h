@@ -141,10 +141,6 @@ void Sys_EnableTextModeCursor(bool enable_it);
 
 // **** xxx functions *****
 
-// determine if f/manager started up from flash or from disk. 
-// returns true if started from flash, or false if from disk.
-bool Sys_StartedFromFlash(void);
-
 
 // **** xxx functions *****
 

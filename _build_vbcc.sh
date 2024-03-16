@@ -114,17 +114,17 @@ echo "\n**************************\nCC65 tasks complete\n***********************
 
 
 
-#copy to release folder
-cp fmanager.rom ../release/
-cp fmanager.rom.1 ../release/
-cp fmanager.rom.2 ../release/
-cp fmanager.rom.3 ../release/
-cp fmanager.rom.4 ../release/
-cp ../strings/strings.bin ../release/
+#copy strings to build folder
+#cp fmanager.rom ../release/
+#cp fmanager.rom.1 ../release/
+#cp fmanager.rom.2 ../release/
+#cp fmanager.rom.3 ../release/
+#cp fmanager.rom.4 ../release/
+cp ../strings/strings.bin .
 
 
 #build pgZ
- cd ../release
+# cd ../release
  fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "strings.bin")
  addr=("990700" "000001" "002001" "004001" "006001" "004002")
 
@@ -155,7 +155,10 @@ truncate -s 8K fm.05
 cd ../
 zip -vrq fm_"$VERSION_STRING"_flash.zip fm_flash/ -x "*.DS_Store"
 
-
+# clear temp files
+rm fmanager.ro*
+rm strings.bin
+rm fm.bin
 
 # copy pgz binary to SD Card on F256 via fnxmanager
 python3 $FOENIXMGR/FoenixMgr/fnxmgr.py --copy fm.pgZ

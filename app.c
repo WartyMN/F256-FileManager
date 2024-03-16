@@ -86,6 +86,8 @@ static uint8_t				app_progress_bar_char[8] =
 
 int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. 
 
+bool					global_started_from_flash;		// tracks whether app started from flash or from disk
+
 WB2KViewPanel			app_file_panel[2];
 //WB2KFolderObject		app_root_folder[2];
 TextDialogTemplate		global_dlg;	// dialog we'll configure and re-use for different purposes
@@ -230,7 +232,7 @@ void App_Initialize(void)
 
 	// show info about the host F256 and environment, as well as copyright, version of f/manager
 	App_LoadOverlay(OVERLAY_SCREEN);
-	Screen_ShowAboutInfo();
+	Screen_ShowAppAboutInfo();
 
 	// set up the dialog template we'll use throughout the app
 	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
@@ -521,7 +523,7 @@ uint8_t App_MainLoop(void)
 					break;
 
 				case ACTION_ABOUT:
-					Screen_ShowAboutInfo();
+					Screen_ShowAppAboutInfo();
 					break;
 					
 				case MOVE_UP:
@@ -661,7 +663,7 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
 // chunk_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
-void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
+void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
 {
 	uint32_t	em_addr;	// physical memory address (20 bit)
 	uint8_t		zp_em_addr_base;
@@ -816,6 +818,9 @@ int main(void)
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
 	
+	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
+	Buffer_Initialize();
+	
 	// initialize the random number generator embedded in the Vicky
 	Startup_InitializeRandomNumGen();
 	
@@ -826,9 +831,6 @@ int main(void)
 	Startup_ShowLogo();
 
 	App_LoadOverlay(OVERLAY_SCREEN);
-	
-	// initialize the comm buffer - do this before drawing UI or garbage will get written into comms area
-	Buffer_Initialize();
 	
 	// Initialize screen structures and do first draw
 	Screen_InitializeUI();

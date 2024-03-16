@@ -72,8 +72,11 @@
 #define LOGO_START_COL					22
 #define LOGO_END_COL					(LOGO_START_COL + (LOGO_WIDTH - 1))
 
-#define APP_NAME_DISPLAY_ROW			58
-#define COPYRIGHT_DISPLAY_ROW			(APP_NAME_DISPLAY_ROW + 1)
+#define INFO_MACHINE_DISPLAY_ROW		56
+#define INFO_KERNEL_DISPLAY_ROW			(INFO_MACHINE_DISPLAY_ROW + 1)
+#define INFO_FMANAGER_DISPLAY_ROW		(INFO_KERNEL_DISPLAY_ROW + 1)
+#define INFO_SUPERBASIC_DISPLAY_ROW		(INFO_FMANAGER_DISPLAY_ROW + 1)
+
 
 
 
@@ -446,6 +449,7 @@ static System	system_storage;
 System*			global_system = &system_storage;
 
 
+extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 
 extern char*				global_string[NUM_STRINGS];
 extern char*				global_string_buff1;
@@ -470,6 +474,9 @@ void Startup_ShowMachineSplash(void);
 // Set logo palette, display Foenix logo on screen, display basic about info
 // does NOT clear the screen first
 void Startup_ShowFoenixLogo(void);
+
+// display information about f/manager, the machine, and the MicroKernel
+void Startup_ShowAboutInfo(void);
 
 
 /*****************************************************************************/
@@ -548,11 +555,12 @@ void Startup_ShowMachineSplash(void)
 	left_x2 = MACHINE_SPLASH_END_COL_LEFT;
 	Text_CopyMemBoxLinearBuffer(machine_splash_chars_left, left_x1, MACHINE_SPLASH_START_ROW, left_x2, MACHINE_SPLASH_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_CopyMemBoxLinearBuffer(machine_splash_attrs_left, left_x1, MACHINE_SPLASH_START_ROW, left_x2, MACHINE_SPLASH_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR);
+	General_DelayTicks(15000); // we want to show the thinnest version for a longer period of time
 
 	// rotate through a series of increasingly fat chars for a reverse louver effect
 	for (i=0; i < 6; i++)
 	{		
-		General_DelayTicks(2300);
+		General_DelayTicks(1100);
 
 		this_splash_char = machine_splash_chars_left;
 		
@@ -682,10 +690,8 @@ void Startup_ShowFoenixLogo(void)
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&logo_chars, LOGO_START_COL, LOGO_START_ROW, LOGO_END_COL, LOGO_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&logo_attrs, LOGO_START_COL, LOGO_START_ROW, LOGO_END_COL, LOGO_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR);
 
-	// show app name
-	sprintf(global_string_buff1, General_GetString(ID_STR_APP_NAME_PLATFORM_VERSION), MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
-	Text_DrawStringAtXY(24, APP_NAME_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
-	Text_DrawStringAtXY(28, COPYRIGHT_DISPLAY_ROW, General_GetString(ID_STR_ABOUT_COPYRIGHT), 15, COLOR_BLACK);
+	// show about info
+	Startup_ShowAboutInfo();
 	
 	vicky_lut_addr = (uint8_t*)(TEXT_FORE_LUT + 60); // start at highest color and go down to color 1 (color 0 already loaded)
 	
@@ -737,6 +743,54 @@ void Startup_ShowFoenixLogo(void)
 }
 
 
+// display information about f/manager, the machine, and the MicroKernel
+void Startup_ShowAboutInfo(void)
+{
+	char 		year[2];
+	char		month[2];
+	char		day[2];
+	char		build[2];
+	char*		buffer = (char*)0xE008;
+
+	// show machine information	
+	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_HARDWARE_DETAILS), CH_COPYRIGHT, R8(MACHINE_FPGA_NUM_HI), R8(MACHINE_FPGA_NUM_LOW), R8(MACHINE_FPGA_VER_HI), R8(MACHINE_FPGA_VER_LOW), R8(MACHINE_FPGA_SUBV_HI), R8(MACHINE_FPGA_SUBV_LOW), R8(MACHINE_PCB_MAJOR), R8(MACHINE_PCB_MINOR), R8(MACHINE_PCB_ID_0), R8(MACHINE_PCB_ID_1));
+	Sys_RestoreIOPage();
+	Text_DrawStringAtXY(0, INFO_MACHINE_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+	
+	// show MicroKernel information	
+	// data is (11 bytes), starting 8 bytes into 3f.bin, which happens to be mapped in to $E000 all the time. 
+	// format is MM/DD/YY, space, build #. eg: "01/02/24 21"
+	//General_Strlcpy(global_string_buff1, (char*)0xE008, 12); 
+	month[0] = *buffer++;
+	month[1] = *buffer++;
+	buffer++; // skip the slash
+	day[0] = *buffer++;
+	day[1] = *buffer++;
+	buffer++; // skip the slash
+	year[0] = *buffer++;
+	year[1] = *buffer++;
+	buffer++; // skip the space
+	build[0] = *buffer++;
+	build[1] = *buffer++;
+	
+	strcpy(global_string_buff2, General_GetString(ID_STR_ABOUT_MICROKERNEL));
+	sprintf(global_string_buff1, global_string_buff2, 
+		CH_COPYRIGHT, year[0], year[1], build[0], build[1], year[0], year[1], month[0], month[1], day[0], day[1]
+	);
+	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_KERNEL_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+
+	// show app name, version, and credit
+	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_FMANAGER), CH_COPYRIGHT, MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
+	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_FMANAGER_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+	
+	// show SuperBASIC info
+	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_SUPERBASIC), CH_COPYRIGHT);
+	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_SUPERBASIC_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+}
+
+
+
 /*****************************************************************************/
 /*                        Public Function Definitions                        */
 /*****************************************************************************/
@@ -772,7 +826,23 @@ bool Sys_InitSystem(void)
 		return false;
 	}
 
+	// determine if f/manager started up from flash or from disk. 
+	if ((R8(0x0200) != '-' && R8(0x0202) != 'f') && (R8(0x0200) != '/' && R8(0x0203) != 'f'))
+	{
+		// we started from disk if $200 has pexec '-' in it on f/manager startup. 
+		//  you can also start from DOS with "/- fm", and then / ends up in 200 slot.
+		// if from flash, $200 would be 'f', and $201 would be 'm', and $202 would be 0. 
+		global_started_from_flash = true;
+	}
+	else
+	{
+		global_started_from_flash = false;
+	}
 	
+	// clear 0x0200, 0201, 0202, and 0203 to make next start after reset more accurate
+	// (if started from flash, then from disk, then reset, the "- fm" would still be in memory otherwise)
+	memset((char*)0x0200, 0, 4);
+
 	// Enable mouse pointer -- no idea if this works, f68 emulator doesn't support mouse yet. 
 	//R32(VICKYB_MOUSE_CTRL_A2560K) = 1;
 	
@@ -1055,7 +1125,7 @@ void Startup_ShowLogo(void)
 	
 	// determine if we started from flash or from disk
 	// if from flash, we want to show the machine logo before showing app (foenix) logo
-	if (Sys_StartedFromFlash() == true)
+	if (global_started_from_flash == true)
 	{
 		// we started from disk if $200 has pexec '-' in it on f/manager startup. 
 		//  you can also start from DOS with "/- fm", and then / ends up in 200 slot.
@@ -1104,4 +1174,6 @@ void Startup_InitializeRandomNumGen(void)
 
 	Sys_DisableIOBank();
 }
+
+
 

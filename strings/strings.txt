@@ -80,15 +80,12 @@
 78	31	Error: Could not open file '%s'
 79	31	Error: Could not list directory
 80	19	Out of memory error
-81	9	f/Manager
-82	32	f/Manager F256, version %u.%u.%u
-83	24	Copyright 2024 Micah Bly
-84	46	https://github.com/WartyMN/F256jr-FileManager/
-85	6	F256JR
-86	5	F256K
-87	18	<unknown hardware>
-88	75	Hardware: %s, FPGA load %02X%02X.%02X%02X.%02X%02X, PCB rev %02X%02X '%c%c'
-89	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-90	42	Compact pexec loader for flash by dwsJason
-91	35	Editor: BBEdit (for those who know)
-92	76	This program is open source, using GPL 3 license. Please share improvements!
+81	46	https://github.com/WartyMN/F256jr-FileManager/
+82	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+83	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+84	42	Compact pexec loader for flash by dwsJason
+85	36	F256 SuperBASIC %c2023 Paul Robson. 
+86	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+87	6	F256JR
+88	5	F256K
+89	18	<unknown hardware>
