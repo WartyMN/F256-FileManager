@@ -230,9 +230,10 @@ char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, ui
 }
 
 
-// displays the content found in EM as a text file, with wrapping, etc.
+// displays the content found in EM as text, with wrapping, etc.
 // num_chunks is the number of EM 256b chunks that need displaying
-void EM_DisplayAsText(uint8_t num_chunks)
+// the_name is only used to provide feedback to the user about what they are viewing
+void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 {
 	// LOGIC
 	//   Data must have already been loaded into EM_STORAGE_START_PHYS_ADDR
@@ -254,6 +255,7 @@ void EM_DisplayAsText(uint8_t num_chunks)
 	uint8_t		y;
 	uint8_t		user_input;
 	bool		keep_going = true;
+	bool		user_exit = false;
 	bool		copy_again;
 	uint8_t*	copy_buffer;
 	uint8_t*	buffer_curr_loc;
@@ -293,16 +295,6 @@ void EM_DisplayAsText(uint8_t num_chunks)
 		App_EMDataCopy(copy_buffer, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
-// 		copy_buffer_len = General_Strnlen((char*)copy_buffer, STORAGE_FILE_BUFFER_1_LEN);	// can't assume 256b, last chunk may have less.
-// 		if (i == num_chunks)
-// 		{
-// 			unprocessed_bytes = copy_buffer_len;	// can't assume 256b, last chunk may have less.
-// 		}
-// 		else
-// 		{
-// 			unprocessed_bytes = 256;
-// 		}
-
 		unprocessed_bytes = 256;
 		copy_again = false;
 		
@@ -312,8 +304,9 @@ void EM_DisplayAsText(uint8_t num_chunks)
 			if (y == 0)
 			{
 				Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-// 				sprintf(global_string_buff1, General_GetString(ID_STR_MSG_TEXT_VIEW_INSTRUCTIONS), "Memory View");
-// 				Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+				sprintf(global_string_buff1, General_GetString(ID_STR_MSG_TEXT_VIEW_INSTRUCTIONS), the_name);
+				Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+				++y;
 			}
 
 			// if there were any remaining bytes from the last EM copy, process those first
@@ -410,6 +403,7 @@ void EM_DisplayAsText(uint8_t num_chunks)
 				if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
 				{
 					keep_going = false;
+					user_exit = true;
 				}
 				else
 				{
@@ -454,8 +448,6 @@ void EM_DisplayAsText(uint8_t num_chunks)
 					
 					memset(copy_buffer, 0, STORAGE_FILE_BUFFER_1_LEN);
 
-	 				//Keyboard_GetChar();
-					
 					unprocessed_bytes = 0;					
 				}
 				
@@ -474,11 +466,9 @@ void EM_DisplayAsText(uint8_t num_chunks)
 	}
 	
 	// if user hasn't already said they are done, give them a chance to look at the last displayed page
-	if (keep_going == true)
+	if (user_exit != true)
 	{
 		user_input = Keyboard_GetChar();
 	}
-	
-	Keyboard_GetChar();
 }
 

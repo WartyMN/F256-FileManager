@@ -977,7 +977,7 @@ bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
 	if (success)
 	{
 		App_LoadOverlay(OVERLAY_EM);
-		EM_DisplayAsText(the_file->size_/256);
+		EM_DisplayAsText(the_file->size_/256, the_file->file_name_);
 	}
 	
 	return success;

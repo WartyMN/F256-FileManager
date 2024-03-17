@@ -48,9 +48,10 @@
 // returns NULL if entire string was displayed, or returns pointer to next char needing display if available space was all used
 char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, uint8_t col_width, uint8_t max_allowed_rows);
 
-// displays the content found in EM as a text file, with wrapping, etc.
+// displays the content found in EM as text, with wrapping, etc.
 // num_chunks is the number of EM 256b chunks that need displaying
-void EM_DisplayAsText(uint8_t num_chunks);
+// the_name is only used to provide feedback to the user about what they are viewing
+void EM_DisplayAsText(uint8_t num_chunks, char* the_name);
 
 
 #endif /* OVERLAY_EM_H_ */
