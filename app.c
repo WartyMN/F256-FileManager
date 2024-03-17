@@ -88,6 +88,7 @@ static uint8_t				app_progress_bar_char[8] =
 int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. 
 
 bool					global_started_from_flash;		// tracks whether app started from flash or from disk
+bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
 
 WB2KViewPanel			app_file_panel[2];
 //WB2KFolderObject		app_root_folder[2];
@@ -417,6 +418,7 @@ uint8_t App_MainLoop(void)
 			
 					case ACTION_VIEW_AS_HEX:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
+						global_clock_is_visible = false;
 						success = Panel_ViewCurrentFileAsHex(the_panel);	
 						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
@@ -428,6 +430,7 @@ uint8_t App_MainLoop(void)
 				
 					case ACTION_VIEW_AS_TEXT:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
+						global_clock_is_visible = false;
 						success = Panel_ViewCurrentFileAsText(the_panel);	
 						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
@@ -777,8 +780,15 @@ void App_DisplayTime(void)
 	//     5) you get random numbers by reading RNDL and RNDH. every time you read them, it repopulates them. 
 	//     6) resulting 16 bit number you divide by 65336 (RAND_MAX_FOENIX) to get a number 0-1. 
 	//   I will use the real time clock to seed the number generator
+	//  The clock should only be visible and updated when the main 2-panel screen is displayed
+	
 	
 	uint8_t		old_rtc_control;
+	
+	if (global_clock_is_visible != true)
+	{
+		return;
+	}
 	
 	// need to have vicky registers available
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);

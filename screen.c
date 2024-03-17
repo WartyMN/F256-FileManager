@@ -67,6 +67,7 @@ static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] =
 /*****************************************************************************/
 
 extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
+extern bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
 
 extern char*				global_string[NUM_STRINGS];
 extern char*				global_string_buff1;
@@ -353,6 +354,7 @@ void Screen_InitializeUI(void)
 // set up screen variables and draw screen for first time
 void Screen_Render(void)
 {
+	global_clock_is_visible = true;
 	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Screen_DrawUI();
 }
