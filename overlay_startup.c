@@ -560,7 +560,7 @@ void Startup_ShowMachineSplash(void)
 	// rotate through a series of increasingly fat chars for a reverse louver effect
 	for (i=0; i < 6; i++)
 	{		
-		General_DelayTicks(1100);
+		General_DelayTicks(900);
 
 		this_splash_char = machine_splash_chars_left;
 		
@@ -751,42 +751,50 @@ void Startup_ShowAboutInfo(void)
 	char		day[2];
 	char		build[2];
 	char*		buffer = (char*)0xE008;
-
-	// show machine information	
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_HARDWARE_DETAILS), CH_COPYRIGHT, R8(MACHINE_FPGA_NUM_HI), R8(MACHINE_FPGA_NUM_LOW), R8(MACHINE_FPGA_VER_HI), R8(MACHINE_FPGA_VER_LOW), R8(MACHINE_FPGA_SUBV_HI), R8(MACHINE_FPGA_SUBV_LOW), R8(MACHINE_PCB_MAJOR), R8(MACHINE_PCB_MINOR), R8(MACHINE_PCB_ID_0), R8(MACHINE_PCB_ID_1));
-	Sys_RestoreIOPage();
-	Text_DrawStringAtXY(0, INFO_MACHINE_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
 	
-	// show MicroKernel information	
-	// data is (11 bytes), starting 8 bytes into 3f.bin, which happens to be mapped in to $E000 all the time. 
-	// format is MM/DD/YY, space, build #. eg: "01/02/24 21"
-	//General_Strlcpy(global_string_buff1, (char*)0xE008, 12); 
-	month[0] = *buffer++;
-	month[1] = *buffer++;
-	buffer++; // skip the slash
-	day[0] = *buffer++;
-	day[1] = *buffer++;
-	buffer++; // skip the slash
-	year[0] = *buffer++;
-	year[1] = *buffer++;
-	buffer++; // skip the space
-	build[0] = *buffer++;
-	build[1] = *buffer++;
+	// LOGIC:
+	//   Unless f/manager loaded from flash, we don't want to bother user with too much machine/kernel info. 
+	//   idea being that on machine power up, we want user to see a splash screen as if it was really the machine showing the results, not just some random app
+	//   in all situations we want to show app name/about info
 	
-	strcpy(global_string_buff2, General_GetString(ID_STR_ABOUT_MICROKERNEL));
-	sprintf(global_string_buff1, global_string_buff2, 
-		CH_COPYRIGHT, year[0], year[1], build[0], build[1], year[0], year[1], month[0], month[1], day[0], day[1]
-	);
-	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_KERNEL_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+	if (global_started_from_flash == true)
+	{
+		// show machine information	
+		Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+		sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_HARDWARE_DETAILS), CH_COPYRIGHT, R8(MACHINE_FPGA_NUM_HI), R8(MACHINE_FPGA_NUM_LOW), R8(MACHINE_FPGA_VER_HI), R8(MACHINE_FPGA_VER_LOW), R8(MACHINE_FPGA_SUBV_HI), R8(MACHINE_FPGA_SUBV_LOW), R8(MACHINE_PCB_MAJOR), R8(MACHINE_PCB_MINOR), R8(MACHINE_PCB_ID_0), R8(MACHINE_PCB_ID_1));
+		Sys_RestoreIOPage();
+		Text_DrawStringAtXY(0, INFO_MACHINE_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+		
+		// show MicroKernel information	
+		// data is (11 bytes), starting 8 bytes into 3f.bin, which happens to be mapped in to $E000 all the time. 
+		// format is MM/DD/YY, space, build #. eg: "01/02/24 21"
+		//General_Strlcpy(global_string_buff1, (char*)0xE008, 12); 
+		month[0] = *buffer++;
+		month[1] = *buffer++;
+		buffer++; // skip the slash
+		day[0] = *buffer++;
+		day[1] = *buffer++;
+		buffer++; // skip the slash
+		year[0] = *buffer++;
+		year[1] = *buffer++;
+		buffer++; // skip the space
+		build[0] = *buffer++;
+		build[1] = *buffer++;
+		
+		strcpy(global_string_buff2, General_GetString(ID_STR_ABOUT_MICROKERNEL));
+		sprintf(global_string_buff1, global_string_buff2, 
+			CH_COPYRIGHT, year[0], year[1], build[0], build[1], year[0], year[1], month[0], month[1], day[0], day[1]
+		);
+		Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_KERNEL_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+		
+		// show SuperBASIC info
+		sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_SUPERBASIC), CH_COPYRIGHT);
+		Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_SUPERBASIC_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
+	}
 
 	// show app name, version, and credit
 	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_FMANAGER), CH_COPYRIGHT, MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
 	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_FMANAGER_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
-	
-	// show SuperBASIC info
-	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_SUPERBASIC), CH_COPYRIGHT);
-	Text_DrawStringAtXY((80-strlen(global_string_buff1))/2, INFO_SUPERBASIC_DISPLAY_ROW, global_string_buff1, 15, COLOR_BLACK);
 }
 
 
