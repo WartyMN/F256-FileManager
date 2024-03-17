@@ -214,13 +214,14 @@ uint8_t Keyboard_ProcessKeyEvent(void)
 				// Schedule repeats for keys from CBM/K keyboards
 				if (event.key.keyboard == 0)
 				{
+					// for f/manager, we only want repeat on cursor keys, delete, backspace, etc.
+					if (this_char == CH_CURS_UP || this_char == CH_CURS_DOWN || this_char == CH_CURS_LEFT || this_char == CH_CURS_RIGHT || this_char == CH_DEL || this_char == CH_RUNSTOP)
 					Keyboard_StartTimerForKey(this_char);
 				}
 
 				// for any keyboard type, add this char to the key buffer
 				Keyboard_AddToQueue(this_char);				
 			}
-
 	}
 	else
 	{
@@ -260,7 +261,7 @@ void Keyboard_StartTimerForKey(uint8_t the_key)
 // 	current_timer_value = R8(0x02);
 
 	// Schedule a timer approx 0.75s in the future (repeat delay).
-	Keyboard_ScheduleRepeatEvent(current_timer_value + 5);
+	Keyboard_ScheduleRepeatEvent(current_timer_value + 15);
 }
 
 
