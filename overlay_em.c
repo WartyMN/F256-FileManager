@@ -47,6 +47,7 @@
 /*****************************************************************************/
 
 #define	CH_LINE_BREAK	10
+#define	CH_LINE_RETURN	13
 
 
 /*****************************************************************************/
@@ -109,19 +110,9 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 
 	while(*start_of_string)
 	{
-		// even if string IS shorter than width, we still have to process it, as it may contain several lines with line breaks
-		
 // 		// is remaining part of string small enough to already fit within the margins?
-// 		if(the_len < col_width)
-// 		{
-// 			// pass the left-side, wrapped string to a helper method that will add any line breaks, and do actual display.
-// 			Text_DrawStringAtXY(x, y, start_of_string, COLOR_BRIGHT_WHITE, COLOR_BLACK);
-// 			//return ++lines_needed;
-// 					sprintf(global_string_buff1, "string was shorter than screen width (len=%u)", the_len);
-// 					Buffer_NewMessage(global_string_buff1);
-// 			return NULL;
-// 		}
-
+		// BUT: even if string IS shorter than width, we still have to process it, as it may contain several lines with line breaks
+		
 		// before checking if word wrap is needed, see if there is a line break before margin
 		this_char = start_of_string;
 		right_margin = this_char + col_width;
@@ -129,15 +120,16 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 		//debug
 		if (this_char[0] == 0)
 		{
-			Buffer_NewMessage("first char of string was a terminator!");
+			//DEBUG_OUT(("%s %d: first char of string was a terminator!", __func__ , __LINE__));
 		}
 		
 		while(*this_char && num_chars_checked < col_width && !eol_found)
 		{
-			if (*this_char == CH_LINE_BREAK)
+			if (*this_char == CH_LINE_BREAK || *this_char == CH_LINE_RETURN)
 			{
 				right_margin = this_char;
 				eol_found = true;
+				//DEBUG_OUT(("%s %d: line break detected @ %u: '%s'", __func__ , __LINE__, num_chars_checked, start_of_string));
 			}
 
 			++this_char;
@@ -145,15 +137,15 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 		}
 
 		// is remaining part of string small enough to already fit within the margins?
-		if(eol_found == false && the_len < col_width)
+		if (eol_found == false && the_len < col_width)
 		{
 			// pass the left-side, wrapped string to a helper method that will add any line breaks, and do actual display.
 			Text_DrawStringAtXY(x, y, start_of_string, COLOR_BRIGHT_WHITE, COLOR_BLACK);
-			//return ++lines_needed;
+			//DEBUG_OUT(("%s %d: this string had no breaks and fits without wrapping. len=%u '%s'", __func__ , __LINE__, the_len, start_of_string));
 			return NULL;
 		}
 
-		while(*right_margin != ' ' && *right_margin != CH_LINE_BREAK && right_margin > start_of_string)
+		while(*right_margin != ' ' && (*right_margin != CH_LINE_BREAK && *right_margin != CH_LINE_RETURN) && right_margin > start_of_string)
 		{
 			--right_margin;
 		}
@@ -163,12 +155,14 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 		{
 			right_margin = (start_of_string + col_width) - 0;
 			no_break_found = true;
+			//DEBUG_OUT(("%s %d: line with no spaces and no end-of-line marker: '%s'", __func__ , __LINE__, start_of_string));
 		}
 		
 		// cut off the left part of the string at this point
 		*right_margin = '\0';
 
 		// pass the left-side, wrapped string to a helper method that will add any line breaks, and do actual display.
+		//DEBUG_OUT(("%s %d: %s", __func__ , __LINE__, start_of_string));
 		Text_DrawStringAtXY(x, y, start_of_string, COLOR_BRIGHT_WHITE, COLOR_BLACK);
 		++y;
 		++lines_needed;
@@ -188,12 +182,10 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 		if (lines_needed >= max_allowed_rows)
 		{
 			// just cut it off and return
-			//return lines_needed;
 			return start_of_string;
 		}
 	}
 
-	//return lines_needed;
 	return NULL;
 }
 
@@ -208,9 +200,6 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 // returns NULL if entire string was displayed, or returns pointer to next char needing display if available space was all used
 char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, uint8_t col_width, uint8_t max_allowed_rows)
 {
-	char*	this_char;
-
-	bool	end_of_string = false;
 	uint8_t	reformatted_lines = 0;
 	uint8_t	lines_needed = 0;
 	char*	start_of_string = the_message;
@@ -218,27 +207,8 @@ char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, ui
 
 	while(*start_of_string)
 	{
-		this_char = start_of_string;
-
-// 		while(*this_char != CH_LINE_BREAK && *this_char)
-// 		{
-// 			++this_char;
-// 		}
-// 
-// 		// hit a line break or the end of the string?
-// 		if (!*this_char)
-// 		{
-// 			end_of_string = true;
-// 		}
-// 		else
-// 		{
-// 			*this_char = '\0';
-// 		}
-
-		// now put the first para of text through the line breaker, which will handle final display.
+		// put the first para of text through the line breaker, which will handle final display.
 		next_starting_pos = EM_WrapAndDisplayString(start_of_string, x, y, col_width, 1);	// only ask it to wrap ONE line at a time
-// 		y += reformatted_lines; // if wrapping requires more lines than our buffer can display, need to track that and pause
-// 		lines_needed += reformatted_lines;
 		++y;
 		++lines_needed;
 		
@@ -247,24 +217,12 @@ char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, ui
 		{
 			return NULL;
 		}
-// 		if (end_of_string)
-// 		{
-// 			return NULL;
-// 		}
 		else if (lines_needed >= max_allowed_rows)
 		{
 			// just cut it off and return
 			return next_starting_pos;
 		}
 
-// 		if (next_starting_pos == NULL)
-// 		{
-// 			start_of_string = this_char + 1;
-// 		}
-// 		else
-// 		{
-// 			start_of_string = next_starting_pos;
-// 		}
 		start_of_string = next_starting_pos;
 	}
 
@@ -295,7 +253,6 @@ void EM_DisplayAsText(uint8_t num_chunks)
 
 	uint8_t		y;
 	uint8_t		user_input;
-//	uint16_t	num_bytes_to_read = MEM_TEXT_VIEW_BYTES_PER_ROW;
 	bool		keep_going = true;
 	bool		copy_again;
 	uint8_t*	copy_buffer;
@@ -305,7 +262,6 @@ void EM_DisplayAsText(uint8_t num_chunks)
 	char*		line_buffer_remainder;
 	uint8_t		i = 0;
 	int16_t		unprocessed_bytes;
-	//int16_t		copy_buffer_len;
 	uint16_t	remain_len = 0;
 	uint8_t		needed_bytes;
 	uint8_t		available_bytes;
@@ -408,10 +364,23 @@ void EM_DisplayAsText(uint8_t num_chunks)
 			
 			// process and display the chars in the line buffer
 			line_buffer_remainder = EM_DisplayStringWithLineBreaks(line_buffer, 0, y, MEM_TEXT_VIEW_BYTES_PER_ROW, 1);
+			//DEBUG_OUT(("%s %d: EM_DisplayStringWithLineBreaks return=%p", __func__ , __LINE__, line_buffer_remainder));
 			
-			// set up for the next line: copy remainder in line buffer to start of line buffer
-			bytes_displayed = line_buffer_remainder - line_buffer;
-			bytes_not_displayed = (MEM_TEXT_VIEW_BYTES_PER_ROW - bytes_displayed);
+			if (line_buffer_remainder == NULL)
+			{
+				// whole string was displayed, whether it stretched across screen or not
+				bytes_displayed = 80;
+				bytes_not_displayed = 0;
+				line_buffer_remainder = line_buffer;
+			}
+			else
+			{
+				// set up for the next line: copy remainder in line buffer to start of line buffer
+				bytes_displayed = line_buffer_remainder - line_buffer;
+				bytes_not_displayed = (MEM_TEXT_VIEW_BYTES_PER_ROW - bytes_displayed);
+			}
+			//DEBUG_OUT(("%s %d: displayed=%u, not displayed=%u", __func__ , __LINE__, bytes_displayed, bytes_not_displayed));
+			//DEBUG_OUT(("%s %d: buff remainder='%s'", __func__ , __LINE__, line_buffer_remainder));
 			
 			if (bytes_not_displayed > 0)
 			{
@@ -421,12 +390,13 @@ void EM_DisplayAsText(uint8_t num_chunks)
 			else
 			{
 				line_buffer[0] = 0;
+				//memset(line_buffer, 0, STORAGE_STRING_BUFFER_1_LEN);
 			}
 
 			remain_len = General_Strnlen(line_buffer, STORAGE_STRING_BUFFER_1_LEN);
 			
-// 					sprintf(global_string_buff1, "displayed=%u, not_displayed=%i, line_buffer='%s'", bytes_displayed, bytes_not_displayed, line_buffer);
-// 					Buffer_NewMessage(global_string_buff1);
+			//DEBUG_OUT(("%s %d: remain_len=%u", __func__ , __LINE__, remain_len));
+			//DEBUG_OUT(("%s %d: buff='%s'", __func__ , __LINE__, line_buffer));
 
 			//user_input = Keyboard_GetChar();
 			
@@ -457,6 +427,8 @@ void EM_DisplayAsText(uint8_t num_chunks)
 			else
 			{
 				// there isn't enough chars in line buffer and copy buffer to guarantee a full row.
+				//DEBUG_OUT(("%s %d: unprocessed=%u, remain_len=%u", __func__ , __LINE__, unprocessed_bytes, remain_len));
+				//DEBUG_OUT(("%s %d: buff='%s'", __func__ , __LINE__, line_buffer));
 				
 				// have we already processed everything perhaps?
 				if (unprocessed_bytes > 0)
@@ -476,28 +448,25 @@ void EM_DisplayAsText(uint8_t num_chunks)
 					remain_len = General_Strnlen(line_buffer, STORAGE_STRING_BUFFER_1_LEN);
 					// zero out anything left over from previous operations, as now we are not operating at full size for the line buffer.
 					memset(line_buffer + remain_len, 0, MEM_TEXT_VIEW_BYTES_PER_ROW - remain_len);
-					
-// 						sprintf(global_string_buff1, "end of copy buffer: '%s', unprocessed=%u", buffer_curr_loc, unprocessed_bytes);
-// 						Buffer_NewMessage(global_string_buff1);
-// 						sprintf(global_string_buff1, "l buf: '%s', l buf remainder '%s'", line_buffer, line_buffer_remainder);
-// 						Buffer_NewMessage(global_string_buff1);
 
+					//DEBUG_OUT(("%s %d: remain_len=%u", __func__ , __LINE__, remain_len));
+					//DEBUG_OUT(("%s %d: buff='%s'", __func__ , __LINE__, line_buffer));
+					
 					memset(copy_buffer, 0, STORAGE_FILE_BUFFER_1_LEN);
 
 	 				//Keyboard_GetChar();
 					
-					unprocessed_bytes = 0;
-					
-					if (i < num_chunks)
-					{
-						copy_again = true;
-					}
-					else
-					{
-						// there isn't enough in copy buffer to fill a row, but also last chunk has already been read from EM
-						
-						
-					}
+					unprocessed_bytes = 0;					
+				}
+				
+				if (i < num_chunks)
+				{
+					copy_again = true;
+				}
+				else
+				{
+					// there isn't enough in copy buffer to fill a row, but also last chunk has already been read from EM
+											
 				}
 			}
 			
