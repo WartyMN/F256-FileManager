@@ -19,7 +19,7 @@
 	.export	_Memory_RestorePreviousBank
 	.export _Memory_GetMappedBankNum
 ;	.export _Memory_Copy
-	.export _Memory_CopyWithDMA
+;	.export _Memory_CopyWithDMA
 ;	.export _Memory_FillWithDMA
 	.export _Memory_DebugOut
 
@@ -313,105 +313,107 @@ _global_string_buffer2:			.res 2;
 ;// this version uses the F256's DMA capabilities to copy, so addresses can be 24 bit (system memory, not CPU memory)
 ;// in other words, no need to page either dst or src into CPU space
 
-
-.segment	"CODE"
-
-.proc	_Memory_CopyWithDMA: near
-
-.segment	"CODE"
-
-			SEI					; disable interrupts
-
-			; Wait for VBlank period
-LINE_NO = 261*2  ; 240+21
-        	LDA #<LINE_NO
-        	LDX #>LINE_NO
-wait1:
-        	CPX $D01B
-       	 	BEQ wait1
-wait2:
-        	cmp $D01A
-        	CMP wait2
-
-wait3:
-        	CPX $D01B
-        	BNE wait3
-wait4:
-        	CMP $D01A
-        	BNE wait4
+; status - 2024-03-17: DMA works (1 out of 5 or so times), but very unstable. others report same instability. commenting out until a more stable way can be identified. 
 
 
-			STZ DMA_CTRL			; Turn off the DMA engine
-
-			NOP						; random experimenting with trying to prevent timing issue
-			NOP
-			NOP
-			NOP
-			NOP
-			
-			; Enable the DMA engine and set it up for a (1D) copy operation:
-			LDA #DMA_CTRL_ENABLE
-			STA DMA_CTRL
-
-			NOP						; random experimenting with trying to prevent timing issue
-			NOP
-			NOP
-			NOP
-			NOP
-			
-			;Source address (3 byte):
-			LDA _zp_from_addr
-			STA DMA_SRC_ADDR
-			LDA _zp_from_addr+1
-			STA DMA_SRC_ADDR+1
-			LDA _zp_from_addr+2
-			AND #$07
-			STA DMA_SRC_ADDR+2
-
-			;Destination address (3 byte):
-			LDA _zp_to_addr
-			STA DMA_DST_ADDR
-			LDA _zp_to_addr+1
-			STA DMA_DST_ADDR+1
-			LDA _zp_to_addr+2
-			AND #$07
-			STA DMA_DST_ADDR+2
-
-			; Num bytes to copy
-			LDA _zp_copy_len
-			STA DMA_COUNT
-			LDA _zp_copy_len+1
-			STA DMA_COUNT+1
-			LDA _zp_copy_len+2
-			STA DMA_COUNT+2
-
-			; flip the START flag to trigger the DMA operation
-			LDA DMA_CTRL
-			ORA #DMA_CTRL_START
-			STA DMA_CTRL
-			; wait for it to finish
-
-wait_dma:	LDA DMA_STATUS
-			BMI wait_dma            ; Wait until DMA is not busy 
-			
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-
-			STZ DMA_CTRL			; Turn off the DMA engine
-			
-			NOP
-			NOP
-			NOP
-			NOP
-			NOP
-			
-			CLI						; re-enable interrupts
-			
-			RTS
-.endproc
+;.segment	"CODE"
+;
+;.proc	_Memory_CopyWithDMA: near
+;
+;.segment	"CODE"
+;
+;			SEI					; disable interrupts
+;
+;			; Wait for VBlank period
+;LINE_NO = 261*2  ; 240+21
+;        	LDA #<LINE_NO
+;        	LDX #>LINE_NO
+;wait1:
+;        	CPX $D01B
+;       	 	BEQ wait1
+;wait2:
+;        	cmp $D01A
+;        	CMP wait2
+;
+;wait3:
+;        	CPX $D01B
+;        	BNE wait3
+;wait4:
+;        	CMP $D01A
+;        	BNE wait4
+;
+;
+;			STZ DMA_CTRL			; Turn off the DMA engine
+;
+;			NOP						; random experimenting with trying to prevent timing issue
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			
+;			; Enable the DMA engine and set it up for a (1D) copy operation:
+;			LDA #DMA_CTRL_ENABLE
+;			STA DMA_CTRL
+;
+;			NOP						; random experimenting with trying to prevent timing issue
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			
+;			;Source address (3 byte):
+;			LDA _zp_from_addr
+;			STA DMA_SRC_ADDR
+;			LDA _zp_from_addr+1
+;			STA DMA_SRC_ADDR+1
+;			LDA _zp_from_addr+2
+;			AND #$07
+;			STA DMA_SRC_ADDR+2
+;
+;			;Destination address (3 byte):
+;			LDA _zp_to_addr
+;			STA DMA_DST_ADDR
+;			LDA _zp_to_addr+1
+;			STA DMA_DST_ADDR+1
+;			LDA _zp_to_addr+2
+;			AND #$07
+;			STA DMA_DST_ADDR+2
+;
+;			; Num bytes to copy
+;			LDA _zp_copy_len
+;			STA DMA_COUNT
+;			LDA _zp_copy_len+1
+;			STA DMA_COUNT+1
+;			LDA _zp_copy_len+2
+;			STA DMA_COUNT+2
+;
+;			; flip the START flag to trigger the DMA operation
+;			LDA DMA_CTRL
+;			ORA #DMA_CTRL_START
+;			STA DMA_CTRL
+;			; wait for it to finish
+;
+;wait_dma:	LDA DMA_STATUS
+;			BMI wait_dma            ; Wait until DMA is not busy 
+;			
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;
+;			STZ DMA_CTRL			; Turn off the DMA engine
+;			
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			NOP
+;			
+;			CLI						; re-enable interrupts
+;			
+;			RTS
+;.endproc
 
 
 ; ---------------------------------------------------------------

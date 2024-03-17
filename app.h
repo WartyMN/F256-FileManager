@@ -30,8 +30,8 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
-#define PARAM_COPY_TO_EM			true	// App_EMDataCopyDMA() parameter
-#define PARAM_COPY_FROM_EM			false	// App_EMDataCopyDMA() parameter
+#define PARAM_COPY_TO_EM			true	// App_EMDataCopy() parameter
+#define PARAM_COPY_FROM_EM			false	// App_EMDataCopy() parameter
 
 // hide __fastcall_ from everything but CC65 (to squash some warnings in LSP/BBEdit)
 #ifndef __CC65__
@@ -44,7 +44,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	22
+#define UPDATE_VERSION	23
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24
@@ -331,10 +331,15 @@ void App_HideProgressBar(void);
 // draws the 'bar' part of the progress bar, according to a % complete passed (0-100 integer)
 void App_UpdateProgressBar(uint8_t progress_bar_total);
 
-// copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
+// // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
+// // chunk_num is used to calculate distance from the base EM address
+// // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
+// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+
+// copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, using bank switching -- no DMA
 // chunk_num is used to calculate distance from the base EM address
-// set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
-void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+// set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
+void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
 
 // read the real time clock and display it
 void App_DisplayTime(void);

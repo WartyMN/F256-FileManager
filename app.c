@@ -32,6 +32,7 @@
 
 // C includes
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -660,58 +661,106 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 }
 
 
-// copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
+// // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
+// // chunk_num is used to calculate distance from the base EM address
+// // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
+// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
+// {
+// 	uint32_t	em_addr;	// physical memory address (20 bit)
+// 	uint8_t		zp_em_addr_base;
+// 	uint8_t		zp_cpu_addr_base;
+// 	
+// 
+// 	// LOGIC:
+// 	//   DMA will be used to copy directly from extended memory: no bank switching takes place
+// 	//   sys address is physical machine 20-bit address.
+// 	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on chunk_num passed
+// 	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
+// 	//   cpu address is $0000-$FFFF range that CPU can access
+// 	
+// 	if (to_em == true)
+// 	{
+// 		zp_em_addr_base = ZP_TO_ADDR;
+// 		zp_cpu_addr_base = ZP_FROM_ADDR;
+// 	}
+// 	else
+// 	{
+// 		zp_em_addr_base = ZP_FROM_ADDR;
+// 		zp_cpu_addr_base = ZP_TO_ADDR;
+// 	}
+// 	
+// 	// add the offset to the base address for EM data get to the right place for this chunk's copy
+// 	em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
+// 	
+// 	//sprintf(global_string_buff1, "DMA copy chunk_num=%u, em_addr=%lu", chunk_num, em_addr);
+// 	//Buffer_NewMessage(global_string_buff1);
+// 	
+// 	// set up the 20-bit address as either to/from
+// 	*(uint16_t*)zp_em_addr_base = em_addr & 0xFFFF;
+// 	*(uint8_t*)(zp_em_addr_base + 2) = ((uint32_t)EM_STORAGE_START_PHYS_ADDR >> 16) & 0xFF;
+// 
+// 	// set up the 16-bit address as either to/from
+// 	*(char**)zp_cpu_addr_base = (char*)cpu_addr;
+// 	*(uint8_t*)(zp_cpu_addr_base + 2) = 0;	// this buffer is in local / CPU memory, so: 0x00 0500 (etc)
+// 
+// 	// set copy length to 256 bytes
+// 	*(char**)ZP_COPY_LEN = (char*)STORAGE_FILE_BUFFER_1_LEN;	
+// 	*(uint8_t*)(ZP_COPY_LEN + 2) = 0;
+// 
+// 	//sprintf(global_string_buff1, "ZP_TO_ADDR=%02x,%02x,%02x; ZP_FROM_ADDR=%02x,%02x,%02x; ZP_COPY_LEN=%02x,%02x,%02x; ", *(uint8_t*)(ZP_TO_ADDR+0), *(uint8_t*)(ZP_TO_ADDR+1), *(uint8_t*)(ZP_TO_ADDR+2), *(uint8_t*)(ZP_FROM_ADDR+0), *(uint8_t*)(ZP_FROM_ADDR+1), *(uint8_t*)(ZP_FROM_ADDR+2), *(uint8_t*)(ZP_COPY_LEN+0), *(uint8_t*)(ZP_COPY_LEN+1), *(uint8_t*)(ZP_COPY_LEN+2));
+// 	//Buffer_NewMessage(global_string_buff1);
+// 
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);	
+//  	Memory_CopyWithDMA();	
+// 	Sys_RestoreIOPage();
+// }
+
+
+// copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, using bank switching -- no DMA
 // chunk_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
-void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
+void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
 {
-	uint32_t	em_addr;	// physical memory address (20 bit)
-	uint8_t		zp_em_addr_base;
-	uint8_t		zp_cpu_addr_base;
+	//uint32_t	em_addr;			// physical memory address (20 bit)
+	uint8_t		em_slot;			// 00-7F are valid slots, but our dedicated EM storage starts at bank $14
+	uint8_t*	em_cpu_addr;		// A000-BFFF: the specific target address within the CPU address space that the EM memory has been banked into
+	uint8_t		previous_overlay_bank_num;
 	
 
 	// LOGIC:
-	//   DMA will be used to copy directly from extended memory: no bank switching takes place
+	//   The overlay bank will be temporarily swapped out, and the required EM bank swapped in (tried to swap out kernel#2/IO bank, but froze up)
+	//   required bank # can be calculated by taking system address and dividing by 8192. eg, 0x40000 / 0x2000 = bank 0x20
 	//   sys address is physical machine 20-bit address.
-	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on chunk_num passed
+	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000=bank 14), based on chunk_num passed
 	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
 	//   cpu address is $0000-$FFFF range that CPU can access
 	
+	// add the offset to the base address for EM data get to the right place for this chunk's copy
+	//em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
+	em_slot = EM_STORAGE_START_VALUE + (chunk_num / 32);
+	// CPU addr has to keep recycling space between A000-BFFF, so when chunk num is >32, need to get it back down under 32
+	em_cpu_addr = (uint8_t*)((uint16_t)EM_STORAGE_START_CPU_ADDR + ((chunk_num % 32) * 256));
+	
+	//sprintf(global_string_buff1, "EM copy chunk_num=%u, em_slot=%u, em_cpu_addr=%p", chunk_num, em_slot, em_cpu_addr);
+	//Buffer_NewMessage(global_string_buff1);
+	
+	// map the required EM bank into the overlay bank temporarily
+	zp_bank_num = em_slot;
+	previous_overlay_bank_num = Memory_SwapInNewBank(EM_STORAGE_START_SLOT);
+	
+	// copy data to/from
 	if (to_em == true)
 	{
-		zp_em_addr_base = ZP_TO_ADDR;
-		zp_cpu_addr_base = ZP_FROM_ADDR;
+		memcpy(em_cpu_addr, cpu_addr, 256);
 	}
 	else
 	{
-		zp_em_addr_base = ZP_FROM_ADDR;
-		zp_cpu_addr_base = ZP_TO_ADDR;
+		memcpy(cpu_addr, em_cpu_addr, 256);
 	}
 	
-	// add the offset to the base address for EM data get to the right place for this chunk's copy
-	em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
-	
-	//sprintf(global_string_buff1, "DMA copy chunk_num=%u, em_addr=%lu", chunk_num, em_addr);
-	//Buffer_NewMessage(global_string_buff1);
-	
-	// set up the 20-bit address as either to/from
-	*(uint16_t*)zp_em_addr_base = em_addr & 0xFFFF;
-	*(uint8_t*)(zp_em_addr_base + 2) = ((uint32_t)EM_STORAGE_START_PHYS_ADDR >> 16) & 0xFF;
-
-	// set up the 16-bit address as either to/from
-	*(char**)zp_cpu_addr_base = (char*)cpu_addr;
-	*(uint8_t*)(zp_cpu_addr_base + 2) = 0;	// this buffer is in local / CPU memory, so: 0x00 0500 (etc)
-
-	// set copy length to 256 bytes
-	*(char**)ZP_COPY_LEN = (char*)STORAGE_FILE_BUFFER_1_LEN;	
-	*(uint8_t*)(ZP_COPY_LEN + 2) = 0;
-
-	//sprintf(global_string_buff1, "ZP_TO_ADDR=%02x,%02x,%02x; ZP_FROM_ADDR=%02x,%02x,%02x; ZP_COPY_LEN=%02x,%02x,%02x; ", *(uint8_t*)(ZP_TO_ADDR+0), *(uint8_t*)(ZP_TO_ADDR+1), *(uint8_t*)(ZP_TO_ADDR+2), *(uint8_t*)(ZP_FROM_ADDR+0), *(uint8_t*)(ZP_FROM_ADDR+1), *(uint8_t*)(ZP_FROM_ADDR+2), *(uint8_t*)(ZP_COPY_LEN+0), *(uint8_t*)(ZP_COPY_LEN+1), *(uint8_t*)(ZP_COPY_LEN+2));
-	//Buffer_NewMessage(global_string_buff1);
-
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);	
- 	Memory_CopyWithDMA();	
-	Sys_RestoreIOPage();
+	// map whatever overlay had been in place, back in place
+	zp_bank_num = previous_overlay_bank_num;
+	previous_overlay_bank_num = Memory_SwapInNewBank(EM_STORAGE_START_SLOT);	
 }
 
 

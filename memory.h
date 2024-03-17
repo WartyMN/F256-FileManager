@@ -57,9 +57,11 @@
 
 
 // starting point for all storage to extended memory. if larger than 8K, increment as necessary
-#define EM_STORAGE_START_PHYS_ADDR            0x28000	// when copying file data to EM, the starting physical address (20 bit)
-#define EM_STORAGE_START_SLOT                 0x05		// the slot to map it into, if at all
-#define EM_STORAGE_START_VALUE                0x14		// the slot it is physically located in
+#define EM_STORAGE_START_CPU_ADDR			0xA000		// when copying file data to EM, the starting CPU address (16 bit)
+#define EM_STORAGE_START_PHYS_ADDR			0x28000		// when copying file data to EM, the starting physical address (20 bit)
+//#define EM_STORAGE_START_SLOT				0x06		// the 0-7 local CPU slot to map it into - i/o + kernel#2 slot
+#define EM_STORAGE_START_SLOT				0x05		// the 0-7 local CPU slot to map it into - overlay slot
+#define EM_STORAGE_START_VALUE				0x14		// the slot it is physically located in
 
 
 /*****************************************************************************/
@@ -109,7 +111,7 @@ void __fastcall__ Memory_DebugOut(void);
 // set zp_to_addr, zp_from_addr, zp_copy_len before calling.
 // this version uses the F256's DMA capabilities to copy, so addresses can be 24 bit (system memory, not CPU memory)
 // in other words, no need to page either dst or src into CPU space
-void __fastcall__ Memory_CopyWithDMA(void);
+//void __fastcall__ Memory_CopyWithDMA(void);
 
 // call to a routine in memory.asm that fills the specified number of bytes to the dst
 // set zp_to_addr, zp_copy_len to num bytes to fill, and zp_other_byte to the fill value before calling.

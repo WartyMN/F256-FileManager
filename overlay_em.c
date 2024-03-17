@@ -334,7 +334,7 @@ void EM_DisplayAsText(uint8_t num_chunks)
 	// EM chunk read loop
 	while (keep_going == true && i < num_chunks)
 	{
-		App_EMDataCopyDMA(copy_buffer, i++, PARAM_COPY_FROM_EM);
+		App_EMDataCopy(copy_buffer, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
 // 		copy_buffer_len = General_Strnlen((char*)copy_buffer, STORAGE_FILE_BUFFER_1_LEN);	// can't assume 256b, last chunk may have less.
