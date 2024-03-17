@@ -555,12 +555,18 @@ void Startup_ShowMachineSplash(void)
 	left_x2 = MACHINE_SPLASH_END_COL_LEFT;
 	Text_CopyMemBoxLinearBuffer(machine_splash_chars_left, left_x1, MACHINE_SPLASH_START_ROW, left_x2, MACHINE_SPLASH_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_CopyMemBoxLinearBuffer(machine_splash_attrs_left, left_x1, MACHINE_SPLASH_START_ROW, left_x2, MACHINE_SPLASH_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_ATTR);
-	General_DelayTicks(15000); // we want to show the thinnest version for a longer period of time
+	General_DelayTicks(14000); // we want to show the thinnest version for a longer period of time
+	
+	// give user a chance to drop into BASIC immediately
+	if (Keyboard_GetKeyIfPressed() == 'b')
+	{
+		Kernal_RunBASIC();
+	}
 
 	// rotate through a series of increasingly fat chars for a reverse louver effect
 	for (i=0; i < 6; i++)
 	{		
-		General_DelayTicks(900);
+		General_DelayTicks(800);
 
 		this_splash_char = machine_splash_chars_left;
 		
@@ -571,6 +577,12 @@ void Startup_ShowMachineSplash(void)
 		}
 
 		Text_CopyMemBoxLinearBuffer(machine_splash_chars_left, left_x1, MACHINE_SPLASH_START_ROW, left_x2, MACHINE_SPLASH_BOTTOM_ROW, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
+	}
+	
+	// give user a chance to drop into BASIC immediately
+	if (Keyboard_GetKeyIfPressed() == 'b')
+	{
+		Kernal_RunBASIC();
 	}
 	
 	General_DelayTicks(900);
@@ -1139,6 +1151,12 @@ void Startup_ShowLogo(void)
 		//  you can also start from DOS with "/- fm", and then / ends up in 200 slot.
 		// if from flash, $200 would be 'f', and $201 would be 'm', and $202 would be 0. 
 		Startup_ShowMachineSplash();		
+	
+		// give user a chance to drop into BASIC immediately
+		if (Keyboard_GetKeyIfPressed() == 'b')
+		{
+			Kernal_RunBASIC();
+		}
 	
 		General_DelayTicks(10000);
 	}

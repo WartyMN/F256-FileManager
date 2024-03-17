@@ -44,7 +44,7 @@
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
-#define UPDATE_VERSION	23
+#define UPDATE_VERSION	24
 
 #define VERSION_NUM_X	0
 #define VERSION_NUM_Y	24

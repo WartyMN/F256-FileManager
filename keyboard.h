@@ -75,6 +75,9 @@ typedef struct KeyRepeater
 
 // **** USER INPUT UTILITIES *****
 
+// Check to see if keystroke events pending - does not wait for a key
+uint8_t Keyboard_GetKeyIfPressed(void);
+
 // Wait for one character from the keyboard and return it
 char Keyboard_GetChar(void);
 

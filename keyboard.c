@@ -88,9 +88,6 @@ extern uint8_t	zp_temp_4;
 // Pop head of keyboard queue
 uint8_t Keyboard_PopQueue(void);
 
-// Check to see if keystroke events pending
-uint8_t Keyboard_GetKeyPressed(void);
-
 // Calls kernel.nextEvent but also updates keyboard state events.
 uint8_t Keyboard_GetNextEvent(void);
 
@@ -136,22 +133,6 @@ uint8_t Keyboard_PopQueue(void)
 	--keyboard_queue_entries;
 	
 	return this_key;
-}
-
-
-// Check to see if keystroke events pending
-uint8_t Keyboard_GetKeyPressed(void)
-{
-	// if there is anything in the queue, pop it and return it.
-	if (keyboard_queue_entries > 0)
-	{
-		return Keyboard_PopQueue();
-	}
-		
-	// process any outstanding events
-	Keyboard_ProcessEvents();
-	
-	return 0;
 }
 
 
@@ -384,7 +365,7 @@ char Keyboard_GetChar(void)
 
 	do
 	{
-		the_char = Keyboard_GetKeyPressed();
+		the_char = Keyboard_GetKeyIfPressed();
 	} while (the_char == 0);
 
 	//DEBUG_OUT(("%s %d: key input=%x", __func__, __LINE__, the_char));
@@ -392,3 +373,18 @@ char Keyboard_GetChar(void)
 	return the_char;
 }
 
+
+// Check to see if keystroke events pending - does not wait for a key
+uint8_t Keyboard_GetKeyIfPressed(void)
+{
+	// if there is anything in the queue, pop it and return it.
+	if (keyboard_queue_entries > 0)
+	{
+		return Keyboard_PopQueue();
+	}
+		
+	// process any outstanding events
+	Keyboard_ProcessEvents();
+	
+	return 0;
+}
