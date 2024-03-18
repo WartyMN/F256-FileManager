@@ -252,43 +252,30 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 	//     1 buffer to hold what's left from the 256k read, after the last full line is written. by definition has to be less than 80 chars.
 	//       after detecting we have <80 chars left, and more chunks to go, copy remainder to another 256b buffer. copy more in. process remainder buffer first.
 
-	uint8_t		y;
+	uint8_t		i = 0;
+	uint8_t		y = 0;
 	uint8_t		user_input;
+	uint8_t		needed_bytes;
+	uint8_t		available_bytes;
+	uint8_t		bytes_displayed;
+	int8_t		bytes_not_displayed;
 	bool		keep_going = true;
 	bool		user_exit = false;
 	bool		copy_again;
 	uint8_t*	copy_buffer;
 	uint8_t*	buffer_curr_loc;
-	char*		remainder_buffer;
 	char*		line_buffer;
 	char*		line_buffer_remainder;
-	uint8_t		i = 0;
 	int16_t		unprocessed_bytes;
 	uint16_t	remain_len = 0;
-	uint8_t		needed_bytes;
-	uint8_t		available_bytes;
-	uint8_t		bytes_displayed;
-	int8_t		bytes_not_displayed;
 	
-	// primary local buffer will use 256b interbank buffers for file.
-	//copy_buffer = (char*)STORAGE_FILE_BUFFER_1;
+	// primary local buffer will use 384b dedicated storage in the EM overlay (only needs 256 technically, but this gives us some flex)
 	copy_buffer = em_temp_buffer_384b;
-	
-	// catch-basin/remainder-of-text buffer will use the smaller 204b temp buffer. cannot use Get string buffer as we'll need that on screen changes.
-	remainder_buffer = (char*)STORAGE_STRING_BUFFER_1;
-	remainder_buffer[0] = 0;
 	
 	// set up the display line buffer, using the other 204b interbank buffers. (STORAGE_STRING_BUFFER_1_LEN)
 	line_buffer = (char*)STORAGE_STRING_BUFFER_2;
 	line_buffer[0] = 0;
 
-	//Buffer_NewMessage("starting text display...");
-	
-	// loop until data is all displayed, or until user says stop
-	
-	// Page display loop
-	y = 0;
-	
 	// EM chunk read loop
 	while (keep_going == true && i < num_chunks)
 	{
@@ -324,16 +311,11 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 					available_bytes = unprocessed_bytes;
 				}
 
-// 				sprintf(global_string_buff1, "remain_len=%u, needed=%u, unprocessed=%u, avail=%u", remain_len, needed_bytes, unprocessed_bytes, available_bytes);
-// 				Buffer_NewMessage(global_string_buff1);
-			
 				// either copy in a full (max row) worth of bytes from copy buffer, or top up the line buffer so it is as max (=80 chars=1 row on screen)
 				if (remain_len > 0)
 				{
 					memcpy(line_buffer + remain_len, buffer_curr_loc, available_bytes);
 					line_buffer[80] = 0;
-// 						sprintf(global_string_buff1, "line_buffer='%s' after copying %u more", line_buffer, available_bytes);
-// 						Buffer_NewMessage(global_string_buff1);
 				}
 				else
 				{
@@ -342,9 +324,6 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 				
 				buffer_curr_loc += available_bytes;
 				unprocessed_bytes -= available_bytes;
-		
-// 						sprintf(global_string_buff1, "buffer_curr_loc=%p, unprocessed_bytes=%u, i=%u", buffer_curr_loc, unprocessed_bytes, i);
-// 						Buffer_NewMessage(global_string_buff1);
 			}
 			else
 			{
@@ -471,4 +450,122 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 		user_input = Keyboard_GetChar();
 	}
 }
+
+
+// displays the content found in EM as hex codes and text to right, similar to a ML monitor
+// num_chunks is the number of EM 256b chunks that need displaying
+// the_name is only used to provide feedback to the user about what they are viewing
+void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
+{
+	// LOGIC
+	//   Data must have already been loaded into EM_STORAGE_START_PHYS_ADDR
+	//   user can hit esc / runstop to stop at any time, or any other key to continue to the next screenful
+	
+	// LOGIC
+	//   we only have 80x60 to work with, and we need a row for "hit space for more, esc to stop"
+	//     only 16 bytes of hex can be shown on one row of 80 chars (2 per byte + 1 space; plus 16 chars at right for view, plus addr at left)
+	//     so 59 rows * 16 bytes = 944 max bytes can be shown
+	//     we read 256 b chunks from EM, so we need about 3.7 chunks (59/16) per screenful.
+	//   we need 1 buffer:
+	//     1 to capture the 256b coming in from EM each EM read. we can peel off 16 byte slices of this for each row.
+
+	uint8_t		user_input;
+	uint8_t		rows_displayed_this_chunk;
+	uint8_t		i = 0;
+	uint8_t		y = 0;
+	uint16_t	remain_len = 0;
+	uint32_t	loc_in_file = 0x0000;	// will track the location within the file, so we can show to users on left side. 
+	bool		keep_going = true;
+	bool		user_exit = false;
+	bool		copy_again;
+	uint8_t*	copy_buffer;
+	uint8_t*	buffer_curr_loc;
+	
+	// primary local buffer will use 384b dedicated storage in the EM overlay (only needs 256 technically, but this gives us some flex)
+	copy_buffer = em_temp_buffer_384b;
+	
+	// EM chunk read loop
+	while (keep_going == true && i < num_chunks)
+	{
+		App_EMDataCopy(copy_buffer, i++, PARAM_COPY_FROM_EM);
+
+		buffer_curr_loc = copy_buffer;
+		copy_again = false;
+		rows_displayed_this_chunk = 0;
+		
+		// process each chunk and any remainder from previous read cycle
+		do
+		{		
+			if (y == 0)
+			{
+				Text_ClearScreen(FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+				sprintf(global_string_buff1, General_GetString(ID_STR_MSG_HEX_VIEW_INSTRUCTIONS), the_name);
+				Text_DrawStringAtXY(0, y++, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+				++y;
+			}
+			
+			// address display at left
+			sprintf(global_string_buff1, "%06lX: ", loc_in_file);
+			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+		
+			// main hex display in middle
+			sprintf(global_string_buff1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
+				buffer_curr_loc[0], buffer_curr_loc[1], buffer_curr_loc[2], buffer_curr_loc[3], buffer_curr_loc[4], buffer_curr_loc[5], buffer_curr_loc[6], buffer_curr_loc[7], 
+				buffer_curr_loc[8], buffer_curr_loc[9], buffer_curr_loc[10], buffer_curr_loc[11], buffer_curr_loc[12], buffer_curr_loc[13], buffer_curr_loc[14], buffer_curr_loc[15]);
+			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff1, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+
+			// 'text' display at right
+			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
+			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)buffer_curr_loc, MEM_DUMP_BYTES_PER_ROW);
+		
+			loc_in_file += MEM_DUMP_BYTES_PER_ROW;
+			buffer_curr_loc += MEM_DUMP_BYTES_PER_ROW;
+			++rows_displayed_this_chunk;
+			
+			// check if we need to ask user to go on to a new screen
+			++y;
+			
+			if (y == MAX_TEXT_VIEW_ROWS_PER_PAGE)
+			{
+				user_input = Keyboard_GetChar();
+				
+				if (user_input == CH_ESC || user_input == 'q' || user_input == CH_RUNSTOP)
+				{
+					keep_going = false;
+					user_exit = true;
+				}
+				else
+				{
+					y = 0;
+				}
+			}
+			
+			// check if we need to get more bytes from EM
+			if (rows_displayed_this_chunk > 16)
+			{
+				// whole chunk has now been displayed = we need to get another chunk
+				//sprintf(global_string_buff1, "need more data, i=%u", i);
+				//Buffer_NewMessage(global_string_buff1);
+				
+				if (i < num_chunks)
+				{
+					copy_again = true;
+				}
+				else
+				{
+					// there isn't enough in copy buffer to fill a row, but also last chunk has already been read from EM
+					keep_going = false;					
+				}
+			}
+			
+		} while (copy_again == false && keep_going == true);		
+	}
+	
+	// if user hasn't already said they are done, give them a chance to look at the last displayed page
+	if (user_exit != true)
+	{
+		user_input = Keyboard_GetChar();
+	}
+}
+
 

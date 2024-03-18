@@ -419,7 +419,7 @@ uint8_t App_MainLoop(void)
 					case ACTION_VIEW_AS_HEX:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
 						global_clock_is_visible = false;
-						success = Panel_ViewCurrentFileAsHex(the_panel);	
+						success = Panel_ViewCurrentFile(the_panel, PARAM_VIEW_AS_HEX);
 						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
 						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);
@@ -431,7 +431,7 @@ uint8_t App_MainLoop(void)
 					case ACTION_VIEW_AS_TEXT:
 						//DEBUG_OUT(("%s %d: view as hex", __func__ , __LINE__));
 						global_clock_is_visible = false;
-						success = Panel_ViewCurrentFileAsText(the_panel);	
+						success = Panel_ViewCurrentFile(the_panel, PARAM_VIEW_AS_TEXT);
 						App_LoadOverlay(OVERLAY_SCREEN);
 						Screen_Render();	// the hex view has completely overwritten the screen
 						Panel_RenderContents(&app_file_panel[PANEL_ID_LEFT]);

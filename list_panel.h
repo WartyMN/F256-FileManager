@@ -43,6 +43,8 @@
 
 #define PANEL_LIST_MAX_ROWS			144	// hack... most files we can display. 8bit note: this is IEC max files/dir. FAT32 can do 255 with longnames on
 
+#define PARAM_VIEW_AS_HEX			0	// parameter for Panel_ViewCurrentFile
+#define PARAM_VIEW_AS_TEXT			1	// parameter for Panel_ViewCurrentFile
 
 /*****************************************************************************/
 /*                               Enumerations                                */
@@ -160,11 +162,9 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel);
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel);
 
-// show the contents of the currently selected file as a hex dump
-bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel);
-
-// show the contents of the currently selected file as text
-bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel);
+// show the contents of the currently selected file using the selected type of viewer
+// the_viewer_type is one of the predefined macro param values (PARAM_VIEW_AS_HEX, PARAM_VIEW_AS_TEXT, etc.)
+bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type);
 
 // change file selection - user did cursor up
 // returns false if action was not possible (eg, you were at top of list already)

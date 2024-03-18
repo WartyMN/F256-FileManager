@@ -53,5 +53,9 @@ char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, ui
 // the_name is only used to provide feedback to the user about what they are viewing
 void EM_DisplayAsText(uint8_t num_chunks, char* the_name);
 
+// displays the content found in EM as hex codes and text to right, similar to a ML monitor
+// num_chunks is the number of EM 256b chunks that need displaying
+// the_name is only used to provide feedback to the user about what they are viewing
+void EM_DisplayAsHex(uint8_t num_chunks, char* the_name);
 
 #endif /* OVERLAY_EM_H_ */

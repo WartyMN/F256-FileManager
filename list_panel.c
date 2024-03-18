@@ -929,8 +929,9 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 }
 
 
-// show the contents of the currently selected file as a hex dump
-bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
+// show the contents of the currently selected file using the selected type of viewer
+// the_viewer_type is one of the predefined macro param values (PARAM_VIEW_AS_HEX, PARAM_VIEW_AS_TEXT, etc.)
+bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 {
 	int16_t				the_current_row;
 	WB2KFileObject*		the_file;
@@ -947,37 +948,19 @@ bool Panel_ViewCurrentFileAsHex(WB2KViewPanel* the_panel)
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	success = File_GetHexContents(global_temp_path_1);
-	
-	return success;
-}
-
-
-// show the contents of the currently selected file as text
-bool Panel_ViewCurrentFileAsText(WB2KViewPanel* the_panel)
-{
-	int16_t				the_current_row;
-	WB2KFileObject*		the_file;
-	bool				success;
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-	if (the_current_row < 0)
-	{
-		return false;
-	}
-
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	
 	success = File_LoadFileToEM(global_temp_path_1);
 	
 	if (success)
 	{
 		App_LoadOverlay(OVERLAY_EM);
-		EM_DisplayAsText(the_file->size_/256, the_file->file_name_);
+		if (the_viewer_type == PARAM_VIEW_AS_HEX)
+		{
+			EM_DisplayAsHex(the_file->size_/256, the_file->file_name_);
+		}
+		else
+		{
+			EM_DisplayAsText(the_file->size_/256, the_file->file_name_);
+		}
 	}
 	
 	return success;

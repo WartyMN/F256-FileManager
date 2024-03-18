@@ -134,12 +134,6 @@ bool File_ReadFontData(char* the_file_path);
 // Returns false on any error
 bool File_LoadFileToEM(char* the_file_path);
 
-// populate a buffer with bytes from the file, reading the specified number of bytes into the buffer. Display the buffer chars. Returns false on any error
-//bool File_GetTextContents(char* the_file_path);
-
-// populate a buffer with a hex dump of the file, reading the specified number of bytes into the buffer. Returns false on any error
-bool File_GetHexContents(char* the_file_path);
-
 // get the free disk space on the parent disk of the file
 // returns -1 in event of error
 int16_t File_GetFreeBytesOnDisk(WB2KFileObject* the_file);
