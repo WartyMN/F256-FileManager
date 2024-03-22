@@ -61,7 +61,7 @@
 #define EM_STORAGE_START_PHYS_ADDR			0x28000		// when copying file data to EM, the starting physical address (20 bit)
 //#define EM_STORAGE_START_SLOT				0x06		// the 0-7 local CPU slot to map it into - i/o + kernel#2 slot
 #define EM_STORAGE_START_SLOT				0x05		// the 0-7 local CPU slot to map it into - overlay slot
-#define EM_STORAGE_START_VALUE				0x14		// the slot it is physically located in
+#define EM_STORAGE_START_PHYS_BANK_NUM		0x14		// the system physical bank number/slot where EM storage starts for us.
 
 
 /*****************************************************************************/
@@ -100,7 +100,7 @@ uint8_t __fastcall__ Memory_GetMappedBankNum(void);
 
 // call to a routine in memory.asm that writes an illegal opcode followed by address of debug buffer
 // that is a simple to the f256jr emulator to write the string at the debug buffer out to the console
-void __fastcall__ Memory_DebugOut(void);
+//void __fastcall__ Memory_DebugOut(void);
 
 // call to a routine in memory.asm that copies specified number of bytes from src to dst
 // set zp_to_addr, zp_from_addr, zp_copy_len before calling.

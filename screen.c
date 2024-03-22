@@ -89,6 +89,7 @@ void Screen_DrawUI(void);
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
 
+// clear screen and draw main UI
 void Screen_DrawUI(void)
 {
 	uint8_t		i;
@@ -119,13 +120,13 @@ void Screen_DrawUI(void)
 		Text_SetCharAtXY(x1 + (UI_PANEL_TAB_WIDTH - 1), y1, SC_T_UP);
 
 		// draw file list head rows
-		x1 += UI_PANEL_FILENAME_OFFSET;
-		++y1;
-		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
-		x1 += UI_PANEL_FILETYPE_OFFSET;
-		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILETYPE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
-		x1 += UI_PANEL_FILESIZE_OFFSET;
-		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+// 		x1 += UI_PANEL_FILENAME_OFFSET;
+// 		++y1;
+// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+// 		x1 += UI_PANEL_FILETYPE_OFFSET;
+// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILETYPE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+// 		x1 += UI_PANEL_FILESIZE_OFFSET;
+// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
 	}
 	
 	// draw permanently enabled buttons. 
@@ -167,6 +168,36 @@ void Screen_DrawUI(void)
 /*****************************************************************************/
 /*                        Public Function Definitions                        */
 /*****************************************************************************/
+
+// draw just the 3 column headers in the specified panel
+// if for_disk is true, will use name/type/size. if false, will use name/bank num/addr
+void Screen_DrawPanelHeader(uint8_t x, bool for_disk)
+{
+	uint8_t		y;
+
+	y = UI_VIEW_PANEL_BODY_Y1 + 1;
+
+	// important to clear header row because when switching between file/bank views, you get "BANKPADDRESS"
+	Text_FillBox(x, y, x + UI_VIEW_PANEL_BODY_WIDTH - 3, y, CH_SPACE, LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+
+	if (for_disk == true)
+	{
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x += UI_PANEL_FILETYPE_OFFSET;
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_FILETYPE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x += UI_PANEL_FILESIZE_OFFSET;
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+	}
+	else
+	{
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x += UI_PANEL_BANK_NUM_OFFSET;
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_BANK_NUM), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+		x += UI_PANEL_BANK_ADDR_OFFSET;
+		Text_DrawStringAtXY(x, y, General_GetString(ID_STR_LBL_BANK_ADDRESS), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
+	}
+}
+
 
 // redraw file menu buttons in activated/inactivated state as appropriate
 // device buttons are always activated, so are only drawn once
@@ -218,35 +249,59 @@ void Screen_InitializeUI(void)
 	panel[PANEL_ID_LEFT].id_ = PANEL_ID_LEFT;
 	panel[PANEL_ID_LEFT].device_id_ = DEVICE_ID_UNSET;
 	panel[PANEL_ID_LEFT].x1_ = UI_LEFT_PANEL_BODY_X1;
-	panel[PANEL_ID_LEFT].y1_ = UI_LEFT_PANEL_BODY_Y1;
-	panel[PANEL_ID_LEFT].width_ = UI_LEFT_PANEL_BODY_WIDTH;
+	panel[PANEL_ID_LEFT].y1_ = UI_VIEW_PANEL_BODY_Y1;
+	panel[PANEL_ID_LEFT].width_ = UI_VIEW_PANEL_BODY_WIDTH;
 	panel[PANEL_ID_LEFT].x2_ = UI_LEFT_PANEL_BODY_X2;
-	panel[PANEL_ID_LEFT].y2_ = UI_LEFT_PANEL_BODY_Y2;
+	panel[PANEL_ID_LEFT].y2_ = UI_VIEW_PANEL_BODY_Y2;
 
 	panel[PANEL_ID_RIGHT].id_ = PANEL_ID_RIGHT;
 	panel[PANEL_ID_RIGHT].device_id_ = DEVICE_ID_UNSET;
 	panel[PANEL_ID_RIGHT].x1_ = UI_RIGHT_PANEL_BODY_X1;
-	panel[PANEL_ID_RIGHT].y1_ = UI_RIGHT_PANEL_BODY_Y1;
-	panel[PANEL_ID_RIGHT].width_ = UI_RIGHT_PANEL_BODY_WIDTH;
+	panel[PANEL_ID_RIGHT].y1_ = UI_VIEW_PANEL_BODY_Y1;
+	panel[PANEL_ID_RIGHT].width_ = UI_VIEW_PANEL_BODY_WIDTH;
 	panel[PANEL_ID_RIGHT].x2_ = UI_RIGHT_PANEL_BODY_X2;
-	panel[PANEL_ID_RIGHT].y2_ = UI_RIGHT_PANEL_BODY_Y2;
+	panel[PANEL_ID_RIGHT].y2_ = UI_VIEW_PANEL_BODY_Y2;
 
 	// set up the buttons - DEVICE actions
-	uibutton[BUTTON_ID_NEXT_DEVICE].id_ = BUTTON_ID_NEXT_DEVICE;
-	uibutton[BUTTON_ID_NEXT_DEVICE].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_NEXT_DEVICE].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y;
-	uibutton[BUTTON_ID_NEXT_DEVICE].string_id_ = ID_STR_DEV_NEXT;
-	//uibutton[BUTTON_ID_NEXT_DEVICE].state_ = UI_BUTTON_STATE_DISABLED;
+	uibutton[BUTTON_ID_DEV_SD_CARD].id_ = BUTTON_ID_DEV_SD_CARD;
+	uibutton[BUTTON_ID_DEV_SD_CARD].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_DEV_SD_CARD].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y;
+	uibutton[BUTTON_ID_DEV_SD_CARD].string_id_ = ID_STR_DEV_SD;
+	//uibutton[BUTTON_ID_DEV_SD_CARD].state_ = UI_BUTTON_STATE_DISABLED;
+
+	uibutton[BUTTON_ID_DEV_FLOPPY_1].id_ = BUTTON_ID_DEV_FLOPPY_1;
+	uibutton[BUTTON_ID_DEV_FLOPPY_1].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_DEV_FLOPPY_1].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 1;
+	uibutton[BUTTON_ID_DEV_FLOPPY_1].string_id_ = ID_STR_DEV_FLOPPY_1;
+	//uibutton[BUTTON_ID_DEV_FLOPPY_1].state_ = UI_BUTTON_STATE_DISABLED;
+
+	uibutton[BUTTON_ID_DEV_FLOPPY_2].id_ = BUTTON_ID_DEV_FLOPPY_2;
+	uibutton[BUTTON_ID_DEV_FLOPPY_2].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_DEV_FLOPPY_2].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 2;
+	uibutton[BUTTON_ID_DEV_FLOPPY_2].string_id_ = ID_STR_DEV_FLOPPY_2;
+	//uibutton[BUTTON_ID_DEV_FLOPPY_2].state_ = UI_BUTTON_STATE_DISABLED;
+
+	uibutton[BUTTON_ID_DEV_RAM].id_ = BUTTON_ID_DEV_RAM;
+	uibutton[BUTTON_ID_DEV_RAM].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_DEV_RAM].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 3;
+	uibutton[BUTTON_ID_DEV_RAM].string_id_ = ID_STR_DEV_RAM;
+	//uibutton[BUTTON_ID_DEV_RAM].state_ = UI_BUTTON_STATE_DISABLED;
+
+	uibutton[BUTTON_ID_DEV_FLASH].id_ = BUTTON_ID_DEV_FLASH;
+	uibutton[BUTTON_ID_DEV_FLASH].x1_ = UI_MIDDLE_AREA_START_X;
+	uibutton[BUTTON_ID_DEV_FLASH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 4;
+	uibutton[BUTTON_ID_DEV_FLASH].string_id_ = ID_STR_DEV_FLASH;
+	//uibutton[BUTTON_ID_DEV_FLASH].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_REFRESH].id_ = BUTTON_ID_REFRESH;
 	uibutton[BUTTON_ID_REFRESH].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_REFRESH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 1;
+	uibutton[BUTTON_ID_REFRESH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 5;
 	uibutton[BUTTON_ID_REFRESH].string_id_ = ID_STR_DEV_REFRESH_LISTING;
 	//uibutton[BUTTON_ID_REFRESH].state_ = UI_BUTTON_STATE_DISABLED;
 
 	uibutton[BUTTON_ID_FORMAT].id_ = BUTTON_ID_FORMAT;
 	uibutton[BUTTON_ID_FORMAT].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_FORMAT].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 2;
+	uibutton[BUTTON_ID_FORMAT].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 6;
 	uibutton[BUTTON_ID_FORMAT].string_id_ = ID_STR_DEV_FORMAT;
 	//uibutton[BUTTON_ID_FORMAT].state_ = UI_BUTTON_STATE_DISABLED;
 
@@ -370,22 +425,22 @@ void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function
 	//    we are passed a pointer to the current compare function. we can use that to figure out what type of sort icon to draw. 
 	
 	// clear old icons
-	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
-	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
-	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SPACE);
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SPACE);
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SPACE);
+	Text_SetCharAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SPACE);
 	
 	// set new ones
 	if (the_sort_compare_function == (void*)&File_CompareName)
 	{
-		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILENAME_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
 	}
 	else if (the_sort_compare_function == (void*)&File_CompareFileTypeID)
 	{
-		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILETYPE_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
 	}
 	else if (the_sort_compare_function == (void*)&File_CompareSize)
 	{
-		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_LEFT_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
+		Text_SetCharAndColorAtXY(the_panel_x + UI_PANEL_FILESIZE_SORT_OFFSET, UI_VIEW_PANEL_HEADER_Y, CH_SORT_ICON, COLOR_BRIGHT_BLUE, COLOR_BLACK);
 	}
 }
 

@@ -8,7 +8,7 @@ PROJECT=$DEV/F256jr-FileManager
 CONFIG_DIR=$PROJECT/config_cc65
 
 # name that will be used in files
-VERSION_STRING="1.0b23"
+VERSION_STRING="1.0b24"
 
 #DEBUG_DEFS="-DLOG_LEVEL_1 -DLOG_LEVEL_2 -DLOG_LEVEL_3 -DLOG_LEVEL_4 -DLOG_LEVEL_5"
 #DEBUG_DEFS=
@@ -58,16 +58,18 @@ rm -r $BUILD_DIR/*.o
 
 # compile
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T app.c -o $BUILD_DIR/app.s
+cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_5 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T bank.c -o $BUILD_DIR/bank.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T comm_buffer.c -o $BUILD_DIR/comm_buffer.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_2 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T file.c -o $BUILD_DIR/file.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_2 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T folder.c -o $BUILD_DIR/folder.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T general.c -o $BUILD_DIR/general.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T keyboard.c -o $BUILD_DIR/keyboard.s
-cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T list_panel.c -o $BUILD_DIR/list_panel.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T list.c -o $BUILD_DIR/list.s
-cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_1 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T screen.c -o $BUILD_DIR/screen.s
+cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T list_panel.c -o $BUILD_DIR/list_panel.s
+cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_5 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T memsys.c -o $BUILD_DIR/memsys.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_3 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T overlay_em.c -o $BUILD_DIR/overlay_em.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_4 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T overlay_startup.c -o $BUILD_DIR/overlay_startup.s
+cc65 -g --cpu $CC65CPU -t $CC65TGT --code-name OVERLAY_1 $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T screen.c -o $BUILD_DIR/screen.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T sys.c -o $BUILD_DIR/sys.s
 cc65 -g --cpu $CC65CPU -t $CC65TGT $OPTI -I $CONFIG_DIR $TARGET_DEFS $PLATFORM_DEFS $DEBUG_DEF_1 $DEBUG_DEF_2 $DEBUG_DEF_3 $DEBUG_DEF_4 $DEBUG_DEF_5 $DEBUG_VIA_SERIAL $STACK_CHECK -T text.c -o $BUILD_DIR/text.s
 
@@ -80,6 +82,7 @@ echo "\n**************************\nCA65 assemble start...\n********************
 # assemble into object files
 cd $BUILD_DIR
 ca65 -t $CC65TGT app.s
+ca65 -t $CC65TGT bank.s
 ca65 -t $CC65TGT comm_buffer.s
 ca65 -t $CC65TGT file.s
 ca65 -t $CC65TGT folder.s
@@ -87,6 +90,7 @@ ca65 -t $CC65TGT general.s
 ca65 -t $CC65TGT keyboard.s
 ca65 -t $CC65TGT list_panel.s
 ca65 -t $CC65TGT list.s
+ca65 -t $CC65TGT memsys.s
 ca65 -t $CC65TGT overlay_em.s
 ca65 -t $CC65TGT overlay_startup.s
 ca65 -t $CC65TGT screen.s
@@ -104,7 +108,7 @@ ca65 -t $CC65TGT ../memory.asm -o memory.o
 echo "\n**************************\nLD65 link start...\n**************************\n"
 
 # link files into an executable
-ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o comm_buffer.o file.o folder.o general.o keyboard.o list.o list_panel.o memory.o overlay_em.o overlay_startup.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
+ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o bank.o comm_buffer.o file.o folder.o general.o keyboard.o list.o list_panel.o memory.o memsys.o overlay_em.o overlay_startup.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
 # $PROJECT/cc65/lib/common.lib
 
 #noTE: 2024-02-12: removed name.o as it was incompatible with the lichking-style memory map I want to use to get more memory
@@ -125,8 +129,8 @@ cp ../strings/strings.bin .
 
 #build pgZ
 # cd ../release
- fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "strings.bin")
- addr=("990700" "000001" "002001" "004001" "006001" "004002")
+ fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "fmanager.rom.5" "strings.bin")
+ addr=("990700" "000001" "002001" "004001" "006001" "008001" "004002")
 
  for ((i = 1; i <= $#fname; i++)); do
    v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
@@ -135,7 +139,7 @@ cp ../strings/strings.bin .
  echo -n 'Z' >> pgZ_start.hdr
  echo -n '\x99\x07\x00\x00\x00\x00' >> pgZ_end.hdr
 
- cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 fmanager.rom.3.hdr fmanager.rom.3 fmanager.rom.4.hdr fmanager.rom.4 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
+ cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 fmanager.rom.3.hdr fmanager.rom.3 fmanager.rom.4.hdr fmanager.rom.4 fmanager.rom.5.hdr fmanager.rom.5 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
 
  rm *.hdr
 
@@ -149,7 +153,7 @@ cd fm_flash
 split -d -b8192 ../fm.bin fm.
 
 # make the last chunk be exactly 8k
-truncate -s 8K fm.05
+truncate -s 8K fm.06
 
 # zip it up
 cd ../

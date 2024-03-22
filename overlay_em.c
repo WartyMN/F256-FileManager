@@ -279,7 +279,7 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 	// EM chunk read loop
 	while (keep_going == true && i < num_chunks)
 	{
-		App_EMDataCopy(copy_buffer, i++, PARAM_COPY_FROM_EM);
+		App_EMDataCopy(copy_buffer, EM_STORAGE_START_PHYS_BANK_NUM, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
 		unprocessed_bytes = 256;
@@ -487,7 +487,7 @@ void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
 	// EM chunk read loop
 	while (keep_going == true && i < num_chunks)
 	{
-		App_EMDataCopy(copy_buffer, i++, PARAM_COPY_FROM_EM);
+		App_EMDataCopy(copy_buffer, EM_STORAGE_START_PHYS_BANK_NUM, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
 		copy_again = false;
@@ -569,3 +569,49 @@ void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
 }
 
 
+
+// // scan through all EM, checking each 8k bank for a KUP program signature
+// void EM_ScanForKUP(void)
+// {
+// 	uint8_t		i = 0;
+// 	uint8_t*	copy_buffer;
+// 	
+// 	uint8_t		kup_version;
+// 	uint8_t*	kup_name;
+// 	uint8_t*	kup_args;	// we don't care, but need to get past them to get to description
+// 	uint8_t*	kup_description;
+// 	uint8_t		the_len;
+// 	
+// 	// primary local buffer will use 384b dedicated storage in the EM overlay (only needs 256 technically, but this gives us some flex)
+// 	copy_buffer = em_temp_buffer_384b;
+// 	
+// 	// read the first 256 bytes of every bank in extended memory
+// 	for (i = 8; i < 80; i++)
+// 	{
+// 		App_EMDataCopy(copy_buffer, i, 0, PARAM_COPY_FROM_EM);
+// 		
+// 		// check for KUP signature $F2$56
+// 		if (copy_buffer[0] == 0xF2 && copy_buffer[1] == 0x56)
+// 		{
+// 			kup_version = copy_buffer[6];
+// 			
+// 			// get name: all versions of KUP supported the name
+// 			kup_name = &copy_buffer[10];
+// 			the_len = General_Strnlen((char*)kup_name, 128);
+// 			
+// 			if (kup_version > 0)
+// 			{
+// 				kup_args = kup_name + the_len + 1;
+// 				the_len = General_Strnlen((char*)kup_args, 128);
+// 				kup_description = kup_args + the_len + 1;
+// 			}
+// 			else
+// 			{
+// 				kup_description = (uint8_t*)"";
+// 			}
+// 			
+// 			sprintf(global_string_buff1, "EM bank %02x: '%s': '%s'", i, kup_name, kup_description);
+// 			Buffer_NewMessage(global_string_buff1);
+// 		}
+// 	}	
+// }

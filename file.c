@@ -630,7 +630,7 @@ bool File_LoadFileToEM(char* the_file_path)
 	
 	FILE*		the_file_handler;
 	bool		keep_going = true;
-	uint8_t		chunk_num = 0;
+	uint8_t		page_num = 0;
 	int16_t		s_bytes_read_from_disk;
 	char*		the_buffer = (char*)STORAGE_FILE_BUFFER_1;
 
@@ -685,7 +685,7 @@ bool File_LoadFileToEM(char* the_file_path)
 			keep_going = false;
 		}
 
-		App_EMDataCopy((uint8_t*)STORAGE_FILE_BUFFER_1, chunk_num++, PARAM_COPY_TO_EM);
+		App_EMDataCopy((uint8_t*)STORAGE_FILE_BUFFER_1, EM_STORAGE_START_PHYS_BANK_NUM, page_num++, PARAM_COPY_TO_EM);
 		
 	} while (keep_going == true);
 

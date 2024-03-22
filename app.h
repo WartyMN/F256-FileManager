@@ -158,40 +158,48 @@
 // key codes for user input
 #define ACTION_INVALID_INPUT	255	// this will represent illegal keyboard command by user
 
-// primary keys: designed for use on B128/C128 numpad
-#define MOVE_UP						'8'
-#define MOVE_RIGHT					'6'
-#define MOVE_DOWN					'2'
-#define MOVE_LEFT					'4'
-// alternative keys: designed for use on standard keyboard (e.g, on laptop running an emulator)
-#define MOVE_UP_ALT					CH_CURS_UP
-#define MOVE_RIGHT_ALT				CH_CURS_RIGHT
-#define MOVE_DOWN_ALT				CH_CURS_DOWN
-#define MOVE_LEFT_ALT				CH_CURS_LEFT
+#define ACTION_CANCEL				CH_ESC
+#define ACTION_CANCEL_ALT			CH_RUNSTOP
+#define ACTION_CONFIRM				CH_ENTER
 
-#define ACTION_SELECT				CH_ENTER // numpad key
+// navigation keys
+#define MOVE_UP						CH_CURS_UP
+#define MOVE_RIGHT					CH_CURS_RIGHT
+#define MOVE_DOWN					CH_CURS_DOWN
+#define MOVE_LEFT					CH_CURS_LEFT
 #define ACTION_SWAP_ACTIVE_PANEL	CH_TAB
+
+// file and memory bank actions
+#define ACTION_SELECT				CH_ENTER // numpad key
 #define ACTION_DELETE				CH_DEL
 #define ACTION_DELETE_ALT			'x'
 #define ACTION_COPY					'c'
 #define ACTION_DUPLICATE			'd'
-#define ACTION_CANCEL				CH_ESC
-#define ACTION_CANCEL_ALT			CH_RUNSTOP
-#define ACTION_CONFIRM				CH_ENTER
-#define ACTION_SORT_BY_NAME			'N'	// CH_F6
-#define ACTION_SORT_BY_DATE			'D'	// CH_F7
-#define ACTION_SORT_BY_SIZE			'S'	// CH_F8
-#define ACTION_SORT_BY_TYPE			'T'	// CH_F9
+
 #define ACTION_VIEW_AS_HEX			'h'
 #define ACTION_VIEW_AS_TEXT			't'
 #define ACTION_RENAME				'r'
 #define ACTION_LOAD					'l'
+#define ACTION_FILL_MEMORY			'F'
+#define ACTION_CLEAR_MEMORY			'z'
+
+// folder actions
 #define ACTION_NEW_FOLDER			'm' // for "mkdir"
+#define ACTION_SORT_BY_NAME			'N'	// CH_F6
+#define ACTION_SORT_BY_DATE			'D'	// CH_F7
+#define ACTION_SORT_BY_SIZE			'S'	// CH_F8
+#define ACTION_SORT_BY_TYPE			'T'	// CH_F9
+#define ACTION_REFRESH_PANEL		'f'
 
-#define ACTION_NEXT_DEVICE			'n'	// CH_F1
-#define ACTION_REFRESH_PANEL		'f'	// CH_F2
-#define ACTION_FORMAT_DISK			'`'	// CH_F3
+// device actions
+#define ACTION_SWITCH_TO_SD			'0'
+#define ACTION_SWITCH_TO_FLOPPY_1	'1'
+#define ACTION_SWITCH_TO_FLOPPY_2	'2'
+#define ACTION_SWITCH_TO_RAM		'8'
+#define ACTION_SWITCH_TO_FLASH		'9'
+#define ACTION_FORMAT_DISK			'`'
 
+// app actions
 #define ACTION_SET_TIME				'C' // c for set CLOCK
 #define ACTION_ABOUT				'a' 
 #define ACTION_EXIT_TO_BASIC		'b'
@@ -230,10 +238,14 @@
 #define ERROR_COPY_FILE_SOURCE_FOLDER_WAS_NULL							121
 #define ERROR_COPY_FILE_TARGET_FOLDER_WAS_NULL							122
 #define ERROR_POPULATE_FILES_FOLDER_WAS_NULL							123
-#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT					124
-#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT						125
-#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT					126
-#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT					127
+#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE							124
+#define ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ							125
+#define ERROR_BANK_MARK_SELECTED_BANK_WAS_NULL							128
+#define ERROR_BANK_MARK_UNSELECTED_BANK_WAS_NULL						129
+#define ERROR_BANK_TO_DESTROY_WAS_NULL									130
+#define ERROR_PANEL_INIT_MEMSYS_WAS_NULL								131
+#define ERROR_DESTROY_ALL_MEMSYS_WAS_NULL								132
+#define ERROR_COULD_NOT_CREATE_MEMSYS_OBJ								133
 
 #define ERROR_DEFINE_ME													255
 
@@ -249,7 +261,7 @@
 #define OVERLAY_FOLDER			1
 #define OVERLAY_EM				2
 #define OVERLAY_STARTUP			3
-#define OVERLAY_COMBAT			4
+#define OVERLAY_MEMSYSTEM		4
 #define OVERLAY_INVENTORY		5
 #define OVERLAY_GAMEOVER		6
 #define OVERLAY_NOTICE_BOARD	7
@@ -299,6 +311,17 @@
 #define LIST_SCOPE_SELECTED			1
 #define LIST_SCOPE_NOT_SELECTED		2
 
+typedef enum device_number
+{
+	DEVICE_SD_CARD 				= 0,
+	DEVICE_FLOPPY_1 			= 1,
+	DEVICE_FLOPPY_2				= 2,
+	DEVICE_MAX_DISK_DEVICE		= 3,	// use as upper bound, e.g, if x < DEVICE_MAX_DISK_DEVICE then this is a disk
+	DEVICE_MIN_MEMORY_DEVICE	= 7,	// use as lower bound, e.g, if x > DEVICE_MIN_MEMORY_DEVICE then this is RAM or Flash
+	DEVICE_RAM					= 8,
+	DEVICE_FLASH				= 9,
+} device_number;
+
 /*****************************************************************************/
 /*                                 Structs                                   */
 /*****************************************************************************/
@@ -332,14 +355,15 @@ void App_HideProgressBar(void);
 void App_UpdateProgressBar(uint8_t progress_bar_total);
 
 // // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
-// // chunk_num is used to calculate distance from the base EM address
+// // page_num is used to calculate distance from the base EM address
 // // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr.
-// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t page_num, bool to_em);
 
 // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, using bank switching -- no DMA
-// chunk_num is used to calculate distance from the base EM address
+// em_bank_num is used to derive the base EM address
+// page_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
-void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em);
+void App_EMDataCopy(uint8_t* cpu_addr, uint8_t em_bank_num, uint8_t page_num, bool to_em);
 
 // read the real time clock and display it
 void App_DisplayTime(void);

@@ -89,12 +89,159 @@ extern struct call_args args; // in gadget's version of f256 lib, this is alloca
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
 
+// calculate and set positions for the panel's files, when viewed as list
+// call this when window is first opened, or when window size changes, or when list of files is changed.
+// this does not actually render any icons, it just calculates where they should be in the window's bitmap.
+// note: this also sets/resets the surface's required_inner_width_ property (logical internal width vs physical internal width)
+void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel);
+
+// calculate and set positions for the panel's memory banks, when viewed as list
+// call this when window is first opened, or when window size changes, or when list of files is changed.
+// this does not actually render any icons, it just calculates where they should be in the window's bitmap.
+// note: this also sets/resets the surface's required_inner_width_ property (logical internal width vs physical internal width)
+void Panel_ReflowContentForMemory(WB2KViewPanel* the_panel);
+
 
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
 
+
+
+// calculate and set positions for the panel's files, when viewed as list
+// call this when window is first opened, or when window size changes, or when list of files is changed.
+// this does not actually render any icons, it just calculates where they should be in the window's bitmap.
+// note: this also sets/resets the surface's required_inner_width_ property (logical internal width vs physical internal width)
+void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
+{
+	WB2KList*	the_item;
+	uint8_t		num_rows;
+	uint8_t		max_rows = PANEL_LIST_MAX_ROWS;
+	uint8_t		num_files = 0;
+	uint16_t	row;
+	int8_t		display_row;
+	uint8_t		first_viz_row = the_panel->content_top_;
+	uint8_t		last_viz_row = first_viz_row + the_panel->height_ - 1;
+	
+	// LOGIC:
+	//   we will scroll as needed vertically
+	//   the panel's content_top is 0 when unscrolled (initial position)
+	//   a file's y position is calculated based on content top, first row of (inner) panel, and the row # of the file
+	//   when scrolled down, any file's that have scrolled up out of the panel will have y positions < top of panel
+	//   negative positions will happen for longer directories. 
+	
+	App_LoadOverlay(OVERLAY_FOLDER);
+	
+	num_files = Folder_GetCountFiles(the_panel->root_folder_);
+
+	// see how many rows and V space we need by taking # of files (do NOT include space for a header row: that row is part of different spacer)
+	num_rows = num_files;
+	
+	if (num_rows > max_rows)
+	{
+		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, max_rows));
+	}
+	
+	//sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
+	//Buffer_NewMessage(global_string_buff1);
+
+	// if there are no files in the folder the panel is showing, we can stop here
+	if (num_files == 0)
+	{
+		the_panel->num_rows_ = 0;
+		LOG_INFO(("%s %d: this folder ('%s') shows a file count of 0", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
+		return;
+	}
+	
+	// set the x and y positions of every file
+	// for labels, if the column isn't to be shown, set it's y property to -1
+	the_item = *(the_panel->root_folder_->list_);
+
+	// no files?
+	if ( the_item == NULL )
+	{
+		//sprintf(global_string_buff1, "this folder ('%s') shows a file count of %u but file list seems to be empty!", the_panel->root_folder_->folder_file_->file_name_, num_files);
+		//Buffer_NewMessage(global_string_buff1);
+		LOG_ERR(("%s %d: this folder ('%s') shows a file count of %u but file list seems to be empty!", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_, num_files));
+		App_Exit(ERROR_NO_FILES_IN_FILE_LIST); // crash early, crash often
+	}
+	
+	for (row = 0; row < num_rows && the_item; row++)
+	{
+		WB2KFileObject*	this_file;
+		
+		if (row >= first_viz_row && row <= last_viz_row)
+		{
+			display_row = row - first_viz_row;
+		}
+		else
+		{
+			display_row = -1;
+		}
+
+		this_file = (WB2KFileObject*)(the_item->payload_);
+
+		// store the icon's x, y, and rect info so we can use it for mouse detection
+		File_UpdatePos(this_file, the_panel->x_, display_row, row);
+
+		//sprintf(global_string_buff1, "file '%s' display row=%i, row=%u, first_viz_row=%u", this_file->file_name_, display_row, row, first_viz_row);
+		//Buffer_NewMessage(global_string_buff1);
+		
+		// get next node
+		the_item = the_item->next_item_;
+	}
+	//printf("width checker found %i files; num_cols: %i, col=%i\n", num_files, num_cols, col);
+
+	// remember number of rows used
+	the_panel->num_rows_ = num_rows;
+}
+
+
+// calculate and set positions for the panel's memory banks, when viewed as list
+// call this when window is first opened, or when window size changes, or when list of files is changed.
+// this does not actually render any icons, it just calculates where they should be in the window's bitmap.
+// note: this also sets/resets the surface's required_inner_width_ property (logical internal width vs physical internal width)
+void Panel_ReflowContentForMemory(WB2KViewPanel* the_panel)
+{
+	uint16_t	row;
+	int8_t		display_row;
+	uint8_t		first_viz_row = the_panel->content_top_;
+	uint8_t		last_viz_row = first_viz_row + the_panel->height_ - 1;
+	
+	// LOGIC:
+	//   we will scroll as needed vertically
+	//   the panel's content_top is 0 when unscrolled (initial position)
+	//   a file's y position is calculated based on content top, first row of (inner) panel, and the row # of the file
+	//   when scrolled down, any file's that have scrolled up out of the panel will have y positions < top of panel
+	//   negative positions will happen for longer directories. 
+	
+	// see how many rows and V space we need by taking # of files (do NOT include space for a header row: that row is part of different spacer)
+
+	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+	
+	for (row = 0; row < MEMORY_BANK_COUNT; row++)
+	{
+		FMBankObject*	this_bank;
+		
+		if (row >= first_viz_row && row <= last_viz_row)
+		{
+			display_row = row - first_viz_row;
+		}
+		else
+		{
+			display_row = -1;
+		}
+
+		this_bank = &the_panel->memory_system_->bank_[row];
+
+		// store the icon's x, y, and rect info so we can use it for mouse detection
+		Bank_UpdatePos(this_bank, the_panel->x_, display_row, row);
+	}
+
+	// remember number of rows used
+	the_panel->num_rows_ = MEMORY_BANK_COUNT;
+}
 
 
 
@@ -175,6 +322,7 @@ void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, u
 	
 	// set some other props
 	the_panel->root_folder_ = root_folder;
+	the_panel->memory_system_ = NULL;
 	the_panel->x_ = x;
 	the_panel->y_ = y;
 	the_panel->width_ = width;
@@ -189,43 +337,84 @@ void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, u
 }
 
 
-// Forget all its files, and repopulate from the next drive in the system. 
-// max_drive_num is the highest available connected drive in the system. an index to global_connected_device array.
-bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
+// (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
+// use this to set or reset a panel to point to a memory system object, after using it a folder object
+void Panel_InitializeForMemory(WB2KViewPanel* the_panel, FMMemorySystem* the_memory_system, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
-	int8_t		the_drive_index;
+	if (the_memory_system == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		App_Exit(ERROR_PANEL_INIT_MEMSYS_WAS_NULL);	// crash early, crash often
+	}
+	
+	// set some other props
+	the_panel->memory_system_ = the_memory_system;
+	the_panel->root_folder_ = NULL;
+	the_panel->x_ = x;
+	the_panel->y_ = y;
+	the_panel->width_ = width;
+	the_panel->height_ = height;
+	the_panel->content_top_ = 0;
+	the_panel->num_rows_ = 0;
+	//the_panel->sort_compare_function_ = (void*)&File_CompareName;
+	
+	if (the_memory_system->is_flash_)
+	{
+		the_panel->device_number_ = DEVICE_FLASH;
+	}
+	else
+	{
+		the_panel->device_number_ = DEVICE_RAM;
+	}
+
+	DEBUG_OUT(("%s %d: device num=%u", __func__ , __LINE__, the_panel->device_number_));
+
+	return;
+}
+
+
+// Forget all its files, and repopulate from the specified disk or memory system
+bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device)
+{
 	uint8_t		the_new_device;
 	char		path_buff[3];
+	bool		for_flash;
 	
-	the_drive_index = the_panel->drive_index_ + 1;
-	//sprintf(global_string_buff1, "panel drive index was %i before switch; trying to be %i; max=%u", the_panel->drive_index_, the_drive_index, max_drive_num);
-	//Buffer_NewMessage(global_string_buff1);
+	//DEBUG_OUT(("%s %d: old device num=%u, switching to %u", __func__ , __LINE__, the_panel->device_number_, the_device));
 	
-	//sprintf(global_string_buff1, "drive index was %u; will be %u, max drive num=%u", the_panel->drive_index_, the_drive_index, max_drive_num);
-	//Buffer_NewMessage(global_string_buff1);
+	the_panel->device_number_ = the_device;
 
-	if (the_drive_index > max_drive_num)
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		the_drive_index = 0;
+		sprintf(path_buff, "%d:", the_new_device);
+		
+		App_LoadOverlay(OVERLAY_FOLDER);
+	
+		if (Folder_Reset(the_panel->root_folder_, the_new_device, path_buff) == false)
+		{
+			LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
+			App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+		}
 	}
-	
-	the_new_device = global_connected_device[the_drive_index];
-	
-	//sprintf(global_string_buff1, "Switching to device %u, drive idx=%i", the_new_device, the_drive_index);
-	//Buffer_NewMessage(global_string_buff1);
-	
-	the_panel->drive_index_ = the_drive_index;
-	the_panel->device_number_ = the_new_device;
-
-	sprintf(path_buff, "%d:", the_new_device);
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
-
-	if (Folder_Reset(the_panel->root_folder_, the_new_device, path_buff) == false)
+	else
 	{
-		LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
-		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-	}
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+
+		if (the_device == DEVICE_RAM)
+		{
+			for_flash = false;
+		}
+		else
+		{
+			for_flash = true;
+		}
+		
+		if ( (the_panel->memory_system_ = MemSys_New(the_panel->memory_system_, for_flash)) == NULL)
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
+			App_Exit(ERROR_COULD_NOT_CREATE_MEMSYS_OBJ);
+		}
+	}	
 	
 	Panel_Init(the_panel);
 	
@@ -240,7 +429,7 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num)
 
 // sets the current device number (CBM device number, eg, 8-9-10-11 or FNX drive num, eg 0, 1, or 2) the panel is using
 // does not refresh. Repopulate to do that.
-void Panel_SetCurrentDrive(WB2KViewPanel* the_panel, uint8_t the_device_num)
+void Panel_SetCurrentDevice(WB2KViewPanel* the_panel, device_number the_device_num)
 {
 	the_panel->device_number_ = the_device_num;
 }
@@ -348,10 +537,7 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, global_string_buff2);
 
-	//sprintf(global_string_buff1, "new folder path='%s', drive=%u", global_temp_path_1, the_panel->drive_index_);
-	//Buffer_NewMessage(global_string_buff1);
-	
-	success = Kernal_MkDir(global_temp_path_1, the_panel->drive_index_);
+	success = Kernal_MkDir(global_temp_path_1, the_panel->device_number_);
 	
 	if (success == false)
 	{
@@ -359,8 +545,6 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 	}
 	
 	// renew file listing
-	App_LoadOverlay(OVERLAY_FOLDER);
-	Folder_RefreshListing(the_panel->root_folder_);
 	Panel_Init(the_panel);			
 
 	return success;
@@ -427,26 +611,39 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 		App_Exit(ERROR_PANEL_WAS_NULL); // crash early, crash often
 	}
 
+	//DEBUG_OUT(("%s %d: the_panel->device_number_=%u", __func__ , __LINE__, the_panel->device_number_));
+
 	// reset the first visible row to 0 from whatever it might have been if user had scrolled down
 	the_panel->content_top_ = 0;
 
-	Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
-	
-	// have root folder populate its list of files
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
-	{		
-		LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
-		//sprintf(global_string_buff1, "pop err %u", the_error_code);
-		//Buffer_NewMessage(global_string_buff1);
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 		
-		Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
-		return false;
+		App_LoadOverlay(OVERLAY_FOLDER);
+		
+		// have root folder clear out its list of files
+		Folder_RefreshListing(the_panel->root_folder_);
+
+		// have root folder populate its list of files
+		if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
+		{		
+			LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
+			//sprintf(global_string_buff1, "pop err %u", the_error_code);
+			//Buffer_NewMessage(global_string_buff1);
+			
+			Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
+			return false;
+		}
+	}
+	else
+	{
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		MemSys_PopulateBanks(the_panel->memory_system_);
 	}
 
-	// sort files
-	Panel_SortFiles(the_panel);
+	// sort and display contents
+	Panel_SortAndDisplay(the_panel);
 		
 	return true;
 }
@@ -678,7 +875,25 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 // 	}
 // }
 
-					
+	
+// fill the currently selected memory bank with a value supplied by the user
+bool Panel_FillCurrentBank(WB2KViewPanel* the_panel)
+{
+	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+	
+	return (MemSys_FillCurrentBank(the_panel->memory_system_));
+}						
+
+	
+// fill the currently selected memory bank with zeros
+bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel)
+{
+	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+	
+	return (MemSys_ClearCurrentBank(the_panel->memory_system_));
+}						
+
+
 // rename the currently selected file
 bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 {
@@ -787,7 +1002,6 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 			App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
 		}
 
-		Folder_RefreshListing(the_panel->root_folder_);
 		Panel_Init(the_panel);
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_FONT)
@@ -879,7 +1093,6 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 	
 	// renew file listing
-	Folder_RefreshListing(the_panel->root_folder_);
 	Panel_Init(the_panel);
 
 	// try to select the file that was selected before the deleted one
@@ -922,7 +1135,6 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
 	}
 	
-	Folder_RefreshListing(the_other_panel->root_folder_);
 	Panel_Init(the_other_panel);
 	
 	return true;
@@ -973,9 +1185,16 @@ bool Panel_SelectPrevFile(WB2KViewPanel* the_panel)
 {
 	int16_t		the_current_row;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		App_LoadOverlay(OVERLAY_FOLDER);	
+		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	}
+	else
+	{
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		the_current_row = MemSys_GetCurrentRow(the_panel->memory_system_);
+	}
 	
 	if (--the_current_row < 0)
 	{
@@ -991,14 +1210,22 @@ bool Panel_SelectPrevFile(WB2KViewPanel* the_panel)
 bool Panel_SelectNextFile(WB2KViewPanel* the_panel)
 {
 	int16_t		the_current_row;
-	uint16_t	the_file_count;
+	uint16_t	the_item_count;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		App_LoadOverlay(OVERLAY_FOLDER);	
+		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+		the_item_count = Folder_GetCountFiles(the_panel->root_folder_);
+	}
+	else
+	{
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		the_current_row = MemSys_GetCurrentRow(the_panel->memory_system_);
+		the_item_count = MEMORY_BANK_COUNT;
+	}	
 	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	the_file_count = Folder_GetCountFiles(the_panel->root_folder_);
-	
-	if (++the_current_row == the_file_count)
+	if (++the_current_row == the_item_count)
 	{
 		// we're already on the last file
 		return false;
@@ -1019,19 +1246,22 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 	uint8_t		content_top = the_panel->content_top_;
 	bool		success;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
 	if (the_panel == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_SET_FILE_SEL_BY_ROW_PANEL_WAS_NULL); // crash early, crash often
 	}
-
-	success = Folder_SetFileSelectionByRow(the_panel->root_folder_, the_row, do_selection, the_panel->y_);
-	//Panel_RenderContents(the_panel);
-
-	//sprintf(global_string_buff1, "row=%u, contenttop=%u, height=%u, top+height=%u", the_row, content_top, the_panel->height_, content_top + the_panel->height_);
-	//Buffer_NewMessage(global_string_buff1);
+	
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		App_LoadOverlay(OVERLAY_FOLDER);
+		success = Folder_SetFileSelectionByRow(the_panel->root_folder_, the_row, do_selection, the_panel->y_);
+	}
+	else
+	{
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		success = MemSys_SetBankSelectionByRow(the_panel->memory_system_, the_row, do_selection, the_panel->y_);
+	}
 	
 	// is the newly selected file visible? If not, scroll to make it visible
 	if (success)
@@ -1212,86 +1442,14 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 // note: this also sets/resets the surface's required_inner_width_ property (logical internal width vs physical internal width)
 void Panel_ReflowContent(WB2KViewPanel* the_panel)
 {
-	WB2KList*	the_item;
-	uint8_t		num_rows;
-	uint8_t		max_rows = PANEL_LIST_MAX_ROWS;
-	uint8_t		num_files = 0;
-	uint16_t	row;
-	int8_t		file_display_row;
-	uint8_t		first_viz_row = the_panel->content_top_;
-	uint8_t		last_viz_row = first_viz_row + the_panel->height_ - 1;
-	
-	// LOGIC:
-	//   we will scroll as needed vertically
-	//   the panel's content_top is 0 when unscrolled (initial position)
-	//   a file's y position is calculated based on content top, first row of (inner) panel, and the row # of the file
-	//   when scrolled down, any file's that have scrolled up out of the panel will have y positions < top of panel
-	//   negative positions will happen for longer directories. 
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	num_files = Folder_GetCountFiles(the_panel->root_folder_);
-
-	// see how many rows and V space we need by taking # of files (do NOT include space for a header row: that row is part of different spacer)
-	num_rows = num_files;
-	
-	if (num_rows > max_rows)
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, max_rows));
+		Panel_ReflowContentForDisk(the_panel);
 	}
-	
-	//sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
-	//Buffer_NewMessage(global_string_buff1);
-
-	// if there are no files in the folder the panel is showing, we can stop here
-	if (num_files == 0)
+	else
 	{
-		the_panel->num_rows_ = 0;
-		LOG_INFO(("%s %d: this folder ('%s') shows a file count of 0", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
-		return;
+		Panel_ReflowContentForMemory(the_panel);
 	}
-	
-	// set the x and y positions of every file
-	// for labels, if the column isn't to be shown, set it's y property to -1
-	the_item = *(the_panel->root_folder_->list_);
-
-	// no files?
-	if ( the_item == NULL )
-	{
-		//sprintf(global_string_buff1, "this folder ('%s') shows a file count of %u but file list seems to be empty!", the_panel->root_folder_->folder_file_->file_name_, num_files);
-		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: this folder ('%s') shows a file count of %u but file list seems to be empty!", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_, num_files));
-		App_Exit(ERROR_NO_FILES_IN_FILE_LIST); // crash early, crash often
-	}
-	
-	for (row = 0; row < num_rows && the_item; row++)
-	{
-		WB2KFileObject*	this_file;
-		
-		if (row >= first_viz_row && row <= last_viz_row)
-		{
-			file_display_row = row - first_viz_row;
-		}
-		else
-		{
-			file_display_row = -1;
-		}
-
-		this_file = (WB2KFileObject*)(the_item->payload_);
-
-		// store the icon's x, y, and rect info so we can use it for mouse detection
-		File_UpdatePos(this_file, the_panel->x_, file_display_row, row);
-
-		//sprintf(global_string_buff1, "file '%s' display row=%i, row=%u, first_viz_row=%u", this_file->file_name_, file_display_row, row, first_viz_row);
-		//Buffer_NewMessage(global_string_buff1);
-		
-		// get next node
-		the_item = the_item->next_item_;
-	}
-	//printf("width checker found %i files; num_cols: %i, col=%i\n", num_files, num_cols, col);
-
-	// remember number of rows used
-	the_panel->num_rows_ = num_rows;
 }
 
 
@@ -1315,9 +1473,7 @@ void Panel_ClearDisplay(WB2KViewPanel* the_panel)
 // this routine only renders, it does not do any positioning of icons
 void Panel_RenderContents(WB2KViewPanel* the_panel)
 {
-	WB2KList*	the_item;
-	
-	App_LoadOverlay(OVERLAY_FOLDER);
+	bool	for_disk;
 	
 	// clear the panel. if this is a refresh, it isn't guaranteed panel UI was just drawn. eg, file was deleted. 
 	Text_FillBox(
@@ -1325,16 +1481,51 @@ void Panel_RenderContents(WB2KViewPanel* the_panel)
 		the_panel->x_ + (UI_PANEL_INNER_WIDTH - 1), the_panel->y_ + (UI_PANEL_INNER_HEIGHT - 2), 
 		CH_SPACE, LIST_ACTIVE_COLOR, APP_BACKGROUND_COLOR
 	);
-	
-	the_item = *(the_panel->root_folder_->list_);
 
-	while (the_item != NULL)
+	// draw file list head rows
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+		for_disk = true;
+	}
+	else
+	{
+		for_disk = false;
+	}
+	
+	App_LoadOverlay(OVERLAY_SCREEN);
+	Screen_DrawPanelHeader(the_panel->x_, for_disk);
+	
+	// call on container to render its contents
+	if (for_disk)
+	{
+		WB2KList*	the_item;
+
+		App_LoadOverlay(OVERLAY_FOLDER);
 		
-		File_Render(this_file, File_IsSelected(this_file), the_panel->y_, the_panel->active_);
+		the_item = *(the_panel->root_folder_->list_);
+	
+		while (the_item != NULL)
+		{
+			WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+			
+			File_Render(this_file, File_IsSelected(this_file), the_panel->y_, the_panel->active_);
+			
+			the_item = the_item->next_item_;
+		}
+	}
+	else
+	{
+		uint8_t		row;
 		
-		the_item = the_item->next_item_;
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		
+		for (row = 0; row < MEMORY_BANK_COUNT; row++)
+		{
+			FMBankObject*	this_bank;
+
+			this_bank = &the_panel->memory_system_->bank_[row];
+			Bank_Render(this_bank, Bank_IsSelected(this_bank), the_panel->y_, the_panel->active_);
+		}
 	}
 	
 	// draw folder title in the top tab
@@ -1363,13 +1554,25 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 	}
 	
 	Text_FillBox(the_panel->x_, the_panel->y_ - 3, the_panel->x_ + (UI_PANEL_TAB_WIDTH - 3), the_panel->y_ - 3, CH_SPACE, fore_color, back_color);
-	Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, the_panel->root_folder_->folder_file_->file_name_, fore_color, back_color);
+
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, the_panel->root_folder_->folder_file_->file_name_, fore_color, back_color);
+	}
+	else if (the_panel->device_number_ == DEVICE_RAM)
+	{
+		Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, "RAM", fore_color, back_color);
+	}
+	else
+	{
+		Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, "Flash", fore_color, back_color);
+	}
 }
 
 
 // sorts the file list by date/name/etc, then calls the panel to renew its view.
 // TODO: consider adding a boolean "do reflow". 
-void Panel_SortFiles(WB2KViewPanel* the_panel)
+void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 {
 	int16_t				the_current_row;
 	WB2KFileObject*		the_current_file;
@@ -1379,35 +1582,43 @@ void Panel_SortFiles(WB2KViewPanel* the_panel)
 	//   after sort, the files will visually be in the right order, but current row won't necessarily match up any more
 	//   so we get a reference the current file, then sort, then get that file's (possibly) new row number, and use it for current row
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-
-	//sprintf(global_string_buff1, "the_current_row=%u", the_current_row);
-	//Buffer_NewMessage(global_string_buff1);
-	
-	if (the_current_row >= 0)
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		the_current_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	}
+		App_LoadOverlay(OVERLAY_FOLDER);
+		
+		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	
+		//sprintf(global_string_buff1, "the_current_row=%u", the_current_row);
+		//Buffer_NewMessage(global_string_buff1);
+		
+		if (the_current_row >= 0)
+		{
+			the_current_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+		}
+	
+		List_InitMergeSort(the_panel->root_folder_->list_, the_panel->sort_compare_function_);
 
-	List_InitMergeSort(the_panel->root_folder_->list_, the_panel->sort_compare_function_);
-	
-	//DEBUG_OUT(("%s %d: files sorted", __func__ , __LINE__));
-	
-	Panel_ReflowContent(the_panel);
-	Panel_RenderContents(the_panel);
-	
-	// now re-set the folder's idea of what the current file is
-	if (the_current_file != NULL)
+		//DEBUG_OUT(("%s %d: files sorted", __func__ , __LINE__));
+		
+		Panel_ReflowContent(the_panel);
+		Panel_RenderContents(the_panel);
+		
+		// now re-set the folder's idea of what the current file is
+		if (the_current_file != NULL)
+		{
+			Folder_SetCurrentRow(the_panel->root_folder_, the_current_file->row_);
+		}
+		
+		// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
+		App_LoadOverlay(OVERLAY_SCREEN);
+		Screen_UpdateSortIcons(the_panel->x_, the_panel->sort_compare_function_);
+	}
+	else
 	{
-		Folder_SetCurrentRow(the_panel->root_folder_, the_current_file->row_);
+		// we never sort memory banks, so don't need to know current row, change sort icons, etc.
+		Panel_ReflowContent(the_panel);
+		Panel_RenderContents(the_panel);
 	}
-	
-	// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
-	App_LoadOverlay(OVERLAY_SCREEN);
-	Screen_UpdateSortIcons(the_panel->x_, the_panel->sort_compare_function_);
-
 }
 
 

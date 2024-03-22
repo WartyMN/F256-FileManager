@@ -32,6 +32,7 @@
 #include "folder.h"
 #include "list.h"
 #include "app.h"
+#include "memsys.h"
 
 /*****************************************************************************/
 /*                            Macro Definitions                              */
@@ -60,14 +61,15 @@
 typedef struct WB2KViewPanel
 {
 	WB2KFolderObject*	root_folder_;
+	FMMemorySystem*		memory_system_;
 	uint8_t				x_;		// this set of position data is for the panel within the window
 	uint8_t				y_;
 	uint8_t				width_;
 	uint8_t				height_;
 	uint8_t				num_rows_;							// for any mode, number of rows used
 	uint8_t				content_top_;						// for column mode, need to track our own content top position
-	uint8_t				device_number_;						// For CBM, the drive #. eg, 8 or 9. 
-	int8_t				drive_index_;						// reference to index to global_connected_device array. -1 if no device.
+	device_number		device_number_;						// For F256, 0/1/2 for disk devices, 8/9 for ram/flash
+// 	int8_t				drive_index_;						// reference to index to global_connected_device array. -1 if no device.
 // 	uint8_t				col_width_[PANEL_LIST_NUM_COLS];	// for list mode, the widths of each column. Can vary by window width
 // 	uint8_t				col_highest_visible_;				// the last column that should be rendered by File_RenderLabel
 // 	bool				col_show_[PANEL_LIST_NUM_COLS];		// for list mode, whether a given column will render. Can vary by window width
@@ -92,11 +94,15 @@ bool printdir (char *newdir);
 // **** CONSTRUCTOR AND DESTRUCTOR *****
 
 // (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
+// use this to set or reset a panel to point to a folder object, after using it a memory system object
 void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 
-// Forget all its files, and repopulate from the next drive in the system. 
-// max_drive_num is the highest available connected drive in the system. an index to global_connected_device array.
-bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num);
+// (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
+// use this to set or reset a panel to point to a memory system object, after using it a folder object
+void Panel_InitializeForMemory(WB2KViewPanel* the_panel, FMMemorySystem* the_memory_system, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+
+// Forget all its files, and repopulate from the specified disk or memory system
+bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device);
 
 
 
@@ -104,7 +110,7 @@ bool Panel_SwitchToNextDrive(WB2KViewPanel* the_panel, uint8_t max_drive_num);
 
 // sets the current device number (CBM drive number, eg, 8-9-10-11 or FNX drive num, eg 0, 1, or 2) the panel is using
 // does not refresh. Repopulate to do that.
-void Panel_SetCurrentDrive(WB2KViewPanel* the_panel, uint8_t the_device_num);
+void Panel_SetCurrentDevice(WB2KViewPanel* the_panel, device_number the_device_num);
 
 // tells the panel to toggle its active/inactive state, and redraw its title appropriately
 void Panel_ToggleActiveState(WB2KViewPanel* the_panel);
@@ -112,11 +118,11 @@ void Panel_ToggleActiveState(WB2KViewPanel* the_panel);
 
 // **** GETTERS *****
 
-// returns true if the folder in the panel has any currently selected files/folders
-bool Panel_HasSelections(WB2KViewPanel* the_panel);
+// // returns true if the folder in the panel has any currently selected files/folders
+// bool Panel_HasSelections(WB2KViewPanel* the_panel);
 
-// returns number of currently selected files in this panel
-uint16_t Panel_GetCountSelectedFiles(WB2KViewPanel* the_panel);
+// // returns number of currently selected files in this panel
+// uint16_t Panel_GetCountSelectedFiles(WB2KViewPanel* the_panel);
 
 // // return the root folder
 // WB2KFolderObject* Panel_GetRootFolder(WB2KViewPanel* the_panel);
@@ -198,8 +204,13 @@ void Panel_RenderContents(WB2KViewPanel* the_panel);
 
 // sorts the file list by date/name/etc, then calls the panel to renew its view.
 // TODO: consider adding a boolean "do reflow". 
-void Panel_SortFiles(WB2KViewPanel* the_panel);
+void Panel_SortAndDisplay(WB2KViewPanel* the_panel);
 
+// fill the currently selected memory bank with a value supplied by the user
+bool Panel_FillCurrentBank(WB2KViewPanel* the_panel);
+	
+// fill the currently selected memory bank with zeros
+bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel);
 
 
 // TEMPORARY DEBUG FUNCTIONS

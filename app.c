@@ -24,6 +24,8 @@
 #include "general.h"
 #include "keyboard.h"
 #include "memory.h"
+#include "memsys.h"
+#include "overlay_em.h"
 #include "overlay_startup.h"
 #include "text.h"
 #include "screen.h"
@@ -66,6 +68,8 @@
 
 
 static WB2KFolderObject*	app_root_folder[2];
+// static FMMemorySystem*		app_memsys[2];
+
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
 static uint8_t				app_connected_drive_count;
 
@@ -143,14 +147,21 @@ Overlay overlay[NUM_OVERLAYS] =
 // swap the active panels. 
 void App_SwapActivePanel(void);
 
+// scan for connected devices, and return count. Returns -1 if error.
+int8_t	App_ScanDevices(void);
+
 // initialize various objects - once per run
 void App_Initialize(void);
+
+// initialize the specified panel for use with a disk system
+void App_InitializePanelForDisk(uint8_t panel_id);
+
+// initialize the specified panel for use with RAM or Flash
+void App_InitializePanelForMemory(uint8_t panel_id, bool for_flash);
 
 // handles user input
 uint8_t App_MainLoop(void);
 
-// scan for connected devices, and return count. Returns -1 if error.
-int8_t	App_ScanDevices(void);
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
@@ -224,9 +235,6 @@ int8_t	App_ScanDevices(void)
 void App_Initialize(void)
 {
 	uint8_t				the_drive_index = 0;
-	WB2KFileObject*		root_folder_file_left;
-	WB2KFileObject*		root_folder_file_right;
-	DateTime			this_datetime;
 	char				drive_path[3];
 	char*				the_drive_path = drive_path;
 
@@ -258,6 +266,9 @@ void App_Initialize(void)
 
 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SHOW_DRIVE_COUNT), app_connected_drive_count);
 	Buffer_NewMessage(global_string_buff1);
+
+	// left panel always starts as the active one
+	app_active_panel_id = PANEL_ID_LEFT;
 	
 	// if no drives connected, prior to beta 21, we just quit, but now we will continue
 	// as user could be using f/manager in the primary flash position, they'll need a 
@@ -265,87 +276,94 @@ void App_Initialize(void)
 	if (app_connected_drive_count < 1)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_NO_DRIVES_AVAILABLE));
-		// App_Exit(ERROR_NO_CONNECTED_DRIVES_FOUND);
-		return;
+		
+		App_InitializePanelForMemory(PANEL_ID_LEFT, false);	// TODO: replace with macro defines
+		App_InitializePanelForMemory(PANEL_ID_RIGHT, true);
+	}
+	else
+	{
+		App_InitializePanelForDisk(PANEL_ID_LEFT);
+
+		// if we have a second disk device available, set that up in the right panel
+		if (app_connected_drive_count > 1)
+		{
+			App_InitializePanelForDisk(PANEL_ID_RIGHT);
+		}
+		else
+		{
+			App_InitializePanelForMemory(PANEL_ID_RIGHT, false);
+		}
 	}
 
+	// always set left panel active at start, and right panel inactive. 
+	app_file_panel[PANEL_ID_LEFT].active_ = true;	// we always start out with left panel being the active one
+	app_file_panel[PANEL_ID_RIGHT].active_ = false;	// we always start out with left panel being the active one
+}
 
-	// set up the left panel pointing to the lowest available device
-	
+
+// initialize the specified panel for use with a disk system
+void App_InitializePanelForDisk(uint8_t panel_id)
+{
+	uint8_t				the_drive_index = panel_id;
+	uint8_t				panel_x_offset;
+	WB2KFileObject*		the_root_folder_file;
+	DateTime			this_datetime;
+	char				drive_path[3];
+	char*				the_drive_path = drive_path;
+
 	App_LoadOverlay(OVERLAY_FOLDER);
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
-	if ( (root_folder_file_left = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
+	if ( (the_root_folder_file = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
 	{
-		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_LEFT);
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE);
 	}
 
-	app_active_panel_id = PANEL_ID_LEFT;
-	
-	if ( (app_root_folder[PANEL_ID_LEFT] = Folder_New(root_folder_file_left, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
+	if ( (app_root_folder[panel_id] = Folder_New(the_root_folder_file, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
-		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_LEFT);
+		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ);
 	}
 
 	// we had Folder_New make a copy, so we can free the file object we passed it.
-	File_Destroy(&root_folder_file_left);
+	File_Destroy(&the_root_folder_file);
 	
-	app_file_panel[PANEL_ID_LEFT].drive_index_ = the_drive_index;
-
-
-	// set up the right panel pointing to the next lowest available device (will be same if only 1 device)
+	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
 	
-	++the_drive_index;
-
-	// set the 2nd panel to the next device, unless there is only 1 device. in that case, have same device on both sides. 
-	if (the_drive_index >= app_connected_drive_count)
-	{
-		--the_drive_index;
-	}
-	else
-	{
-		sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
-	}
-
-	if ( (root_folder_file_right = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
-	{
-		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE_RIGHT);
-	}
-
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	if ( (app_root_folder[PANEL_ID_RIGHT] = Folder_New(root_folder_file_right, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
-	{
-		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ_RIGHT);
-	}
-
-	// we had Folder_New make a copy, so we can free the file object we passed it.
-	File_Destroy(&root_folder_file_right);
-
-	app_file_panel[PANEL_ID_RIGHT].drive_index_ = the_drive_index;
-
-
 	Panel_Initialize(
-		&app_file_panel[PANEL_ID_LEFT], 
-		app_root_folder[PANEL_ID_LEFT], 
-		(UI_LEFT_PANEL_BODY_X1 + 1), (UI_LEFT_PANEL_BODY_Y1 + 2), 
-		(UI_LEFT_PANEL_BODY_WIDTH - 2), (UI_LEFT_PANEL_BODY_HEIGHT - 3)
-	);
-	Panel_Initialize(
-		&app_file_panel[PANEL_ID_RIGHT], 
-		app_root_folder[PANEL_ID_RIGHT], 
-		(UI_RIGHT_PANEL_BODY_X1 + 1), (UI_RIGHT_PANEL_BODY_Y1 + 2), 
-		(UI_RIGHT_PANEL_BODY_WIDTH - 2), (UI_RIGHT_PANEL_BODY_HEIGHT - 3)
+		&app_file_panel[panel_id], 
+		app_root_folder[panel_id], 
+		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
+		(UI_VIEW_PANEL_BODY_WIDTH - 2), (UI_VIEW_PANEL_BODY_HEIGHT - 3)
 	);
 
-	Panel_SetCurrentDrive(&app_file_panel[PANEL_ID_LEFT], app_root_folder[PANEL_ID_LEFT]->device_number_);
-	Panel_SetCurrentDrive(&app_file_panel[PANEL_ID_RIGHT], app_root_folder[PANEL_ID_RIGHT]->device_number_);
-	app_file_panel[PANEL_ID_LEFT].active_ = true;	// we always start out with left panel being the active one
-	app_file_panel[PANEL_ID_RIGHT].active_ = false;	// we always start out with left panel being the active one
+	Panel_SetCurrentDevice(&app_file_panel[panel_id], app_root_folder[panel_id]->device_number_);
+}
 
-	//Buffer_NewMessage("Initialization complete.");
+
+// initialize the specified panel for use with RAM or Flash
+void App_InitializePanelForMemory(uint8_t panel_id, bool for_flash)
+{
+	uint8_t				panel_x_offset;
+	FMMemorySystem*		the_memsys;
+	
+	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+	
+	if ( (the_memsys = MemSys_New(the_memsys, for_flash)) == NULL)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
+		App_Exit(ERROR_COULD_NOT_CREATE_MEMSYS_OBJ);
+	}
+
+	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
+
+	Panel_InitializeForMemory(
+		&app_file_panel[panel_id], 
+		the_memsys, 
+		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
+		(UI_VIEW_PANEL_BODY_WIDTH - 2), (UI_VIEW_PANEL_BODY_HEIGHT - 3)
+	);
 }
 
 
@@ -353,6 +371,7 @@ void App_Initialize(void)
 uint8_t App_MainLoop(void)
 {
 	uint8_t				user_input;
+	uint8_t				new_device_num;
 	bool				exit_main_loop = false;
 	bool				success;
 	bool				file_menu_active;
@@ -384,6 +403,8 @@ uint8_t App_MainLoop(void)
 
 			user_input = Keyboard_GetChar();
 	
+			//DEBUG_OUT(("%s %d: user_input=%u", __func__ , __LINE__, user_input));
+			
 			// first switch: for file menu only, and skip if file menu is inactive
 			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
 			//   note: we also put the sort commands here because it doesn't make sense to sort if no files
@@ -394,26 +415,26 @@ uint8_t App_MainLoop(void)
 					case ACTION_SORT_BY_NAME:
 						//DEBUG_OUT(("%s %d: Sort by name", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareName;
-						Panel_SortFiles(the_panel);
+						Panel_SortAndDisplay(the_panel);
 						break;
 
 	// 				case ACTION_SORT_BY_DATE:
 	// 					//DEBUG_OUT(("%s %d: Sort by date", __func__ , __LINE__));
 	// 					the_panel->sort_compare_function_ = (void*)&File_CompareDate;
-	// 					Panel_SortFiles(the_panel);
+	// 					Panel_SortAndDisplay(the_panel);
 	// 					Buffer_NewMessage("Files now sorted by date.");
 						break;
 	// 
 					case ACTION_SORT_BY_SIZE:
 						//DEBUG_OUT(("%s %d: Sort by size", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareSize;
-						Panel_SortFiles(the_panel);
+						Panel_SortAndDisplay(the_panel);
 						break;
 			
 					case ACTION_SORT_BY_TYPE:
 						//DEBUG_OUT(("%s %d: Sort by type", __func__ , __LINE__));
 						the_panel->sort_compare_function_ = (void*)&File_CompareFileTypeID;
-						Panel_SortFiles(the_panel);
+						Panel_SortAndDisplay(the_panel);
 						break;
 			
 					case ACTION_VIEW_AS_HEX:
@@ -469,6 +490,14 @@ uint8_t App_MainLoop(void)
 						success = Panel_OpenCurrentFileOrFolder(the_panel);					
 						break;
 						
+					case ACTION_FILL_MEMORY:
+						success = Panel_FillCurrentBank(the_panel);						
+						break;
+
+					case ACTION_CLEAR_MEMORY:
+						success = Panel_ClearCurrentBank(the_panel);						
+						break;
+
 					default:
 						// no need to do any default action: we WANT it to fall through to next switch if none of above happened.
 						break;
@@ -485,14 +514,18 @@ uint8_t App_MainLoop(void)
 					the_panel = &app_file_panel[app_active_panel_id];
 					break;
 
-				case ACTION_NEXT_DEVICE:
-					// tell panel to forget all its files, and repopulate itself from the next drive in the system. 
-					success = Panel_SwitchToNextDrive(the_panel, app_connected_drive_count - 1);
+				case ACTION_SWITCH_TO_SD:
+				case ACTION_SWITCH_TO_FLOPPY_1:
+				case ACTION_SWITCH_TO_FLOPPY_2:
+				case ACTION_SWITCH_TO_RAM:
+				case ACTION_SWITCH_TO_FLASH:
+					// tell panel to connect to the specified drive or mem system
+					// all 5 of these actions are tied to number keys, so can turn them into integers easily
+					new_device_num = user_input - 48;
+					success = Panel_SwitchDevice(the_panel, new_device_num);
 					break;
 					
 				case ACTION_REFRESH_PANEL:
-					App_LoadOverlay(OVERLAY_FOLDER);
-					Folder_RefreshListing(the_panel->root_folder_);
 					Panel_Init(the_panel);			
 					break;
 				
@@ -500,8 +533,6 @@ uint8_t App_MainLoop(void)
 					success = Panel_FormatDrive(the_panel);
 					if (success)
 					{
-						App_LoadOverlay(OVERLAY_FOLDER);
-						Folder_RefreshListing(the_panel->root_folder_);
 						Panel_Init(the_panel);			
 					}
 					break;
@@ -531,21 +562,19 @@ uint8_t App_MainLoop(void)
 					break;
 					
 				case MOVE_UP:
-				case MOVE_UP_ALT:
 					success = Panel_SelectPrevFile(the_panel);
 					//sprintf(global_string_buff1, "prev file selection success = %u", success);
 					//Buffer_NewMessage(global_string_buff1);
 					break;
 
 				case MOVE_DOWN:
-				case MOVE_DOWN_ALT:
 					success = Panel_SelectNextFile(the_panel);
+					//DEBUG_OUT(("%s %d: next file selection success = %u", __func__ , __LINE__, success));
 					//sprintf(global_string_buff1, "next file selection success = %u", success);
 					//Buffer_NewMessage(global_string_buff1);
 					break;
 
 				case MOVE_LEFT:
-				case MOVE_LEFT_ALT:
 					if (app_active_panel_id == PANEL_ID_RIGHT)
 					{
 						// mark old panel inactive, mark new panel active, set new active panel id
@@ -555,7 +584,6 @@ uint8_t App_MainLoop(void)
 					break;
 
 				case MOVE_RIGHT:
-				case MOVE_RIGHT_ALT:
 					if (app_active_panel_id == PANEL_ID_LEFT)
 					{
 						// mark old panel inactive, mark new panel active, set new active panel id
@@ -665,9 +693,9 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 
 
 // // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, without bank switching
-// // chunk_num is used to calculate distance from the base EM address
+// // page_num is used to calculate distance from the base EM address
 // // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
-// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
+// void App_EMDataCopyDMA(uint8_t* cpu_addr, uint8_t page_num, bool to_em)
 // {
 // 	uint32_t	em_addr;	// physical memory address (20 bit)
 // 	uint8_t		zp_em_addr_base;
@@ -677,8 +705,8 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 // 	// LOGIC:
 // 	//   DMA will be used to copy directly from extended memory: no bank switching takes place
 // 	//   sys address is physical machine 20-bit address.
-// 	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on chunk_num passed
-// 	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
+// 	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000), based on page_num passed
+// 	//     eg, if page_num=0, it is EM_STORAGE_START_PHYS_ADDR, if page_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
 // 	//   cpu address is $0000-$FFFF range that CPU can access
 // 	
 // 	if (to_em == true)
@@ -693,9 +721,9 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 // 	}
 // 	
 // 	// add the offset to the base address for EM data get to the right place for this chunk's copy
-// 	em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
+// 	em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (page_num * 256);
 // 	
-// 	//sprintf(global_string_buff1, "DMA copy chunk_num=%u, em_addr=%lu", chunk_num, em_addr);
+// 	//sprintf(global_string_buff1, "DMA copy page_num=%u, em_addr=%lu", page_num, em_addr);
 // 	//Buffer_NewMessage(global_string_buff1);
 // 	
 // 	// set up the 20-bit address as either to/from
@@ -720,9 +748,10 @@ void App_UpdateProgressBar(uint8_t progress_bar_total)
 
 
 // copy 256b chunks of data between specified 6502 addr and the fixed address range in EM, using bank switching -- no DMA
-// chunk_num is used to calculate distance from the base EM address
+// em_bank_num is used to derive the base EM address
+// page_num is used to calculate distance from the base EM address
 // set to_em to true to copy from CPU space to EM, or false to copy from EM to specified CPU addr. PARAM_COPY_TO_EM/PARAM_COPY_FROM_EM
-void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
+void App_EMDataCopy(uint8_t* cpu_addr, uint8_t em_bank_num, uint8_t page_num, bool to_em)
 {
 	//uint32_t	em_addr;			// physical memory address (20 bit)
 	uint8_t		em_slot;			// 00-7F are valid slots, but our dedicated EM storage starts at bank $14
@@ -734,17 +763,18 @@ void App_EMDataCopy(uint8_t* cpu_addr, uint8_t chunk_num, bool to_em)
 	//   The overlay bank will be temporarily swapped out, and the required EM bank swapped in (tried to swap out kernel#2/IO bank, but froze up)
 	//   required bank # can be calculated by taking system address and dividing by 8192. eg, 0x40000 / 0x2000 = bank 0x20
 	//   sys address is physical machine 20-bit address.
-	//   sys address is always relative to EM_STORAGE_START_PHYS_ADDR ($28000=bank 14), based on chunk_num passed
-	//     eg, if chunk_num=0, it is EM_STORAGE_START_PHYS_ADDR, if chunk_num is 8 it is EM_STORAGE_START_PHYS_ADDR + 8*256
+	//   sys address is relative to em_bank_num, based on page_num passed
+	//     eg, if em_bank_num=$14 (EM_STORAGE_START_PHYS_ADDR ($28000=bank 14)) and page_num=0, it is $28000, if page_num is 7 it is $28000 + 7*256
 	//   cpu address is $0000-$FFFF range that CPU can access
 	
-	// add the offset to the base address for EM data get to the right place for this chunk's copy
-	//em_addr = (uint32_t)EM_STORAGE_START_PHYS_ADDR + (chunk_num * 256);
-	em_slot = EM_STORAGE_START_VALUE + (chunk_num / 32);
-	// CPU addr has to keep recycling space between A000-BFFF, so when chunk num is >32, need to get it back down under 32
-	em_cpu_addr = (uint8_t*)((uint16_t)EM_STORAGE_START_CPU_ADDR + ((chunk_num % 32) * 256));
+	// add the offset to the base address get to the right place for this chunk's copy
+	em_slot = em_bank_num + (page_num / 32);
+	//em_addr = (uint32_t)(em_bank_num * 8192) + (page_num * 256));
 	
-	//sprintf(global_string_buff1, "EM copy chunk_num=%u, em_slot=%u, em_cpu_addr=%p", chunk_num, em_slot, em_cpu_addr);
+	// CPU addr has to keep recycling space between A000-BFFF, so when chunk num is >32, need to get it back down under 32
+	em_cpu_addr = (uint8_t*)((uint16_t)EM_STORAGE_START_CPU_ADDR + ((page_num % 32) * 256));
+	
+	//sprintf(global_string_buff1, "EM copy page_num=%u, em_slot=%u, em_cpu_addr=%p", page_num, em_slot, em_cpu_addr);
 	//Buffer_NewMessage(global_string_buff1);
 	
 	// map the required EM bank into the overlay bank temporarily
@@ -897,15 +927,8 @@ int main(void)
 
 	App_Initialize();
 	
-	if (app_connected_drive_count > 0)
-	{
-		Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
-	}
-	
-	if (app_connected_drive_count > 1)
-	{
-		Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
-	}
+	Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
+	Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
 	
 	Keyboard_InitiateMinuteHand();
 	App_DisplayTime();

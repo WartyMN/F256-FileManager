@@ -21,7 +21,7 @@
 ;	.export _Memory_Copy
 ;	.export _Memory_CopyWithDMA
 ;	.export _Memory_FillWithDMA
-	.export _Memory_DebugOut
+;	.export _Memory_DebugOut
 
 ; ZP_LK exports:
 	.exportzp	_zp_bank_slot
@@ -47,9 +47,6 @@
 	.exportzp	_global_string_buffer
 	.exportzp	_global_string_buffer2
 	
-BSOUT				= $ffd2	;// Editor ROM routine to write character to screen
-GETIN				= $ffe4	;// Editor ROM routine to wait for a key to be pressed
-
 
 ; F256 DMA addresses and bit values
 
@@ -67,16 +64,6 @@ DMA_SRC_ADDR = $DF04	; Source address (system bus - 3 byte)
 DMA_DST_ADDR = $DF08	; Destination address (system bus - 3 byte)
 DMA_COUNT = $DF0C		; Number of bytes to fill or copy
 
-
-screen_id_player		= 0
-screen_id_help			= 1
-screen_id_inventory		= 2
-screen_id_splash		= 3
-screen_id_gameover_lost	= 4
-screen_id_gameover_won	= 5
-screen_id_master_map	= 6
-screen_id_dungeon_map	= 7
-screen_id_tinker		= 8
 
 
 .segment "ZEROPAGE_LK" : zeropage
@@ -242,19 +229,19 @@ _global_string_buffer2:			.res 2;
 ;// call to a routine in memory.asm that writes an illegal opcode followed by address of debug buffer
 ;// that is a simple to the f256jr emulator to write the string at the debug buffer out to the console
 
-.segment	"CODE"
-
-.proc	_Memory_DebugOut: near
-
-.segment	"CODE"
-
-	.byte $FC				; illegal opcode that to Paul's JR emulator means "next 2 bytes are address of a string I should write to console"
-	.byte $00;
-	.byte $03;				; we're using $0300 hard coded as a location for the moment.
-
-	RTS
-
-.endproc
+;.segment	"CODE"
+;
+;.proc	_Memory_DebugOut: near
+;
+;.segment	"CODE"
+;
+;	.byte $FC				; illegal opcode that to Paul's JR emulator means "next 2 bytes are address of a string I should write to console"
+;	.byte $00;
+;	.byte $03;				; we're using $0300 hard coded as a location for the moment.
+;
+;	RTS
+;
+;.endproc
 
 
 

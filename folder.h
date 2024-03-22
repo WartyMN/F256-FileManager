@@ -173,22 +173,17 @@ uint16_t Folder_GetCountFiles(WB2KFolderObject* the_folder);
 // returns the row num (-1, or 0-n) of the currently selected file
 int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder);
 
-// returns true if folder has any files/folders showing as selected
-bool Folder_HasSelections(WB2KFolderObject* the_folder);
+// // returns true if folder has any files/folders showing as selected
+// bool Folder_HasSelections(WB2KFolderObject* the_folder);
 
-// returns number of currently selected files in this folder
-uint16_t Folder_GetCountSelectedFiles(WB2KFolderObject* the_folder);
+// // returns number of currently selected files in this folder
+// uint16_t Folder_GetCountSelectedFiles(WB2KFolderObject* the_folder);
 
-// returns the first selected file/folder in the folder.
-WB2KFileObject* Folder_GetFirstSelectedFile(WB2KFolderObject* the_folder);
+// // returns the first selected file/folder in the folder.
+// WB2KFileObject* Folder_GetFirstSelectedFile(WB2KFolderObject* the_folder);
 
-// returns the first file/folder in the folder.
-WB2KFileObject* Folder_GetFirstFile(WB2KFolderObject* the_folder);
-
-// returns the lowest or highest row or col number used by all the selected files in the folder
-// WARNING: will always return a number, even if no files selected, so calling function must have made it's own checks on selection where necessary
-uint16_t Folder_GetMinOrMaxSelectedRowOrCol(WB2KFolderObject* the_folder, bool find_max, bool find_row);
-// looks through all files in the file list, comparing the passed string to the filename_ of each file.
+// // returns the first file/folder in the folder.
+// WB2KFileObject* Folder_GetFirstFile(WB2KFolderObject* the_folder);
 
 // // Returns NULL if nothing matches, or returns pointer to first FileObject with a filename that starts with the same string as the one passed
 // // DOES NOT REQUIRE a match to the full filename
