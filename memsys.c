@@ -195,17 +195,17 @@ void MemSys_Destroy(FMMemorySystem** the_memsys)
 
 
 
-// sets the row num (-1, or 0-n) of the currently selected bank
-void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number)
-{
-	if (the_memsys == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_SET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
-	}
-	
-	the_memsys->cur_row_ = the_row_number;
-}
+// // sets the row num (-1, or 0-n) of the currently selected bank
+// void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number)
+// {
+// 	if (the_memsys == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		App_Exit(ERROR_SET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+// 	}
+// 	
+// 	the_memsys->cur_row_ = the_row_number;
+// }
 
 
 

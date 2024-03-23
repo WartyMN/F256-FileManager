@@ -434,7 +434,7 @@ void Bank_Render(FMBankObject* the_bank, bool as_selected, int8_t y_offset, bool
 	
 	if (the_bank->display_row_ != -1)
 	{
-		sprintf(global_string_buff1, "%06lx", the_bank->addr_);
+		sprintf(global_string_buff1, "%06luX", the_bank->addr_);
 		y = the_bank->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( x1, y, the_bank->name_, the_color, APP_BACKGROUND_COLOR);

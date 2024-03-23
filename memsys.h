@@ -97,8 +97,8 @@ void MemSys_Destroy(FMMemorySystem** the_memsys);
 
 // **** SETTERS *****
 
-// sets the row num (-1, or 0-n) of the currently selected bank
-void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number);
+// // sets the row num (-1, or 0-n) of the currently selected bank
+// void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number);
 
 
 // **** GETTERS *****

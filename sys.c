@@ -282,16 +282,7 @@ void Sys_EnableTextModeCursor(bool enable_it)
 	//   bit 3 is solid (0) or flashing (1)
 	
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-
-	if (enable_it)
-	{
-		R8(VICKY_TEXT_CURSOR_ENABLE) = 1;
-	}
-	else
-	{
-		R8(VICKY_TEXT_CURSOR_ENABLE) = 0;
-	}
-	
+	R8(VICKY_TEXT_CURSOR_ENABLE) = (uint8_t)enable_it;	
 	Sys_RestoreIOPage();
 
 	//DEBUG_OUT(("%s %d: cursor enabled now=%u", __func__, __LINE__, enable_it));
@@ -330,15 +321,15 @@ void Sys_RestoreIOPage(void)
 // returns true if format was acceptable (and thus update of RTC has been performed).
 bool Sys_UpdateRTC(char* datetime_from_user)
 {
-	uint8_t*		rtc_addr;
+	static uint8_t	string_offsets[5] = {12,9,6,3,0};	// array is order by RTC order of min-hr-day-month-year
+	static uint8_t	rtc_offsets[5] = {0,2,2,3,1};	// starting at min=d692
+	static uint8_t	bounds[5] = {60,24,31,12,99};	// starting at min=d692
 	uint8_t			old_rtc_control;
 	uint8_t			i;
 	int8_t			this_digit;
 	int8_t			tens_digit;
 	uint8_t			rtc_array[5];
-	static uint8_t	string_offsets[5] = {12,9,6,3,0};	// array is order by RTC order of min-hr-day-month-year
-	static uint8_t	rtc_offsets[5] = {0,2,2,3,1};	// starting at min=d692
-	static uint8_t	bounds[5] = {60,24,31,12,99};	// starting at min=d692
+	uint8_t*		rtc_addr;
 	
 	for (i = 0; i < 5; i++)
 	{

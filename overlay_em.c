@@ -200,7 +200,6 @@ char* EM_WrapAndDisplayString(char* the_message, uint8_t x, uint8_t y, uint8_t c
 // returns NULL if entire string was displayed, or returns pointer to next char needing display if available space was all used
 char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, uint8_t col_width, uint8_t max_allowed_rows)
 {
-	uint8_t	reformatted_lines = 0;
 	uint8_t	lines_needed = 0;
 	char*	start_of_string = the_message;
 	char*	next_starting_pos;
@@ -258,7 +257,6 @@ void EM_DisplayAsText(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 	uint8_t		user_input;
 	uint8_t		needed_bytes;
 	uint8_t		available_bytes;
-	uint8_t		bytes_displayed;
 	int8_t		bytes_not_displayed;
 	bool		keep_going = true;
 	bool		user_exit = false;
@@ -342,17 +340,15 @@ void EM_DisplayAsText(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 			if (line_buffer_remainder == NULL)
 			{
 				// whole string was displayed, whether it stretched across screen or not
-				bytes_displayed = 80;
 				bytes_not_displayed = 0;
 				line_buffer_remainder = line_buffer;
 			}
 			else
 			{
 				// set up for the next line: copy remainder in line buffer to start of line buffer
-				bytes_displayed = line_buffer_remainder - line_buffer;
-				bytes_not_displayed = (MEM_TEXT_VIEW_BYTES_PER_ROW - bytes_displayed);
+				bytes_not_displayed = (MEM_TEXT_VIEW_BYTES_PER_ROW - (line_buffer_remainder - line_buffer));
 			}
-			//DEBUG_OUT(("%s %d: displayed=%u, not displayed=%u", __func__ , __LINE__, bytes_displayed, bytes_not_displayed));
+			//DEBUG_OUT(("%s %d: not displayed=%u", __func__ , __LINE__, bytes_not_displayed));
 			//DEBUG_OUT(("%s %d: buff remainder='%s'", __func__ , __LINE__, line_buffer_remainder));
 			
 			if (bytes_not_displayed > 0)
@@ -448,7 +444,7 @@ void EM_DisplayAsText(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 	// if user hasn't already said they are done, give them a chance to look at the last displayed page
 	if (user_exit != true)
 	{
-		user_input = Keyboard_GetChar();
+		Keyboard_GetChar();
 	}
 }
 
@@ -477,7 +473,6 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 	uint8_t		rows_displayed_this_chunk;
 	uint8_t		i = 0;
 	uint8_t		y = 0;
-	uint16_t	remain_len = 0;
 	uint32_t	loc_in_file = 0x0000;	// will track the location within the file, so we can show to users on left side. 
 	bool		keep_going = true;
 	bool		user_exit = false;
@@ -519,7 +514,7 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 			}
 			
 			// address display at left
-			sprintf(global_string_buff1, "%06lX: ", loc_in_file);
+			sprintf(global_string_buff1, "%06luX: ", loc_in_file);
 			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 		
 			// main hex display in middle
@@ -578,7 +573,7 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 	// if user hasn't already said they are done, give them a chance to look at the last displayed page
 	if (user_exit != true)
 	{
-		user_input = Keyboard_GetChar();
+		Keyboard_GetChar();
 	}
 }
 

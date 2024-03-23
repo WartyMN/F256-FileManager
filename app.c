@@ -211,10 +211,6 @@ int8_t	App_ScanDevices(void)
 // initialize various objects - once per run
 void App_Initialize(void)
 {
-	uint8_t				the_drive_index = 0;
-	char				drive_path[3];
-	char*				the_drive_path = drive_path;
-
 	Buffer_Clear();
 
 	// show info about the host F256 and environment, as well as copyright, version of f/manager

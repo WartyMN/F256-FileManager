@@ -513,6 +513,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char*
 //Buffer_NewMessage("folder reset: 1");	
 	this_string_p = &the_folder->folder_file_->file_name_;
 	the_folder->folder_file_->file_name_ = NULL;
+	
 	if (*this_string_p)
 	{
 		free(*this_string_p);
@@ -521,6 +522,7 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char*
 //Buffer_NewMessage("folder reset: 3");	
 	this_string_p = &the_folder->file_path_;
 	the_folder->file_path_ = NULL;
+	
 	if (*this_string_p)
 	{
 		free(*this_string_p);

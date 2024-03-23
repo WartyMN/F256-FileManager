@@ -49,12 +49,12 @@
 /*                           File-scope Variables                            */
 /*****************************************************************************/
 
+#pragma data-name ("OVERLAY_SCREEN")
+
 static File_Panel		panel[NUM_PANELS];
 static UI_Button		uibutton[NUM_BUTTONS];
-
-#pragma data-name ("OVERLAY_SCREEN")
  
-static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] = 
+static uint8_t			screen_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] = 
 {
 	148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,148,
 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,141,142,143,144,145,146,147,32,102,47,109,97,110,97,103,101,114,32,0x46,0x32,0x35,0x36,32,140,139,138,137,136,135,134,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
@@ -101,7 +101,7 @@ void Screen_DrawUI(void)
 	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	
 	// draw the title bar at top. 3x80
-	Text_CopyMemBoxLinearBuffer((uint8_t*)&app_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
+	Text_CopyMemBoxLinearBuffer((uint8_t*)&screen_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_InvertBox(48, 1, 54, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat

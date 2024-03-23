@@ -376,7 +376,6 @@ void Panel_InitializeForMemory(WB2KViewPanel* the_panel, FMMemorySystem* the_mem
 // Forget all its files, and repopulate from the specified disk or memory system
 bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device)
 {
-	uint8_t		the_new_device;
 	char		path_buff[3];
 	bool		for_flash;
 	
@@ -386,11 +385,11 @@ bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device)
 
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		sprintf(path_buff, "%d:", the_new_device);
+		sprintf(path_buff, "%d:", the_device);
 		
 		App_LoadOverlay(OVERLAY_DISKSYS);
 	
-		if (Folder_Reset(the_panel->root_folder_, the_new_device, path_buff) == false)
+		if (Folder_Reset(the_panel->root_folder_, the_device, path_buff) == false)
 		{
 			LOG_ERR(("%s %d: could not free the panel's root folder", __func__ , __LINE__));
 			App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
@@ -558,8 +557,6 @@ bool Panel_FormatDrive(WB2KViewPanel* the_panel)
 	bool				name_entered;
 	int8_t				result_code;
 	int8_t				the_player_choice;
-	char				the_name_buffer[FILE_MAX_FILENAME_SIZE];
-	char*				the_name = the_name_buffer;
 	
 	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_FORMAT_TITLE), 36);
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
@@ -603,7 +600,6 @@ bool Panel_FormatDrive(WB2KViewPanel* the_panel)
 bool Panel_Init(WB2KViewPanel* the_panel)
 {
 	uint8_t		the_error_code;
-	//char	temp_buff[60];
 
 	if (the_panel == NULL)
 	{

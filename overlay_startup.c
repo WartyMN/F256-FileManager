@@ -530,7 +530,6 @@ void Startup_ShowMachineSplash(void)
 	uint8_t		right_x2;
 	int8_t		i;
 	uint16_t	k;
-	bool		keep_going = true;
 
 	if (global_system->model_number_ == MACHINE_F256_JR)
 	{
@@ -705,7 +704,7 @@ void Startup_ShowFoenixLogo(void)
 	// show about info
 	Startup_ShowAboutInfo();
 	
-	vicky_lut_addr = (uint8_t*)(TEXT_FORE_LUT + 60); // start at highest color and go down to color 1 (color 0 already loaded)
+	//vicky_lut_addr = (uint8_t*)(TEXT_FORE_LUT + 60); // start at highest color and go down to color 1 (color 0 already loaded)
 	
 	// now rotate the colors around a bit for a fun effect
 	// start at 2nd highest color (highest is reserved for text, so it doesn't flash)
@@ -957,7 +956,7 @@ bool Sys_AutoConfigure(void)
 //! Detect the current screen mode/resolution, and set # of columns, rows, H pixels, V pixels, accordingly
 bool Sys_DetectScreenSize(void)
 {
-	uint8_t			new_mode;
+	//uint8_t			new_mode;
 	uint8_t			the_video_mode_bits;
 	uint8_t			border_x_cols;
 	uint8_t			border_y_cols;
@@ -975,16 +974,16 @@ bool Sys_DetectScreenSize(void)
 
 	if (the_video_mode_bits & VIDEO_MODE_FREQ_BIT)
 	{
-		new_mode = RES_320X200;
+		//new_mode = RES_320X200;
 		global_system->text_mem_rows_ = TEXT_ROW_COUNT_70HZ; // 2 options in JR. the_screen->height_ / TEXT_FONT_HEIGHT;
 	}
 	else
 	{
-		new_mode = RES_320X240;
+		//new_mode = RES_320X240;
 		global_system->text_mem_rows_ = TEXT_ROW_COUNT_60HZ; // 2 options in JR. the_screen->height_ / TEXT_FONT_HEIGHT;
 	}
 
-// we don't really care about pixels in Lich King... 
+// we don't really care about pixels in this app... 
 // 	switch (new_mode)
 // 	{
 // 		case RES_320X200:

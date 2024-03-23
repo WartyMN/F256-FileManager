@@ -1037,7 +1037,7 @@ void General_LogError(const char* format, ...)
 		#if defined USE_SERIAL_LOGGING
 			Serial_SendData((char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#else
-			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
+			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#endif
 	}
 #endif
@@ -1060,7 +1060,7 @@ void General_LogError(const char* format, ...)
 		#if defined USE_SERIAL_LOGGING
 			Serial_SendData((char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#else
-			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
+			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#endif
 	}	
 #endif
@@ -1082,7 +1082,7 @@ void General_LogError(const char* format, ...)
 		#if defined USE_SERIAL_LOGGING
 			Serial_SendData((char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#else
-			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
+			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#endif
 	}
 #endif
@@ -1104,7 +1104,7 @@ void General_LogError(const char* format, ...)
 		#if defined USE_SERIAL_LOGGING
 			Serial_SendData((char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#else
-			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, strlen((char*)STORAGE_GETSTRING_BUFFER));
+			write(global_log_file_handle, (char*)STORAGE_GETSTRING_BUFFER, the_len);
 		#endif
 	}
 #endif
