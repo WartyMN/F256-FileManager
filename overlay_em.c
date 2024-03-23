@@ -55,7 +55,7 @@
 /*****************************************************************************/
 
 
-#pragma data-name ("OVERLAY_3")
+#pragma data-name ("OVERLAY_EM")
 
 static uint8_t				em_temp_buffer_384b_storage[384];
 static uint8_t*				em_temp_buffer_384b = em_temp_buffer_384b_storage;

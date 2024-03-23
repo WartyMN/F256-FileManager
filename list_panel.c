@@ -131,7 +131,7 @@ void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 	//   when scrolled down, any file's that have scrolled up out of the panel will have y positions < top of panel
 	//   negative positions will happen for longer directories. 
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	num_files = Folder_GetCountFiles(the_panel->root_folder_);
 
@@ -388,7 +388,7 @@ bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device)
 	{
 		sprintf(path_buff, "%d:", the_new_device);
 		
-		App_LoadOverlay(OVERLAY_FOLDER);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 	
 		if (Folder_Reset(the_panel->root_folder_, the_new_device, path_buff) == false)
 		{
@@ -620,7 +620,7 @@ bool Panel_Init(WB2KViewPanel* the_panel)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_MSG_READING_DIR));
 		
-		App_LoadOverlay(OVERLAY_FOLDER);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		
 		// have root folder clear out its list of files
 		Folder_RefreshListing(the_panel->root_folder_);
@@ -903,7 +903,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	uint8_t				orig_dialog_width;
 	uint8_t				temp_dialog_width;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 
@@ -981,7 +981,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 	int16_t				the_current_row;
 	bool				success;
 
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -1049,7 +1049,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	char				delete_file_name_buff[FILE_MAX_FILENAME_SIZE];
 	char*				delete_file_name = delete_file_name_buff;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -1113,7 +1113,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	WB2KFileObject*		the_file;
 	bool				success;
 
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -1154,7 +1154,7 @@ bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 	
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		App_LoadOverlay(OVERLAY_FOLDER);	
+		App_LoadOverlay(OVERLAY_DISKSYS);	
 		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	}
 	else
@@ -1212,7 +1212,7 @@ bool Panel_SelectPrevFile(WB2KViewPanel* the_panel)
 	
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		App_LoadOverlay(OVERLAY_FOLDER);	
+		App_LoadOverlay(OVERLAY_DISKSYS);	
 		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	}
 	else
@@ -1239,7 +1239,7 @@ bool Panel_SelectNextFile(WB2KViewPanel* the_panel)
 	
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		App_LoadOverlay(OVERLAY_FOLDER);	
+		App_LoadOverlay(OVERLAY_DISKSYS);	
 		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 		the_item_count = Folder_GetCountFiles(the_panel->root_folder_);
 	}
@@ -1279,7 +1279,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 	
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		App_LoadOverlay(OVERLAY_FOLDER);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		success = Folder_SetFileSelectionByRow(the_panel->root_folder_, the_row, do_selection, the_panel->y_);
 	}
 	else
@@ -1525,7 +1525,7 @@ void Panel_RenderContents(WB2KViewPanel* the_panel)
 	{
 		WB2KList*	the_item;
 
-		App_LoadOverlay(OVERLAY_FOLDER);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		
 		the_item = *(the_panel->root_folder_->list_);
 	
@@ -1609,7 +1609,7 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 	
 	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
 	{
-		App_LoadOverlay(OVERLAY_FOLDER);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		
 		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 	
@@ -1654,7 +1654,7 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 // {
 // 	int16_t		the_current_row;
 // 	
-// 	App_LoadOverlay(OVERLAY_FOLDER);
+// 	App_LoadOverlay(OVERLAY_DISKSYS);
 // 	
 // 	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 // 	

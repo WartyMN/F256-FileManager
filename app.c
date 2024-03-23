@@ -114,29 +114,6 @@ uint8_t					temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't
 
 extern uint8_t				zp_bank_num;
 
-extern void _OVERLAY_1_LOAD__[], 	_OVERLAY_1_SIZE__[];
-extern void _OVERLAY_2_LOAD__[],	_OVERLAY_2_SIZE__[];
-// extern void _OVERLAY_CREATE_MAP_LOAD__[], 	_OVERLAY_CREATE_MAP_SIZE__[];
-// extern void _OVERLAY_CREATE_LEVEL_LOAD__[],	_OVERLAY_CREATE_LEVEL_SIZE__[];
-// extern void _OVERLAY_COMBAT_LOAD__[],		_OVERLAY_COMBAT_SIZE__[];
-// extern void _OVERLAY_INVENTORY_LOAD__[], 	_OVERLAY_INVENTORY_SIZE__[];
-// extern void _OVERLAY_GAMEOVER_LOAD__[],		_OVERLAY_GAMEOVER_SIZE__[];
-// extern void _OVERLAY_NOTICE_BOARD_LOAD__[], _OVERLAY_NOTICE_BOARD_SIZE__[];
-// extern void _OVERLAY_CREATE_CAVERN_LOAD__[],_OVERLAY_CREATE_CAVERN_SIZE__[];
-
-Overlay overlay[NUM_OVERLAYS] =
-{
-	{OVERLAY_1_SLOT, OVERLAY_1_VALUE},
-	{OVERLAY_2_SLOT, OVERLAY_2_VALUE},
-	{OVERLAY_3_SLOT, OVERLAY_3_VALUE},
-	{OVERLAY_4_SLOT, OVERLAY_4_VALUE},
-	{OVERLAY_5_SLOT, OVERLAY_5_VALUE},
-	{OVERLAY_6_SLOT, OVERLAY_6_VALUE},
-	{OVERLAY_7_SLOT, OVERLAY_7_VALUE},
-	{OVERLAY_8_SLOT, OVERLAY_8_VALUE},
-	{OVERLAY_9_SLOT, OVERLAY_9_VALUE},
-};
-
 
 #pragma zpsym ("zp_bank_num");
 
@@ -311,7 +288,7 @@ void App_InitializePanelForDisk(uint8_t panel_id)
 	char				drive_path[3];
 	char*				the_drive_path = drive_path;
 
-	App_LoadOverlay(OVERLAY_FOLDER);
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
@@ -849,10 +826,10 @@ void App_DisplayTime(void)
 
 
 // Brings the requested overlay into memory
-void App_LoadOverlay(uint8_t the_overlay_id)
+void App_LoadOverlay(uint8_t the_overlay_em_bank_number)
 {
-	zp_bank_num = overlay[the_overlay_id].lut_value_;
-	Memory_SwapInNewBank(overlay[the_overlay_id].lut_slot_);
+	zp_bank_num = the_overlay_em_bank_number;
+	Memory_SwapInNewBank(OVERLAY_CPU_BANK);
 }
 
 

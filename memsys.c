@@ -46,7 +46,7 @@
 /*                          File-scoped Variables                            */
 /*****************************************************************************/
 
-#pragma data-name ("OVERLAY_5")
+#pragma data-name ("OVERLAY_MEMSYS")
 
 static uint8_t				memsys_temp_kupname_buffer_storage[MEMSYS_KUPNAME_TEMP_BUFFER_LEN];
 static uint8_t*				memsys_temp_kupname_buffer = memsys_temp_kupname_buffer_storage;

@@ -52,7 +52,7 @@
 static File_Panel		panel[NUM_PANELS];
 static UI_Button		uibutton[NUM_BUTTONS];
 
-#pragma data-name ("OVERLAY_1")
+#pragma data-name ("OVERLAY_SCREEN")
  
 static uint8_t			app_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] = 
 {

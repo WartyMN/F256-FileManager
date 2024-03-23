@@ -255,42 +255,20 @@
 /*                                  Overlays                                 */
 /*****************************************************************************/
 
-#define NUM_OVERLAYS			9
-
-#define OVERLAY_SCREEN			0
-#define OVERLAY_FOLDER			1
-#define OVERLAY_EM				2
-#define OVERLAY_STARTUP			3
-#define OVERLAY_MEMSYSTEM		4
-#define OVERLAY_INVENTORY		5
-#define OVERLAY_GAMEOVER		6
-#define OVERLAY_NOTICE_BOARD	7
-#define OVERLAY_CREATE_CAVERN	8
-
-#define OVERLAY_1_SLOT                     0x05
-#define OVERLAY_1_VALUE                    0x08
-#define OVERLAY_2_SLOT                     0x05
-#define OVERLAY_2_VALUE                    0x09
-#define OVERLAY_3_SLOT                     0x05
-#define OVERLAY_3_VALUE                    0x0A
-#define OVERLAY_4_SLOT                     0x05
-#define OVERLAY_4_VALUE                    0x0B
-#define OVERLAY_5_SLOT                     0x05
-#define OVERLAY_5_VALUE                    0x0C
-#define OVERLAY_6_SLOT                     0x05
-#define OVERLAY_6_VALUE                    0x0D
-#define OVERLAY_7_SLOT                     0x05
-#define OVERLAY_7_VALUE                    0x0E
-#define OVERLAY_8_SLOT                     0x05
-#define OVERLAY_8_VALUE                    0x0F
-#define OVERLAY_9_SLOT                     0x05
-#define OVERLAY_9_VALUE                    0x10
-#define OVERLAY_10_RESERVED_SLOT           0x05
-#define OVERLAY_10_RESERVED_VALUE          0x11
-
+#define OVERLAY_CPU_BANK					0x05	// overlays are always loaded into bank 5
 #define OVERLAY_START_ADDR					0xA000	// in CPU memory space, the start of overlay memory
-#define OVERLAY_SLOT						0x05
-#define IO_SLOT								0x06
+
+// overlays defs are just the physical bank num the overlay code is stored in
+#define OVERLAY_SCREEN			0x08
+#define OVERLAY_DISKSYS			0x09
+#define OVERLAY_EM				0x0A
+#define OVERLAY_STARTUP			0x0B
+#define OVERLAY_MEMSYSTEM		0x0C
+#define OVERLAY_6					0x0D
+#define OVERLAY_7					0x0E
+#define OVERLAY_8					0x0F
+#define OVERLAY_9					0x10
+#define OVERLAY_10					0x11
 
 #define CUSTOM_FONT_PHYS_ADDR              0x3A000	// temporary buffer for loading in a font?
 #define CUSTOM_FONT_SLOT                   0x05
@@ -334,12 +312,6 @@ typedef enum device_number
 //    int32_t	ds_Tick;	      /* Number of ticks past minute */
 // } DateStamp; /* DateStamp */
 
-typedef struct Overlay
-{
-	uint8_t		lut_slot_;	// 08-0f, refers to ZP address
-	uint8_t		lut_value_; // 00-80, refers to physical memory, each 8K bank goes up by 1
-} Overlay;
-
 
 /*****************************************************************************/
 /*                       Public Function Prototypes                          */
@@ -372,7 +344,7 @@ void App_DisplayTime(void);
 void App_Exit(uint8_t the_error_number);
 
 // Brings the requested overlay into memory
-void App_LoadOverlay(uint8_t the_overlay_id);
+void App_LoadOverlay(uint8_t the_overlay_em_bank_number);
 
 
 #endif /* FILE_MANAGER_H_ */
