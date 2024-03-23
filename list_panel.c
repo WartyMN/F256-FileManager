@@ -1146,32 +1146,57 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 {
 	int16_t				the_current_row;
+	uint8_t				num_pages;
+	uint8_t				bank_num;
 	WB2KFileObject*		the_file;
 	bool				success;
+	char*				the_name;
 	
-	App_LoadOverlay(OVERLAY_FOLDER);
-	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		App_LoadOverlay(OVERLAY_FOLDER);	
+		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	}
+	else
+	{
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		the_current_row = MemSys_GetCurrentRow(the_panel->memory_system_);
+	}
 	
 	if (the_current_row < 0)
 	{
 		return false;
 	}
 	
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	success = File_LoadFileToEM(global_temp_path_1);
+	if (the_panel->device_number_ < DEVICE_MAX_DISK_DEVICE)
+	{
+		the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+		the_name = the_file->file_name_;
+		num_pages = the_file->size_/256;
+		bank_num = EM_STORAGE_START_PHYS_BANK_NUM;
+		success = File_LoadFileToEM(global_temp_path_1);
+	}
+	else
+	{
+		// for view memory, no question of success: it is already there always
+		the_name = the_panel->memory_system_->bank_[the_current_row].name_;
+		num_pages = 32;	// 64 pages per bank (8192/256=32)
+		bank_num = the_panel->memory_system_->bank_[the_current_row].bank_num_;
+		success = true;
+	}
 	
 	if (success)
 	{
 		App_LoadOverlay(OVERLAY_EM);
+		
 		if (the_viewer_type == PARAM_VIEW_AS_HEX)
 		{
-			EM_DisplayAsHex(the_file->size_/256, the_file->file_name_);
+			EM_DisplayAsHex(bank_num, num_pages, the_name);
 		}
 		else
 		{
-			EM_DisplayAsText(the_file->size_/256, the_file->file_name_);
+			EM_DisplayAsText(bank_num, num_pages, the_name);
 		}
 	}
 	

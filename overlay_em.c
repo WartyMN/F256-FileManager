@@ -231,9 +231,10 @@ char* EM_DisplayStringWithLineBreaks(char* the_message, uint8_t x, uint8_t y, ui
 
 
 // displays the content found in EM as text, with wrapping, etc.
-// num_chunks is the number of EM 256b chunks that need displaying
+// em_bank_num is used to derive the base EM address
+// num_pages is the number of EM 256b chunks that need displaying
 // the_name is only used to provide feedback to the user about what they are viewing
-void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
+void EM_DisplayAsText(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 {
 	// LOGIC
 	//   Data must have already been loaded into EM_STORAGE_START_PHYS_ADDR
@@ -277,9 +278,9 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 	line_buffer[0] = 0;
 
 	// EM chunk read loop
-	while (keep_going == true && i < num_chunks)
+	while (keep_going == true && i < num_pages)
 	{
-		App_EMDataCopy(copy_buffer, EM_STORAGE_START_PHYS_BANK_NUM, i++, PARAM_COPY_FROM_EM);
+		App_EMDataCopy(copy_buffer, em_bank_num, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
 		unprocessed_bytes = 256;
@@ -430,7 +431,7 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 					unprocessed_bytes = 0;					
 				}
 				
-				if (i < num_chunks)
+				if (i < num_pages)
 				{
 					copy_again = true;
 				}
@@ -453,13 +454,16 @@ void EM_DisplayAsText(uint8_t num_chunks, char* the_name)
 
 
 // displays the content found in EM as hex codes and text to right, similar to a ML monitor
-// num_chunks is the number of EM 256b chunks that need displaying
+// em_bank_num is used to derive the base EM address
+// num_pages is the number of EM 256b pages that need displaying
 // the_name is only used to provide feedback to the user about what they are viewing
-void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
+void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 {
 	// LOGIC
-	//   Data must have already been loaded into EM_STORAGE_START_PHYS_ADDR
+	//   Data must have already been loaded into EM at the em_bank_num specified
 	//   user can hit esc / runstop to stop at any time, or any other key to continue to the next screenful
+	//   for the 'address', we start at 0 assuming this is a file, and we are counting from start of file
+	//     but if the em_bank_num <> EM_STORAGE_START_PHYS_BANK_NUM, we're almost certainly viewing memory, in which case show calculated EM address
 	
 	// LOGIC
 	//   we only have 80x60 to work with, and we need a row for "hit space for more, esc to stop"
@@ -484,10 +488,20 @@ void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
 	// primary local buffer will use 384b dedicated storage in the EM overlay (only needs 256 technically, but this gives us some flex)
 	copy_buffer = em_temp_buffer_384b;
 	
-	// EM chunk read loop
-	while (keep_going == true && i < num_chunks)
+	// are we showing a file on disk, or actually showing memory
+	if (em_bank_num == EM_STORAGE_START_PHYS_BANK_NUM)
 	{
-		App_EMDataCopy(copy_buffer, EM_STORAGE_START_PHYS_BANK_NUM, i++, PARAM_COPY_FROM_EM);
+		loc_in_file = 0x0000;
+	}
+	else
+	{
+		loc_in_file = (uint32_t)((uint32_t)em_bank_num * (uint32_t)8192);
+	}
+	
+	// EM chunk read loop
+	while (keep_going == true && i < num_pages)
+	{
+		App_EMDataCopy(copy_buffer, em_bank_num, i++, PARAM_COPY_FROM_EM);
 
 		buffer_curr_loc = copy_buffer;
 		copy_again = false;
@@ -541,13 +555,13 @@ void EM_DisplayAsHex(uint8_t num_chunks, char* the_name)
 			}
 			
 			// check if we need to get more bytes from EM
-			if (rows_displayed_this_chunk > 16)
+			if (rows_displayed_this_chunk > 15)
 			{
 				// whole chunk has now been displayed = we need to get another chunk
 				//sprintf(global_string_buff1, "need more data, i=%u", i);
 				//Buffer_NewMessage(global_string_buff1);
 				
-				if (i < num_chunks)
+				if (i < num_pages)
 				{
 					copy_again = true;
 				}
