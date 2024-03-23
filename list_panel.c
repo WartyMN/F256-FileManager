@@ -624,7 +624,7 @@ bool Panel_Refresh(WB2KViewPanel* the_panel)
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		
 		// have root folder clear out its list of files
-		Folder_RefreshListing(the_panel->root_folder_);
+		Folder_DestroyAllFiles(the_panel->root_folder_);
 
 		// have root folder populate its list of files
 		if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
@@ -1005,6 +1005,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		}
 
 		Panel_Refresh(the_panel);
+		success = true;
 	}
 	else if (the_file->file_type_ == FNX_FILETYPE_FONT)
 	{
@@ -1591,7 +1592,7 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 {
 	int16_t				the_current_row;
-	WB2KFileObject*		the_current_file;
+	WB2KFileObject*		the_current_file = NULL;
 	
 	// LOGIC: 
 	//   the panel has a concept of currently selected row. this is used to determine bounds for cursor up/down file selection

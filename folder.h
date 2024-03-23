@@ -141,8 +141,9 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 // frees all allocated memory associated with the passed object, and the object itself
 void Folder_Destroy(WB2KFolderObject** the_folder);
 
-// toss out the old folder, start over and renew
-void Folder_RefreshListing(WB2KFolderObject* the_folder);
+// free every fileobject in the folder's list, and remove the nodes from the list
+void Folder_DestroyAllFiles(WB2KFolderObject* the_folder);
+
 
 
 // **** SETTERS *****

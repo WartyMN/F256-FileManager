@@ -98,7 +98,7 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 		//LOG_ERR(("%s %d: could not allocate memory to create new file object", __func__ , __LINE__));
 		goto error;
 	}
-	//LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
 
 	if ( (the_file->file_name_ = General_StrlcpyWithAlloc(the_file_name, FILE_MAX_FILENAME_SIZE)) == NULL)
 	{
@@ -106,7 +106,7 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
 		goto error;
 	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%li", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%li	%s", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1, the_file->file_name_));
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
@@ -298,7 +298,7 @@ void File_Destroy(WB2KFileObject** the_file)
 
 	if ((*the_file)->file_name_ != NULL)
 	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_name_	%p	size	%i", __func__ , __LINE__, (*the_file)->file_name_, General_Strnlen((*the_file)->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_name_	%p	size	%li	%s", __func__ , __LINE__, (*the_file)->file_name_, General_Strnlen((*the_file)->file_name_, FILE_MAX_FILENAME_SIZE) + 1, (*the_file)->file_name_));
 		free((*the_file)->file_name_);
 		(*the_file)->file_name_ = NULL;
 	}

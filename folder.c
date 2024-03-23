@@ -66,9 +66,6 @@ extern char*		global_string_buff2;
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
 
-// free every fileobject in the folder's list, and remove the nodes from the list
-void Folder_DestroyAllFiles(WB2KFolderObject* the_folder);
-
 // // looks through all files in the file list, comparing the passed file object, and turning true if found in the list
 // // use case: checking if a given file in a selection pool is also the potential target for a drag action
 // bool Folder_InFileList(WB2KFolderObject* the_folder, WB2KFileObject* the_file, uint8_t the_scope);
@@ -220,43 +217,6 @@ error:
 	App_HideProgressBar();
 	
 	return -1;
-}
-
-
-// free every fileobject in the panel's list, and remove the nodes from the list
-void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
-{
-	int			num_nodes = 0;
-	WB2KList*	the_item;
-
-	if (the_folder == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DESTROY_ALL_FOLDER_WAS_NULL);	// crash early, crash often
-	}
-	
-	the_item = *(the_folder->list_);
-
-	while (the_item != NULL)
-	{
-		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-		// sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
-		// Buffer_NewMessage(global_string_buff1);	
-		
-		File_Destroy(&this_file);
-		++num_nodes;
-		--the_folder->file_count_;
-
-		the_item = the_item->next_item_;
-	}
-
-	// now free up the list items themselves
-	List_Destroy(the_folder->list_);
-
-	//DEBUG_OUT(("%s %d: %i files freed", __func__ , __LINE__, num_nodes));
-	//Buffer_NewMessage("Done destroying all files in folder");
-	
-	return;
 }
 
 
@@ -461,8 +421,11 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 		(the_folder)->list_ = NULL;
 		
 		// free strings
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
 		this_string_p = &the_folder->folder_file_->file_name_;
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
 		the_folder->folder_file_->file_name_ = NULL;
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
 		
 		if (*this_string_p)
 		{
@@ -499,7 +462,7 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 		LOG_ERR(("%s %d: could not allocate memory for the path name", __func__ , __LINE__));
 		goto error;
 	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i	%s", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1, the_folder->file_path_));
 
 	return the_folder;
 
@@ -521,7 +484,7 @@ void Folder_Destroy(WB2KFolderObject** the_folder)
 
 	if ((*the_folder)->file_path_ != NULL)
 	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_folder)->file_path_	%p	size	%i", __func__ , __LINE__, (*the_folder)->file_path_, General_Strnlen((*the_folder)->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_folder)->file_path_	%p	size	%i	%s", __func__ , __LINE__, (*the_folder)->file_path_, General_Strnlen((*the_folder)->file_path_, FILE_MAX_PATHNAME_SIZE) + 1, (*the_folder)->file_path_));
 		free((*the_folder)->file_path_);
 		(*the_folder)->file_path_ = NULL;
 	}
@@ -541,6 +504,43 @@ void Folder_Destroy(WB2KFolderObject** the_folder)
 	LOG_ALLOC(("%s %d:	__FREE__	*the_folder	%p	size	%i", __func__ , __LINE__, *the_folder, sizeof(WB2KFolderObject)));
 	free(*the_folder);
 	*the_folder = NULL;
+}
+
+
+// free every fileobject in the panel's list, and remove the nodes from the list
+void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
+{
+	int			num_nodes = 0;
+	WB2KList*	the_item;
+
+	if (the_folder == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		App_Exit(ERROR_DESTROY_ALL_FOLDER_WAS_NULL);	// crash early, crash often
+	}
+	
+	the_item = *(the_folder->list_);
+
+	while (the_item != NULL)
+	{
+		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
+		// sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
+		// Buffer_NewMessage(global_string_buff1);	
+		
+		File_Destroy(&this_file);
+		++num_nodes;
+		--the_folder->file_count_;
+
+		the_item = the_item->next_item_;
+	}
+
+	// now free up the list items themselves
+	List_Destroy(the_folder->list_);
+
+	//DEBUG_OUT(("%s %d: %i files freed", __func__ , __LINE__, num_nodes));
+	//Buffer_NewMessage("Done destroying all files in folder");
+	
+	return;
 }
 
 
@@ -2149,14 +2149,6 @@ bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row
 
 	return true;
 }	
-
-
-// toss out the old folder, start over and renew
-void Folder_RefreshListing(WB2KFolderObject* the_folder)
-{
-	Folder_DestroyAllFiles(the_folder);
-	return;
-}
 
 
 

@@ -565,7 +565,7 @@ void Startup_ShowMachineSplash(void)
 	// rotate through a series of increasingly fat chars for a reverse louver effect
 	for (i=0; i < 6; i++)
 	{		
-		General_DelayTicks(800);
+		General_DelayTicks(700);
 
 		this_splash_char = machine_splash_chars_left;
 		
@@ -584,7 +584,7 @@ void Startup_ShowMachineSplash(void)
 		Kernal_RunBASIC();
 	}
 	
-	General_DelayTicks(900);
+	General_DelayTicks(600);
 
 // 	// bring the logo up from center of screen to top of screen, out of the way of the foenix logo
 // 	for (i=0; i < MACHINE_SPLASH_TRAVEL_ROWS; i++)

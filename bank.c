@@ -45,7 +45,7 @@
 /*                           File-scope Variables                            */
 /*****************************************************************************/
 
-static char*		bank_non_kup_name = "(non-KUP)";
+static char*		bank_non_kup_name = "~";
 static char*		bank_non_kup_description = "This bank is not a KUP (named) bank";
 static char*		bank_kup_component_description = "This bank contains part of a KUP program";
 
