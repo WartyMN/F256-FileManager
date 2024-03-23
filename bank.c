@@ -165,21 +165,18 @@ void Bank_Destroy(FMBankObject** the_bank)
 	}
 
 	// free name and description, but only if they aren't are boilerplate strings
-	if ((*the_bank)->name_ != bank_non_kup_name)
+	if ( (*the_bank)->name_ != NULL && (*the_bank)->name_ != bank_non_kup_name)
 	{
-		if ((*the_bank)->name_ != NULL)
-		{
-			LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->name_	%p	size	%i", __func__ , __LINE__, (*the_bank)->name_, General_Strnlen((*the_bank)->name_, FILE_MAX_FILENAME_SIZE) + 1));
-			free((*the_bank)->name_);
-			(*the_bank)->name_ = NULL;
-		}
-	
-		if ((*the_bank)->description_ != NULL)
-		{
-			LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->description_	%p	size	%i", __func__ , __LINE__, (*the_bank)->description_, General_Strnlen((*the_bank)->description_, FILE_MAX_FILENAME_SIZE) + 1));
-			free((*the_bank)->description_);
-			(*the_bank)->description_ = NULL;
-		}
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->name_	%p	size	%i", __func__ , __LINE__, (*the_bank)->name_, General_Strnlen((*the_bank)->name_, FILE_MAX_FILENAME_SIZE) + 1));
+		free((*the_bank)->name_);
+		(*the_bank)->name_ = NULL;
+	}
+
+	if ((*the_bank)->description_ != NULL && (*the_bank)->description_ != bank_kup_component_description && (*the_bank)->description_ != bank_non_kup_description)
+	{
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->description_	%p	size	%i", __func__ , __LINE__, (*the_bank)->description_, General_Strnlen((*the_bank)->description_, FILE_MAX_FILENAME_SIZE) + 1));
+		free((*the_bank)->description_);
+		(*the_bank)->description_ = NULL;
 	}
 }
 
