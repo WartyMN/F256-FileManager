@@ -83,16 +83,15 @@ typedef struct FMMemorySystem
 
 // constructor
 // allocates space for the object and any string or other properties that need allocating
-// if the passed memsys point is not NULL, it will not pass it back without allocating a new one.
-FMMemorySystem* MemSys_New(FMMemorySystem* existing_memsys, bool is_flash);
-
-// // reset the memory system, without destroying it, to a condition where it can be completely repopulated
-// // zero out all child banks
-// void MemSys_Reset(FMMemorySystem* the_memsys, bool is_flash);
+// if the passed memsys pointer is not NULL, it will pass it back without allocating a new one.
+FMMemorySystem* MemSys_NewOrReset(FMMemorySystem* existing_memsys, bool is_flash);
 
 // destructor
 // frees all allocated memory associated with the passed object, and the object itself
 void MemSys_Destroy(FMMemorySystem** the_memsys);
+
+// zero every child bank object and have it free any memory associated with it (name, description)
+void MemSys_ResetAllBanks(FMMemorySystem* the_memsys);
 
 
 // **** SETTERS *****

@@ -147,7 +147,7 @@ void Bank_Init(FMBankObject* the_bank, const char* the_name, const char* the_des
 	return;
 
 error:
-	if (the_bank) Bank_Destroy(&the_bank);
+	if (the_bank) Bank_Reset(the_bank);
 	DEBUG_OUT(("%s %d: bank %02x: error happened during allocation", __func__ , __LINE__, the_bank_num));
 	return;
 }
@@ -155,28 +155,28 @@ error:
 
 // destructor
 // frees all allocated memory associated with the passed object but does not free the bank (no allocation for banks)
-void Bank_Destroy(FMBankObject** the_bank)
+void Bank_Reset(FMBankObject* the_bank)
 {
 
-	if (*the_bank == NULL)
+	if (the_bank == NULL)
 	{
 		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_BANK_TO_DESTROY_WAS_NULL);	// crash early, crash often
 	}
 
 	// free name and description, but only if they aren't are boilerplate strings
-	if ( (*the_bank)->name_ != NULL && (*the_bank)->name_ != bank_non_kup_name)
+	if ( (the_bank)->name_ != NULL && (the_bank)->name_ != bank_non_kup_name)
 	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->name_	%p	size	%i", __func__ , __LINE__, (*the_bank)->name_, General_Strnlen((*the_bank)->name_, FILE_MAX_FILENAME_SIZE) + 1));
-		free((*the_bank)->name_);
-		(*the_bank)->name_ = NULL;
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->name_	%p	size	%i", __func__ , __LINE__, (the_bank)->name_, General_Strnlen((the_bank)->name_, FILE_MAX_FILENAME_SIZE) + 1));
+		free((the_bank)->name_);
+		(the_bank)->name_ = NULL;
 	}
 
-	if ((*the_bank)->description_ != NULL && (*the_bank)->description_ != bank_kup_component_description && (*the_bank)->description_ != bank_non_kup_description)
+	if ((the_bank)->description_ != NULL && (the_bank)->description_ != bank_kup_component_description && (the_bank)->description_ != bank_non_kup_description)
 	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->description_	%p	size	%i", __func__ , __LINE__, (*the_bank)->description_, General_Strnlen((*the_bank)->description_, FILE_MAX_FILENAME_SIZE) + 1));
-		free((*the_bank)->description_);
-		(*the_bank)->description_ = NULL;
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_bank)->description_	%p	size	%i", __func__ , __LINE__, (the_bank)->description_, General_Strnlen((the_bank)->description_, FILE_MAX_FILENAME_SIZE) + 1));
+		free((the_bank)->description_);
+		(the_bank)->description_ = NULL;
 	}
 }
 
@@ -434,7 +434,7 @@ void Bank_Render(FMBankObject* the_bank, bool as_selected, int8_t y_offset, bool
 	
 	if (the_bank->display_row_ != -1)
 	{
-		sprintf(global_string_buff1, "%06luX", the_bank->addr_);
+		sprintf(global_string_buff1, "%06lX", the_bank->addr_);
 		y = the_bank->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( x1, y, the_bank->name_, the_color, APP_BACKGROUND_COLOR);

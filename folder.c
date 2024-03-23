@@ -419,135 +419,80 @@ WB2KList* Folder_FindListItemByFileName(WB2KFolderObject* the_folder, char* the_
 
 // **** CONSTRUCTOR AND DESTRUCTOR *****
 
-	
+
 // constructor
 // allocates space for the object and any string or other properties that need allocating
-// if make_copy_of_folder_file is false, it will use the passed file object as is. Do not pass a file object that is owned by a folder already (without setting to true)!
-WB2KFolderObject* Folder_New(WB2KFileObject* the_root_folder_file, bool make_copy_of_folder_file, uint8_t the_device_number)
+// if the passed folder pointer is not NULL, it will pass it back without allocating a new one.
+// if the passed folder pointer is NULL, it will reset the folder, without destroying it, to a condition where it can be completely repopulated
+// destroys all child objects except the folder file, which is emptied out
+// recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
+// returns NULL on any non-fatal error
+WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_t the_device_number, char* new_path)
 {
 	WB2KFolderObject*	the_folder;
-	WB2KFileObject*		the_copy_of_folder_file;
-
-	if ( (the_folder = (WB2KFolderObject*)calloc(1, sizeof(WB2KFolderObject)) ) == NULL)
-	{
-		LOG_ERR(("%s %d: could not allocate memory to create new folder object", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder	%p	size	%i", __func__ , __LINE__, the_folder, sizeof(WB2KFolderObject)));
+	char**				this_string_p;
+	DateTime			this_datetime;
 	
-	// initiate the list, but don't add the first node yet (we don't have any items yet)
-	if ( (the_folder->list_ = (WB2KList**)calloc(1, sizeof(WB2KList*)) ) == NULL)
+	if (the_existing_folder == NULL)
 	{
-		LOG_ERR(("%s %d: could not allocate memory to create new list", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->list_	%p	size	%i", __func__ , __LINE__, the_folder->list_, sizeof(WB2KList*)));
-
-	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(the_root_folder_file->file_name_, FILE_MAX_PATHNAME_SIZE)) == NULL)
-	{
-		//Buffer_NewMessage("could not allocate memory for the file path");
-		LOG_ERR(("%s %d: could not allocate memory for the file path", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
-
-	// LOGIC:
-	//   if required, duplicate the folder file
-	//   When doing Populate folder on window open, this is not generally desired: we have a folder file we can use, and no Folder object owns it yet.
-	//   When opening a sub-folder, however, we need to copy the folder file, because it is going to be owned already by another Folder object.
-	if (make_copy_of_folder_file == true)
-	{
-		if ( (the_copy_of_folder_file = File_Duplicate(the_root_folder_file)) == NULL)
+		if ( (the_folder = (WB2KFolderObject*)calloc(1, sizeof(WB2KFolderObject)) ) == NULL)
 		{
-			LOG_ERR(("%s %d: Couldn't get a duplicate of the folder file object", __func__ , __LINE__));
-			App_Exit(ERROR_FILE_DUPLICATE_FAILED); // crash early, crash often
+			LOG_ERR(("%s %d: could not allocate memory to create new folder object", __func__ , __LINE__));
+			goto error;
 		}
+		LOG_ALLOC(("%s %d:	__ALLOC__	the_folder	%p	size	%i", __func__ , __LINE__, the_folder, sizeof(WB2KFolderObject)));
 		
-		the_folder->folder_file_ = the_copy_of_folder_file;
+		// create a root file folder object
+		if ( (the_folder->folder_file_ = File_New(new_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
+		{
+			App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE);
+		}
 	}
 	else
 	{
-		the_folder->folder_file_ = the_root_folder_file;
+		the_folder = the_existing_folder;
+
+		// free all files in the folder's file list
+		Folder_DestroyAllFiles(the_folder);
+		
+		// free the list
+		LOG_ALLOC(("%s %d:	__FREE__	(the_folder)->list_	%p	size	%i", __func__ , __LINE__, (the_folder)->list_, sizeof(WB2KList*)));
+		free((the_folder)->list_);
+		(the_folder)->list_ = NULL;
+		
+		// free strings
+		this_string_p = &the_folder->folder_file_->file_name_;
+		the_folder->folder_file_->file_name_ = NULL;
+		
+		if (*this_string_p)
+		{
+			free(*this_string_p);
+		}
+		
+		this_string_p = &the_folder->file_path_;
+		the_folder->file_path_ = NULL;
+		
+		if (*this_string_p)
+		{
+			free(*this_string_p);
+		}		
 	}
 	
-	// set some other props
-	the_folder->file_count_ = 0;
-	//the_folder->total_blocks_ = 0;
-	//the_folder->selected_blocks_ = 0;
-	the_folder->device_number_ = the_device_number;
-
-	return the_folder;
-
-error:
-	if (the_folder)		free(the_folder);
-	return NULL;
-}
-
-
-// reset the folder, without destroying it, to a condition where it can be completely repopulated
-// destroys all child objects except the folder file, which is emptied out
-// recreates the folder file based on the device number and the new_path string (eg, "0:myfolder")
-// returns false on any error
-bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char* new_path)
-{
-// 	WB2KFileObject**	this_file;
-	char**				this_string_p;
-// 	char				path_buff[3];
-	
-//Buffer_NewMessage("folder reset: reached");	
-	// free all files in the folder's file list
-	Folder_DestroyAllFiles(the_folder);
-	LOG_ALLOC(("%s %d:	__FREE__	(the_folder)->list_	%p	size	%i", __func__ , __LINE__, (the_folder)->list_, sizeof(WB2KList*)));
-	free((the_folder)->list_);
-	(the_folder)->list_ = NULL;
-	
-	// free the file size string, file name and file path of the folder file, as they are no longer valid.
-
-// 	this_string_p = &the_folder->folder_file_->file_size_string_;
-// 	the_folder->folder_file_->file_size_string_ = NULL;
-// 	if (*this_string_p)
-// 	{
-// 		free(*this_string_p);
-// 	}
-	
-//Buffer_NewMessage("folder reset: 1");	
-	this_string_p = &the_folder->folder_file_->file_name_;
-	the_folder->folder_file_->file_name_ = NULL;
-	
-	if (*this_string_p)
-	{
-		free(*this_string_p);
-	}
-	
-//Buffer_NewMessage("folder reset: 3");	
-	this_string_p = &the_folder->file_path_;
-	the_folder->file_path_ = NULL;
-	
-	if (*this_string_p)
-	{
-		free(*this_string_p);
-	}
-	
-//Buffer_NewMessage("folder reset: stuff free up");	
-
 	// initiate the list, but don't add the first node yet (we don't have any items yet)
 	if ( (the_folder->list_ = (WB2KList**)calloc(1, sizeof(WB2KList*)) ) == NULL)
 	{
 		LOG_ERR(("%s %d: could not allocate memory to create new list", __func__ , __LINE__));
 		goto error;
 	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->list_	%p	size	%i", __func__ , __LINE__, the_folder->list_, sizeof(WB2KList*)));
+	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->list_	%p	size	%i", __func__ , __LINE__, the_folder->list_, sizeof(WB2KList*)));	
 	
-	// reset some other props
+	// set/reset some other props
 	the_folder->cur_row_ = 0;
 	the_folder->file_count_ = 0;
-	//the_folder->total_blocks_ = 0;
-	//the_folder->selected_blocks_ = 0;
 	the_folder->device_number_ = the_device_number;
 	
+	
 	// set the folder filepath to match device+":"
-	//sprintf(path_buff, "%d:", the_device_number);
-
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the path name");
@@ -556,13 +501,11 @@ bool Folder_Reset(WB2KFolderObject* the_folder, uint8_t the_device_number, char*
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1));
 
-//Buffer_NewMessage("folder reset: folder file_path_ set");	
-	
-	return true;
+	return the_folder;
 
 error:
 	if (the_folder)		free(the_folder);
-	return false;
+	return NULL;
 }
 
 
@@ -1037,10 +980,11 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				if (this_file == NULL)
 				{
 					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
+					//DEBUG_OUT(("%s %d: Could not allocate memory for file object '%s'", __func__ , __LINE__, this_file_name));
 					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
 					sprintf(global_string_buff1, "Could not allocate memory for file object '%s'", this_file_name);
 					Buffer_NewMessage(global_string_buff1);
-				goto error;
+					goto error;
 				}
 	
 				// Add this file to the list of files
@@ -1079,8 +1023,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			
 			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
 			
-			//sprintf(global_string_buff1, "file '%s' identified by _DE_ISLBL", dirent->d_name);
-			//Buffer_NewMessage(global_string_buff1);
+			//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name));
 		}
         else if (_DE_ISREG(dirent->d_type))
         {
@@ -1122,6 +1065,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		
 				++file_cnt;
 				
+				//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISREG", __func__ , __LINE__, dirent->d_name));
 				//sprintf(global_string_buff1, "file '%s' datetime=%u-%u-%u %u:%u:%u", dirent->d_name, this_datetime.year, this_datetime.month, this_datetime.day, this_datetime.hour, this_datetime.min, this_datetime.sec);
 				//Buffer_NewMessage(global_string_buff1);
 				//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);

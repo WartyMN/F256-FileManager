@@ -100,7 +100,7 @@ void Bank_Init(FMBankObject* the_bank, const char* the_name, const char* the_des
 
 // destructor
 // frees all allocated memory associated with the passed object but does not free the bank (no allocation for banks)
-void Bank_Destroy(FMBankObject** the_bank);
+void Bank_Reset(FMBankObject* the_bank);
 
 
 // **** SETTERS *****

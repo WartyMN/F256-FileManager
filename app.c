@@ -67,9 +67,6 @@
 /*****************************************************************************/
 
 
-static WB2KFolderObject*	app_root_folder[2];
-// static FMMemorySystem*		app_memsys[2];
-
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
 static uint8_t				app_connected_drive_count;
 
@@ -95,7 +92,6 @@ bool					global_started_from_flash;		// tracks whether app started from flash or
 bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
 
 WB2KViewPanel			app_file_panel[2];
-//WB2KFolderObject		app_root_folder[2];
 TextDialogTemplate		global_dlg;	// dialog we'll configure and re-use for different purposes
 char					global_dlg_title[36];	// arbitrary
 char					global_dlg_body_msg[70];	// arbitrary
@@ -149,13 +145,10 @@ uint8_t App_MainLoop(void);
 void App_SwapActivePanel(void)
 {
 	// mark old panel inactive, mark new panel active, set new active panel id
-	// TODO
 	Panel_ToggleActiveState(&app_file_panel[PANEL_ID_LEFT]);
 	Panel_ToggleActiveState(&app_file_panel[PANEL_ID_RIGHT]);
 	++app_active_panel_id;
 	app_active_panel_id = app_active_panel_id % 2;
-// 	sprintf(global_string_buff1, "active panel set to %u", app_active_panel_id);
-// 	Buffer_NewMessage(global_string_buff1);
 }
 
 
@@ -256,7 +249,7 @@ void App_Initialize(void)
 	else
 	{
 		App_InitializePanelForDisk(PANEL_ID_LEFT);
-
+	
 		// if we have a second disk device available, set that up in the right panel
 		if (app_connected_drive_count > 1)
 		{
@@ -279,8 +272,6 @@ void App_InitializePanelForDisk(uint8_t panel_id)
 {
 	uint8_t				the_drive_index = panel_id;
 	uint8_t				panel_x_offset;
-	WB2KFileObject*		the_root_folder_file;
-	DateTime			this_datetime;
 	char				drive_path[3];
 	char*				the_drive_path = drive_path;
 
@@ -288,30 +279,24 @@ void App_InitializePanelForDisk(uint8_t panel_id)
 	
 	sprintf(the_drive_path, "%u:", global_connected_device[the_drive_index]);
 
-	if ( (the_root_folder_file = File_New(the_drive_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
-	{
-		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE);
-	}
-
-	if ( (app_root_folder[panel_id] = Folder_New(the_root_folder_file, PARAM_MAKE_COPY_OF_FOLDER_FILE, global_connected_device[the_drive_index]) ) == NULL)
+	if ( (app_file_panel[panel_id].root_folder_ = Folder_NewOrReset(app_file_panel[panel_id].root_folder_, global_connected_device[the_drive_index], the_drive_path) ) == NULL)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
 		App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_OBJ);
 	}
 
-	// we had Folder_New make a copy, so we can free the file object we passed it.
-	File_Destroy(&the_root_folder_file);
-	
+	//DEBUG_OUT(("%s %d: panel folder=%p, panel id=%u, device num=%u, path=%s", __func__ , __LINE__, app_file_panel[panel_id].root_folder_, panel_id, global_connected_device[the_drive_index], the_drive_path));
+
 	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
 	
 	Panel_Initialize(
 		&app_file_panel[panel_id], 
-		app_root_folder[panel_id], 
+		PARAM_INITIALIZE_FOR_DISK,
 		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
 		(UI_VIEW_PANEL_BODY_WIDTH - 2), (UI_VIEW_PANEL_BODY_HEIGHT - 3)
 	);
 
-	Panel_SetCurrentDevice(&app_file_panel[panel_id], app_root_folder[panel_id]->device_number_);
+	Panel_SetCurrentDevice(&app_file_panel[panel_id], global_connected_device[the_drive_index]);
 }
 
 
@@ -319,21 +304,20 @@ void App_InitializePanelForDisk(uint8_t panel_id)
 void App_InitializePanelForMemory(uint8_t panel_id, bool for_flash)
 {
 	uint8_t				panel_x_offset;
-	FMMemorySystem*		the_memsys;
-	
+
 	App_LoadOverlay(OVERLAY_MEMSYSTEM);
 	
-	if ( (the_memsys = MemSys_New(the_memsys, for_flash)) == NULL)
+	if ( (app_file_panel[panel_id].memory_system_ = MemSys_NewOrReset(app_file_panel[panel_id].memory_system_, for_flash)) == NULL)
 	{
 		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ALLOC_FAIL));
-		App_Exit(ERROR_COULD_NOT_CREATE_MEMSYS_OBJ);
+		App_Exit(ERROR_COULD_NOT_CREATE_OR_RESET_MEMSYS_OBJ);
 	}
 
 	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
 
-	Panel_InitializeForMemory(
+	Panel_Initialize(
 		&app_file_panel[panel_id], 
-		the_memsys, 
+		PARAM_INITIALIZE_FOR_MEMORY,
 		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
 		(UI_VIEW_PANEL_BODY_WIDTH - 2), (UI_VIEW_PANEL_BODY_HEIGHT - 3)
 	);
@@ -499,14 +483,14 @@ uint8_t App_MainLoop(void)
 					break;
 					
 				case ACTION_REFRESH_PANEL:
-					Panel_Init(the_panel);			
+					Panel_Refresh(the_panel);			
 					break;
 				
 				case ACTION_FORMAT_DISK:
 					success = Panel_FormatDrive(the_panel);
 					if (success)
 					{
-						Panel_Init(the_panel);			
+						Panel_Refresh(the_panel);			
 					}
 					break;
 					
@@ -845,10 +829,6 @@ void App_Exit(uint8_t the_error_number)
 		Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
 	}
 
-	// free some last things. not sure if this matters, as we're about to exit, but... 
-	Folder_Destroy(&app_root_folder[0]);
-	Folder_Destroy(&app_root_folder[1]);
-	
 	// close log file if debugging flags were passed
 	#if defined LOG_LEVEL_1 || defined LOG_LEVEL_2 || defined LOG_LEVEL_3 || defined LOG_LEVEL_4 || defined LOG_LEVEL_5
 		General_LogCleanUp();
@@ -900,8 +880,8 @@ int main(void)
 
 	App_Initialize();
 	
-	Panel_Init(&app_file_panel[PANEL_ID_LEFT]);
-	Panel_Init(&app_file_panel[PANEL_ID_RIGHT]);
+	Panel_Refresh(&app_file_panel[PANEL_ID_LEFT]);
+	Panel_Refresh(&app_file_panel[PANEL_ID_RIGHT]);
 	
 	Keyboard_InitiateMinuteHand();
 	App_DisplayTime();

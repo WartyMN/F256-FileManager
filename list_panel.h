@@ -47,6 +47,9 @@
 #define PARAM_VIEW_AS_HEX			0	// parameter for Panel_ViewCurrentFile
 #define PARAM_VIEW_AS_TEXT			1	// parameter for Panel_ViewCurrentFile
 
+#define PARAM_INITIALIZE_FOR_DISK		true	// parameter for Panel_Initialize
+#define PARAM_INITIALIZE_FOR_MEMORY		false	// parameter for Panel_Initialize
+
 /*****************************************************************************/
 /*                               Enumerations                                */
 /*****************************************************************************/
@@ -75,6 +78,7 @@ typedef struct WB2KViewPanel
 // 	bool				col_show_[PANEL_LIST_NUM_COLS];		// for list mode, whether a given column will render. Can vary by window width
 // 	uint8_t				col_x_[PANEL_LIST_NUM_COLS];		// for list mode, starting x position of each column
 	bool				active_;	// keep 1 panel as the active one. non-active panels get grayed out highlights
+	bool				for_disk_;							// true if set up for workign with a disk system; false if for a memory system
 	void*				sort_compare_function_;
 } WB2KViewPanel;
 
@@ -94,12 +98,7 @@ bool printdir (char *newdir);
 // **** CONSTRUCTOR AND DESTRUCTOR *****
 
 // (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
-// use this to set or reset a panel to point to a folder object, after using it a memory system object
-void Panel_Initialize(WB2KViewPanel* the_panel, WB2KFolderObject* root_folder, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
-
-// (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
-// use this to set or reset a panel to point to a memory system object, after using it a folder object
-void Panel_InitializeForMemory(WB2KViewPanel* the_panel, FMMemorySystem* the_memory_system, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+void Panel_Initialize(WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 
 // Forget all its files, and repopulate from the specified disk or memory system
 bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device);
@@ -138,8 +137,8 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel);
 // DANGER WILL ROBINSON!
 bool Panel_FormatDrive(WB2KViewPanel* the_panel);
 
-// initialize a new panel and get directory listing or info view data
-bool Panel_Init(WB2KViewPanel* the_panel);
+// Reset a view panel display properties and renew the listing
+bool Panel_Refresh(WB2KViewPanel* the_panel);
 
 // check if the passed X coordinate is owned by this panel. returns true if x is between x_ and x_ + width_
 bool Panel_OwnsX(WB2KViewPanel* the_panel, int16_t x);

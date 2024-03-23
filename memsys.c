@@ -67,9 +67,6 @@ extern char*		global_string_buff2;
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
 
-// free every fileobject in the folder's list, and remove the nodes from the list
-void MemSys_ResetAllBanks(FMMemorySystem* the_memsys);
-
 // looks through all files in the file list, comparing the passed string to the filename of each file.
 // Returns NULL if nothing matches, or returns pointer to first matching list item
 WB2KList* MemSys_FindListItemByBankName(FMMemorySystem* the_memsys, char* the_bank_name);
@@ -89,26 +86,6 @@ FMBankObject* MemSys_FindBankByBankPath(FMMemorySystem* the_memsys, char* the_ba
 
 
 
-// zero every child bank object and have it free any memory associated with it (name, description)
-void MemSys_ResetAllBanks(FMMemorySystem* the_memsys)
-{
-	uint8_t		i;
-	
-	if (the_memsys == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_DESTROY_ALL_MEMSYS_WAS_NULL);	// crash early, crash often
-	}
-	
-	for (i = 0; i < MEMORY_BANK_COUNT; i++)
-	{
-		FMBankObject*		this_bank = &the_memsys->bank_[i];
-		
-		Bank_Destroy(&this_bank);
-	}
-
-	return;
-}
 
 
 
@@ -125,8 +102,8 @@ void MemSys_ResetAllBanks(FMMemorySystem* the_memsys)
 	
 // constructor
 // allocates space for the object and any string or other properties that need allocating
-// if the passed memsys point is not NULL, it will not pass it back without allocating a new one.
-FMMemorySystem* MemSys_New(FMMemorySystem* existing_memsys, bool is_flash)
+// if the passed memsys pointer is not NULL, it will pass it back without allocating a new one.
+FMMemorySystem* MemSys_NewOrReset(FMMemorySystem* existing_memsys, bool is_flash)
 {
 	FMMemorySystem*		the_memsys;
 
@@ -146,7 +123,7 @@ FMMemorySystem* MemSys_New(FMMemorySystem* existing_memsys, bool is_flash)
 		// zero out all child memory bank objects
 		MemSys_ResetAllBanks(the_memsys);
 	}
-	
+
 	// set some other props
 	the_memsys->is_flash_ = is_flash;
 	the_memsys->cur_row_ = -1;
@@ -159,18 +136,6 @@ error:
 }
 
 
-// // reset the memory system, without destroying it, to a condition where it can be completely repopulated
-// // zero out all child banks
-// void MemSys_Reset(FMMemorySystem* the_memsys, bool is_flash)
-// {
-// 	// zero out all child memory bank objects
-// 	MemSys_ResetAllBanks(the_memsys);
-// 	
-// 	the_memsys->is_flash_ = is_flash;
-// 	the_memsys->cur_row_ = -1;
-// }
-
-
 // destructor
 // frees all allocated memory associated with the passed object, and the object itself
 void MemSys_Destroy(FMMemorySystem** the_memsys)
@@ -181,6 +146,8 @@ void MemSys_Destroy(FMMemorySystem** the_memsys)
 		App_Exit(ERROR_FOLDER_TO_DESTROY_WAS_NULL);	// crash early, crash often
 	}
 
+	MemSys_ResetAllBanks(*the_memsys);
+	
 	// free the folder object itself
 	LOG_ALLOC(("%s %d:	__FREE__	*the_memsys	%p	size	%i", __func__ , __LINE__, *the_memsys, sizeof(FMMemorySystem)));
 	free(*the_memsys);
@@ -188,6 +155,26 @@ void MemSys_Destroy(FMMemorySystem** the_memsys)
 }
 
 
+// zero every child bank object and have it free any memory associated with it (name, description)
+void MemSys_ResetAllBanks(FMMemorySystem* the_memsys)
+{
+	uint8_t		i;
+	
+	if (the_memsys == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		App_Exit(ERROR_DESTROY_ALL_MEMSYS_WAS_NULL);	// crash early, crash often
+	}
+	
+	for (i = 0; i < MEMORY_BANK_COUNT; i++)
+	{
+		FMBankObject*		this_bank = &the_memsys->bank_[i];
+		
+		Bank_Reset(this_bank);
+	}
+
+	return;
+}
 
 
 // **** SETTERS *****
