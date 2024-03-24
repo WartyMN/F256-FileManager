@@ -169,6 +169,9 @@ uint16_t Folder_GetCountFiles(WB2KFolderObject* the_folder);
 // returns the row num (-1, or 0-n) of the currently selected file
 int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder);
 
+// returns the currently selected file, or NULL if no file is marked as selected
+WB2KFileObject* Folder_GetCurrentFile(WB2KFolderObject* the_folder);
+
 // // returns true if folder has any files/folders showing as selected
 // bool Folder_HasSelections(WB2KFolderObject* the_folder);
 
@@ -217,6 +220,9 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
 bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2KFolderObject* the_target_folder);
+
+// copies the currently selected file
+bool Folder_CopyCurrentFile(WB2KFolderObject* the_folder, WB2KFolderObject* the_target_folder);
 
 // compare 2 folder objects. When done, the original_root_folder will have been updated with removals/additions as necessary to match the updated file list
 // returns true if any changes were detected, or false if files appear to be identical

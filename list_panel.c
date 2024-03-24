@@ -899,7 +899,6 @@ bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel)
 // rename the currently selected file
 bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 {
-	int16_t				the_current_row;
 	WB2KFileObject*		the_file;
 	bool				success;
 	uint8_t				orig_dialog_width;
@@ -907,14 +906,12 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	
 	App_LoadOverlay(OVERLAY_DISKSYS);
 	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
+	the_file = Folder_GetCurrentFile(the_panel->root_folder_);
 
-	if (the_current_row < 0)
+	if (the_file == NULL)
 	{
 		return false;
 	}
-	
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 
 // 	sprintf(global_string_buff1, "file to rename='%s'", the_file->file_name_);
 // 	Buffer_NewMessage(global_string_buff1);
@@ -980,19 +977,16 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 {
 	WB2KFileObject*		the_file;
-	int16_t				the_current_row;
 	bool				success;
 
 	App_LoadOverlay(OVERLAY_DISKSYS);
 	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-	if (the_current_row < 0)
+	the_file = Folder_GetCurrentFile(the_panel->root_folder_);
+
+	if (the_file == NULL)
 	{
 		return false;
 	}
-	
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 	
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 	
@@ -1112,22 +1106,11 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
 {
-	int16_t				the_current_row;
-	WB2KFileObject*		the_file;
 	bool				success;
 
 	App_LoadOverlay(OVERLAY_DISKSYS);
 	
-	the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-	if (the_current_row < 0)
-	{
-		return false;
-	}
-	
-	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-
-	success = Folder_CopyFile(the_panel->root_folder_, the_file, the_other_panel->root_folder_);
+	success = Folder_CopyCurrentFile(the_panel->root_folder_, the_other_panel->root_folder_);
 	
 	if (success)
 	{
@@ -1591,7 +1574,6 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 // TODO: consider adding a boolean "do reflow". 
 void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 {
-	int16_t				the_current_row;
 	WB2KFileObject*		the_current_file = NULL;
 	
 	// LOGIC: 
@@ -1603,13 +1585,8 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 	{
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		
-		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
-	
-		if (the_current_row >= 0)
-		{
-			the_current_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-		}
-	
+		the_current_file = Folder_GetCurrentFile(the_panel->root_folder_);
+		
 		List_InitMergeSort(the_panel->root_folder_->list_, the_panel->sort_compare_function_);
 
 		Panel_ReflowContent(the_panel);

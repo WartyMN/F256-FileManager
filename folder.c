@@ -642,6 +642,19 @@ int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder)
 }
 
 
+// returns the currently selected file, or NULL if no file is marked as selected
+WB2KFileObject* Folder_GetCurrentFile(WB2KFolderObject* the_folder)
+{
+	if (the_folder->cur_row_ < 0)
+	{
+		return NULL;
+	}
+	
+	return Folder_FindFileByRow(the_folder, the_folder->cur_row_);
+}
+
+
+
 // // returns true if folder has any files/folders showing as selected
 // bool Folder_HasSelections(WB2KFolderObject* the_folder)
 // {
@@ -1098,6 +1111,21 @@ error:
 	return (the_error_code);
 }
 
+
+// copies the currently selected file
+bool Folder_CopyCurrentFile(WB2KFolderObject* the_folder, WB2KFolderObject* the_target_folder)
+{
+	WB2KFileObject*		the_file;
+
+	the_file = Folder_GetCurrentFile(the_folder);
+
+	if (the_file == NULL)
+	{
+		return false;
+	}
+	
+	return Folder_CopyFile(the_folder, the_file, the_target_folder);
+}
 
 
 // copies the passed file/folder. If a folder, it will create directory on the target volume if it doesn't already exist
