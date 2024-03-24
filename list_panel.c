@@ -1618,8 +1618,14 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 	else
 	{
 		// we never sort memory banks, so don't need to know current row, change sort icons, etc.
+		//MemSys_SetCurrentRow(the_panel->memory_system_, 0); // for memory bank, first row is always the selected one when displaying from scratch
 		Panel_ReflowContent(the_panel);
 		Panel_RenderContents(the_panel);
+		
+		if (the_panel->active_ == true)
+		{
+			MemSys_SetBankSelectionByRow(the_panel->memory_system_, 0, true, the_panel->y_);
+		}
 	}
 }
 

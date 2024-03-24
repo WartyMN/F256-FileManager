@@ -127,7 +127,7 @@ FMMemorySystem* MemSys_NewOrReset(FMMemorySystem* existing_memsys, bool is_flash
 
 	// set some other props
 	the_memsys->is_flash_ = is_flash;
-	the_memsys->cur_row_ = -1;
+	the_memsys->cur_row_ = -1; // leave at -1 until MemSys_SetBankSelectionByRow() or it won't detect a change
 
 	return the_memsys;
 
@@ -183,17 +183,17 @@ void MemSys_ResetAllBanks(FMMemorySystem* the_memsys)
 
 
 
-// // sets the row num (-1, or 0-n) of the currently selected bank
-// void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number)
-// {
-// 	if (the_memsys == NULL)
-// 	{
-// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-// 		App_Exit(ERROR_SET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
-// 	}
-// 	
-// 	the_memsys->cur_row_ = the_row_number;
-// }
+// sets the row num (-1, or 0-n) of the currently selected bank
+void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number)
+{
+	if (the_memsys == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		App_Exit(ERROR_SET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+	}
+	
+	the_memsys->cur_row_ = the_row_number;
+}
 
 
 
@@ -415,8 +415,8 @@ void MemSys_PopulateBanks(FMMemorySystem* the_memsys)
 		}
 	}	
 
-	// set current row to first bank
-	the_memsys->cur_row_ = 0;
+	// do NOT set current row to first bank
+	//the_memsys->cur_row_ = -1; // leave at -1 until MemSys_SetBankSelectionByRow() or it won't detect a change
 }
 
 
@@ -560,7 +560,6 @@ bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, 
 	{
 		return false;
 	}
-
 
 	if (do_selection)
 	{
