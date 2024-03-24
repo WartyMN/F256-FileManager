@@ -716,61 +716,19 @@ bool Kernal_MkDir(char* the_path, uint8_t drive_num)
 // In either case, event.directory.cookie will contain the above cookie.
 
 
-// calls SuperBASIC 
+// runs a name program (a KUP, in other words)
+// pass the KUP name and length
 // returns error on error, and never returns on success (because SuperBASIC took over)
-bool Kernal_RunBASIC(void)
+void Kernal_RunNamed(char* kup_name, uint8_t name_len)
 {
     char			stream;
-    static char*	named_prog = "basic";
 
-	// LOGIC:
-	//   SuperBASIC is not argument aware as of 2024/02/17
-	//   instead of putting the file path into $200 as we would for pexec,
-	//   we have to load the contents of the BASIC file into EM at $28000
-	//   load SuperBASIC, and have user type "xgo". This makes SuperBASIC get the listing from $28000
-	//   bring it into it's memory range, and run it. 
-	//   before this routine is called, we need to have loaded the file and warned user about XGO
-
-	args.common.buf = named_prog;
-	args.common.buflen = 5;
+	args.common.buf = kup_name;
+	args.common.buflen = name_len;
 
 	stream = CALL(RunNamed);
     
-    if (error) 
-    {
-        return false;
-    }
-    
-    return true; // just so cc65 is happy; but will not be hit in event of success as SuperBASIC will already be running.
-}
-
-
-// calls DOS 
-// returns error on error, and never returns on success (because DOS took over)
-bool Kernal_RunDOS(void)
-{
-    char			stream;
-    static char*	named_prog = "dos";
-
-	// LOGIC:
-	//   SuperBASIC is not argument aware as of 2024/02/17
-	//   instead of putting the file path into $200 as we would for pexec,
-	//   we have to load the contents of the BASIC file into EM at $28000
-	//   load SuperBASIC, and have user type "xgo". This makes SuperBASIC get the listing from $28000
-	//   bring it into it's memory range, and run it. 
-	//   before this routine is called, we need to have loaded the file and warned user about XGO
-
-	args.common.buf = named_prog;
-	args.common.buflen = 3;
-
-	stream = CALL(RunNamed);
-    
-    if (error) 
-    {
-        return false;
-    }
-    
-    return true; // just so cc65 is happy; but will not be hit in event of success as SuperBASIC will already be running.
+    return; // just so cc65 is happy; but will not be hit in event of success as SuperBASIC will already be running.
 }
 
 

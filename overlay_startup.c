@@ -449,6 +449,8 @@ static System	system_storage;
 System*			global_system = &system_storage;
 
 
+
+extern char*				global_named_app_basic;
 extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 
 extern char*				global_string[NUM_STRINGS];
@@ -559,7 +561,7 @@ void Startup_ShowMachineSplash(void)
 	// give user a chance to drop into BASIC immediately
 	if (Keyboard_GetKeyIfPressed() == 'b')
 	{
-		Kernal_RunBASIC();
+		Kernal_RunNamed(global_named_app_basic, 5);
 	}
 
 	// rotate through a series of increasingly fat chars for a reverse louver effect
@@ -581,7 +583,7 @@ void Startup_ShowMachineSplash(void)
 	// give user a chance to drop into BASIC immediately
 	if (Keyboard_GetKeyIfPressed() == 'b')
 	{
-		Kernal_RunBASIC();
+		Kernal_RunNamed(global_named_app_basic, 5);
 	}
 	
 	General_DelayTicks(600);
@@ -1154,7 +1156,7 @@ void Startup_ShowLogo(void)
 		// give user a chance to drop into BASIC immediately
 		if (Keyboard_GetKeyIfPressed() == 'b')
 		{
-			Kernal_RunBASIC();
+			Kernal_RunNamed(global_named_app_basic, 5);
 		}
 	
 		General_DelayTicks(10000);

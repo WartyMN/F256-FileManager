@@ -2,6 +2,7 @@
 #define KERNEL_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 // wrapper to mkfs
 //   pass the name you want for the formatted disk/SD card in name, and the drive number (0-2) in the drive param.
@@ -20,13 +21,10 @@ bool Kernal_MkDir(char* the_folder_path, uint8_t drive_num);
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunExe(char* the_path);
 
-// calls SuperBASIC 
+// runs a name program (a KUP, in other words)
+// pass the KUP name and length
 // returns error on error, and never returns on success (because SuperBASIC took over)
-bool Kernal_RunBASIC(void);
-
-// calls DOS 
-// returns error on error, and never returns on success (because DOS took over)
-bool Kernal_RunDOS(void);
+void Kernal_RunNamed(char* kup_name, uint8_t name_len);
 
 // calls modojr and tells it to load the specified .mod file
 // returns error on error, and never returns on success (because pexec took over)

@@ -86,6 +86,9 @@ static uint8_t				app_progress_bar_char[8] =
 /*                             Global Variables                              */
 /*****************************************************************************/
 
+char*					global_named_app_dos = "dos";
+char*					global_named_app_basic = "basic";
+
 int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not. 
 
 bool					global_started_from_flash;		// tracks whether app started from flash or from disk
@@ -550,11 +553,13 @@ uint8_t App_MainLoop(void)
 					break;
 				
 				case ACTION_EXIT_TO_BASIC:
-					success = Kernal_RunBASIC();
+					Kernal_RunNamed(global_named_app_basic, 5);	// this will only ever return in an error condition. 
+					success = false;
 					break;
 					
 				case ACTION_EXIT_TO_DOS:
-					success = Kernal_RunDOS();
+					Kernal_RunNamed(global_named_app_dos, 3);	// this will only ever return in an error condition. 
+					success = false;
 					break;
 					
 				case ACTION_QUIT:

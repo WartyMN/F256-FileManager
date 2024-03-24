@@ -18,6 +18,7 @@
 #include "file.h"
 #include "folder.h"
 #include "general.h"
+#include "kernel.h"
 #include "list.h"
 #include "list_panel.h"
 #include "memsys.h"
@@ -205,7 +206,7 @@ int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys)
 	if (the_memsys == NULL)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		App_Exit(ERROR_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+		App_Exit(ERROR_MEMSYS_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
 	}
 	
 	return the_memsys->cur_row_;
@@ -659,6 +660,29 @@ bool MemSys_ClearCurrentBank(FMMemorySystem* the_memsys)
 	Bank_Clear(the_bank);
 	
 	return true;
+}
+
+
+// runs (executes) the program in the current bank, if the bank is a KUP bank
+// returns false if the bank is not a KUP
+bool MemSys_ExecuteCurrentRow(FMMemorySystem* the_memsys)
+{
+	FMBankObject*		the_bank;
+	
+	if (the_memsys->cur_row_ < 0)
+	{
+		return false;
+	}
+	
+	the_bank = &the_memsys->bank_[the_memsys->cur_row_];
+
+	if (the_bank->is_kup_)
+	{
+		Kernal_RunNamed(the_bank->name_, strlen(the_bank->name_));	// this will only ever return in an error condition. 
+	}
+	
+	// if still here, this is an error condition, or the bank wasn't KUP
+	return false;
 }
 
 

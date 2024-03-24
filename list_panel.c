@@ -70,6 +70,8 @@ extern char					global_dlg_button[3][10];	// arbitrary
 /*                             Global Variables                              */
 /*****************************************************************************/
 
+extern char*		global_named_app_basic;
+
 extern char*		global_string_buff1;
 extern char*		global_string_buff2;
 
@@ -979,58 +981,69 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 	WB2KFileObject*		the_file;
 	bool				success;
 
-	App_LoadOverlay(OVERLAY_DISKSYS);
-	
-	the_file = Folder_GetCurrentFile(the_panel->root_folder_);
-
-	if (the_file == NULL)
+	if (the_panel->for_disk_ == true)
 	{
-		return false;
-	}
-	
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-	
-	if (the_file->file_type_ == _CBM_T_DIR)
-	{
-		if ( (the_panel->root_folder_ = Folder_NewOrReset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1)) == NULL )
-		{
-			LOG_ERR(("%s %d: could not reset the panel's root folder", __func__ , __LINE__));
-			App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
-		}
-
-		Panel_Refresh(the_panel);
-		success = true;
-	}
-	else if (the_file->file_type_ == FNX_FILETYPE_FONT)
-	{
-		success = File_ReadFontData(global_temp_path_1);
-	}
-	else if (the_file->file_type_ == FNX_FILETYPE_EXE || the_file->file_type_ == FNX_FILETYPE_IMAGE)
-	{
-		// this works because pexec can display images as well as log executables
-		success = Kernal_RunExe(global_temp_path_1);
-	}
-	else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
-	{
-		success = Kernal_RunMod(global_temp_path_1);
-	}
-	else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
-	{
-		// until SuperBASIC will accept a file path, only thing we can do is load file into $28000, tell user to type "XGO" once basic loads, then switch to basic.
-		success = File_LoadFileToEM(global_temp_path_1);
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		
-		if (success)
+		the_file = Folder_GetCurrentFile(the_panel->root_folder_);
+	
+		if (the_file == NULL)
 		{
-			Buffer_NewMessage(General_GetString(ID_STR_MSG_BASIC_LOAD_INSTRUCTIONS));
-			Keyboard_GetChar();
-						
-			success = Kernal_RunBASIC();
+			return false;
+		}
+		
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+		
+		if (the_file->file_type_ == _CBM_T_DIR)
+		{
+			if ( (the_panel->root_folder_ = Folder_NewOrReset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1)) == NULL )
+			{
+				LOG_ERR(("%s %d: could not reset the panel's root folder", __func__ , __LINE__));
+				App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+			}
+	
+			Panel_Refresh(the_panel);
+			success = true;
+		}
+		else if (the_file->file_type_ == FNX_FILETYPE_FONT)
+		{
+			success = File_ReadFontData(global_temp_path_1);
+		}
+		else if (the_file->file_type_ == FNX_FILETYPE_EXE || the_file->file_type_ == FNX_FILETYPE_IMAGE)
+		{
+			// this works because pexec can display images as well as log executables
+			success = Kernal_RunExe(global_temp_path_1);
+		}
+		else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
+		{
+			success = Kernal_RunMod(global_temp_path_1);
+		}
+		else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
+		{
+			// until SuperBASIC will accept a file path, only thing we can do is load file into $28000, tell user to type "XGO" once basic loads, then switch to basic.
+			success = File_LoadFileToEM(global_temp_path_1);
+			
+			if (success)
+			{
+				Buffer_NewMessage(General_GetString(ID_STR_MSG_BASIC_LOAD_INSTRUCTIONS));
+				Keyboard_GetChar();
+							
+				//success = Kernal_RunBASIC();
+				Kernal_RunNamed(global_named_app_basic, 5);	// this will only ever return in an error condition. 
+				success = false;
+			}
+		}
+		else
+		{
+			return false;
 		}
 	}
 	else
 	{
-		return false;
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		success = MemSys_ExecuteCurrentRow(the_panel->memory_system_);
 	}
+
 	
 	return success;
 }
