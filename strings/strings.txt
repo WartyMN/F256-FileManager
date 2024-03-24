@@ -21,7 +21,7 @@
 19	7	a About
 20	6	q Quit
 21	7	b BASIC
-22	5	s DOS
+22	5	d DOS
 23	10	  DEVICE  
 24	9	0 SD Card
 25	10	1 Floppy 1
@@ -32,69 +32,74 @@
 30	9	(SD Card)
 31	9	DIRECTORY
 32	9	m New dir
-33	9	f Refresh
+33	9	R Refresh
 34	7	T ~Type
 35	7	N ~Name
 36	7	S ~Size
-37	10	   FILE   
+37	9	FILE/BANK
 38	10	c <<<<<<<<
 39	10	c >>>>>>>>
 40	8	x Delete
-41	10	d Duplicat
+41	10	p Duplicat
 42	8	r Rename
 43	10	t Txt View
 44	10	h Hex View
 45	6	l Load
-46	4	NAME
-47	4	DAYS
-48	4	TYPE
-49	4	SIZE
-50	4	BANK
-51	7	ADDRESS
-52	22	Scanning for drives...
-53	15	%u drives found
-54	13	Formatting...
-55	10	Copying...
-56	11	Deleting...
-57	20	Reading directory...
-58	17	File '%s' deleted
-59	25	File '%s' renamed to '%s'
-60	4	Done
-61	6	(More)
-62	14	%u files found
-63	27	Available memory: %zu bytes
-64	11	Hit any key
-65	57	** Hex view of '%s' -- Hit SPACE for more; Esc to stop **
-66	58	** Text view of '%s' -- Hit SPACE for more; Esc to stop **
-67	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
-68	3	 d 
-69	3	PRG
-70	3	REL
-71	3	SEQ
-72	3	 d 
-73	3	oth
-74	3	bas
-75	3	exe
-76	3	fnt
-77	3	mus
-78	3	img
-79	14	Fatal error %u
-80	21	Unable to delete file
-81	26	Unable to delete directory
-82	40	We don't need no stinkin' error messages
-83	75	No connected devices were detected. f/manager will probably die of boredom.
-84	16	The disk is full
-85	21	A disk error occurred
-86	33	No disk detected in disk drive %u
-87	31	Error: Could not open file '%s'
-88	31	Error: Could not list directory
-89	19	Out of memory error
-90	46	https://github.com/WartyMN/F256jr-FileManager/
-91	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-92	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-93	42	Compact pexec loader for flash by dwsJason
-94	36	F256 SuperBASIC %c2023 Paul Robson. 
-95	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
-96	6	F256JR
-97	5	F256K
-98	18	<unknown hardware>
+46	7	z Clear
+47	6	F Fill
+48	10	s Save Mem
+49	10	L Load Mem
+50	10	f Find Mem
+51	4	NAME
+52	4	DAYS
+53	4	TYPE
+54	4	SIZE
+55	4	BANK
+56	7	ADDRESS
+57	22	Scanning for drives...
+58	15	%u drives found
+59	13	Formatting...
+60	10	Copying...
+61	11	Deleting...
+62	20	Reading directory...
+63	17	File '%s' deleted
+64	25	File '%s' renamed to '%s'
+65	4	Done
+66	6	(More)
+67	14	%u files found
+68	27	Available memory: %zu bytes
+69	11	Hit any key
+70	57	** Hex view of '%s' -- Hit SPACE for more; Esc to stop **
+71	58	** Text view of '%s' -- Hit SPACE for more; Esc to stop **
+72	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
+73	3	 d 
+74	3	PRG
+75	3	REL
+76	3	SEQ
+77	3	 d 
+78	3	oth
+79	3	bas
+80	3	exe
+81	3	fnt
+82	3	mus
+83	3	img
+84	14	Fatal error %u
+85	21	Unable to delete file
+86	26	Unable to delete directory
+87	40	We don't need no stinkin' error messages
+88	75	No connected devices were detected. f/manager will probably die of boredom.
+89	16	The disk is full
+90	21	A disk error occurred
+91	33	No disk detected in disk drive %u
+92	31	Error: Could not open file '%s'
+93	31	Error: Could not list directory
+94	19	Out of memory error
+95	46	https://github.com/WartyMN/F256jr-FileManager/
+96	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+97	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+98	42	Compact pexec loader for flash by dwsJason
+99	36	F256 SuperBASIC %c2023 Paul Robson. 
+100	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+101	6	F256JR
+102	5	F256K
+103	18	<unknown hardware>

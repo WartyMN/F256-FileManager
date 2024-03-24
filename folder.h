@@ -172,6 +172,9 @@ int16_t Folder_GetCurrentRow(WB2KFolderObject* the_folder);
 // returns the currently selected file, or NULL if no file is marked as selected
 WB2KFileObject* Folder_GetCurrentFile(WB2KFolderObject* the_folder);
 
+// returns the file type of the currently selected file, or 0 if no file is marked as selected
+uint8_t Folder_GetCurrentFileType(WB2KFolderObject* the_folder);
+
 // // returns true if folder has any files/folders showing as selected
 // bool Folder_HasSelections(WB2KFolderObject* the_folder);
 

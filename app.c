@@ -66,6 +66,7 @@
 /*                          File-scoped Variables                            */
 /*****************************************************************************/
 
+static UI_Menu_Enabler_Info	app_menu_enabler;		// info to pass to Screen to help it decide which menu items should be enabled
 
 static uint8_t				app_active_panel_id;	// PANEL_ID_LEFT or PANEL_ID_RIGHT
 static uint8_t				app_connected_drive_count;
@@ -235,6 +236,9 @@ void App_Initialize(void)
 
 	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SHOW_DRIVE_COUNT), app_connected_drive_count);
 	Buffer_NewMessage(global_string_buff1);
+	
+	// have screen remember which disk systems are available
+	Screen_SetInitialMenuStates(app_connected_drive_count); 
 
 	// left panel always starts as the active one
 	app_active_panel_id = PANEL_ID_LEFT;
@@ -358,8 +362,32 @@ uint8_t App_MainLoop(void)
 			
 			// redraw any menu buttons that could change (file menu only at this point)
 			file_menu_active = (the_panel->num_rows_ > 0);
+			
+			// collect info we need for menu enabling/disabling
+			if (the_panel->for_disk_ == true)
+			{
+				App_LoadOverlay(OVERLAY_DISKSYS);
+				app_menu_enabler.file_type_ = Folder_GetCurrentFileType(the_panel->root_folder_);
+				app_menu_enabler.for_flash_ = false;
+				app_menu_enabler.is_kup_ = false;
+			}
+			else
+			{
+				App_LoadOverlay(OVERLAY_MEMSYSTEM);
+				app_menu_enabler.is_kup_ = MemSys_GetCurrentRowKUPState(the_panel->memory_system_);
+				app_menu_enabler.for_flash_ = the_panel->memory_system_->is_flash_;
+				app_menu_enabler.file_type_ = 0;
+			}
+						
+			// ask Screen to establish which menu items should be available (this just keeps this code out of MAIN to maximize heap space)
+			app_menu_enabler.for_disk_ = the_panel->for_disk_;
+			app_menu_enabler.other_panel_for_disk_ = app_file_panel[(app_active_panel_id + 1) % 2].for_disk_;
+			app_menu_enabler.other_panel_for_flash_ = app_file_panel[(app_active_panel_id + 1) % 2].memory_system_->is_flash_;
 			App_LoadOverlay(OVERLAY_SCREEN);
-			Screen_DrawFileMenuItems(file_menu_active);
+			Screen_UpdateMenuStates(&app_menu_enabler);
+			
+			// ask Screen to draw the appropriate set of menus, only doing those that haven't changed since last round
+			Screen_RenderMenu();
 
 			user_input = Keyboard_GetChar();
 	
@@ -879,8 +907,7 @@ int main(void)
 
 	App_LoadOverlay(OVERLAY_SCREEN);
 	
-	// Initialize screen structures and do first draw
-	Screen_InitializeUI();
+	// Do first draw of UI
 	Screen_Render();
 
 	App_Initialize();

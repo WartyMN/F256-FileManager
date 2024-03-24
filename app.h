@@ -174,7 +174,7 @@
 #define ACTION_DELETE				CH_DEL
 #define ACTION_DELETE_ALT			'x'
 #define ACTION_COPY					'c'
-#define ACTION_DUPLICATE			'd'
+#define ACTION_DUPLICATE			'p'
 
 #define ACTION_VIEW_AS_HEX			'h'
 #define ACTION_VIEW_AS_TEXT			't'
@@ -182,6 +182,9 @@
 #define ACTION_LOAD					'l'
 #define ACTION_FILL_MEMORY			'F'
 #define ACTION_CLEAR_MEMORY			'z'
+#define ACTION_SAVE_MEMORY			's'
+#define ACTION_LOAD_MEMORY			'L'
+#define ACTION_FIND_MEMORY			'f'
 
 // folder actions
 #define ACTION_NEW_FOLDER			'm' // for "mkdir"
@@ -189,7 +192,7 @@
 #define ACTION_SORT_BY_DATE			'D'	// CH_F7
 #define ACTION_SORT_BY_SIZE			'S'	// CH_F8
 #define ACTION_SORT_BY_TYPE			'T'	// CH_F9
-#define ACTION_REFRESH_PANEL		'f'
+#define ACTION_REFRESH_PANEL		'R'
 
 // device actions
 #define ACTION_SWITCH_TO_SD			'0'
@@ -203,7 +206,7 @@
 #define ACTION_SET_TIME				'C' // c for set CLOCK
 #define ACTION_ABOUT				'a' 
 #define ACTION_EXIT_TO_BASIC		'b'
-#define ACTION_EXIT_TO_DOS			's'
+#define ACTION_EXIT_TO_DOS			'd'
 #define ACTION_QUIT					'q'
 
 #define ACTION_HELP					'?' // numpad key

@@ -37,17 +37,10 @@
 /*****************************************************************************/
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					23
+#define NUM_BUTTONS					28
 
-#define BUTTON_ID_COPY				0
-#define BUTTON_ID_DELETE			(BUTTON_ID_COPY + 1)
-#define BUTTON_ID_DUPLICATE			(BUTTON_ID_DELETE + 1)
-#define BUTTON_ID_RENAME			(BUTTON_ID_DUPLICATE + 1)
-#define BUTTON_ID_TEXT_VIEW			(BUTTON_ID_RENAME + 1)
-#define BUTTON_ID_HEX_VIEW			(BUTTON_ID_TEXT_VIEW + 1)
-#define BUTTON_ID_LOAD				(BUTTON_ID_HEX_VIEW + 1)
-
-#define BUTTON_ID_DEV_SD_CARD		(BUTTON_ID_LOAD + 1)
+// DEVICE actions
+#define BUTTON_ID_DEV_SD_CARD		0
 #define BUTTON_ID_DEV_FLOPPY_1		(BUTTON_ID_DEV_SD_CARD + 1)
 #define BUTTON_ID_DEV_FLOPPY_2		(BUTTON_ID_DEV_FLOPPY_1 + 1)
 #define BUTTON_ID_DEV_RAM			(BUTTON_ID_DEV_FLOPPY_2 + 1)
@@ -59,27 +52,41 @@
 #define BUTTON_ID_SORT_BY_NAME		(BUTTON_ID_SORT_BY_TYPE + 1)
 #define BUTTON_ID_SORT_BY_SIZE		(BUTTON_ID_SORT_BY_NAME + 1)
 
+// FILE actions
+#define BUTTON_ID_COPY				(BUTTON_ID_SORT_BY_SIZE + 1)
+#define BUTTON_ID_DELETE			(BUTTON_ID_COPY + 1)
+#define BUTTON_ID_DUPLICATE			(BUTTON_ID_DELETE + 1)
+#define BUTTON_ID_RENAME			(BUTTON_ID_DUPLICATE + 1)
+// FILE & BANK actions
+#define BUTTON_ID_TEXT_VIEW			(BUTTON_ID_RENAME + 1)
+#define BUTTON_ID_HEX_VIEW			(BUTTON_ID_TEXT_VIEW + 1)
+#define BUTTON_ID_LOAD				(BUTTON_ID_HEX_VIEW + 1)
+
+// memory bank buttons
+#define BUTTON_ID_BANK_FILL			(BUTTON_ID_LOAD + 1)
+#define BUTTON_ID_BANK_CLEAR		(BUTTON_ID_BANK_FILL + 1)
+#define BUTTON_ID_BANK_SAVE			(BUTTON_ID_BANK_CLEAR + 1)
+#define BUTTON_ID_BANK_LOAD			(BUTTON_ID_BANK_SAVE + 1)
+#define BUTTON_ID_BANK_FIND			(BUTTON_ID_BANK_LOAD + 1)
+
 // app menu buttons
-#define BUTTON_ID_SET_CLOCK			(BUTTON_ID_SORT_BY_SIZE + 1)
+#define BUTTON_ID_SET_CLOCK			(BUTTON_ID_BANK_FIND + 1)
 #define BUTTON_ID_ABOUT				(BUTTON_ID_SET_CLOCK + 1)
 #define BUTTON_ID_EXIT_TO_BASIC		(BUTTON_ID_ABOUT + 1)
 #define BUTTON_ID_EXIT_TO_DOS		(BUTTON_ID_EXIT_TO_BASIC + 1)
 #define BUTTON_ID_QUIT				(BUTTON_ID_EXIT_TO_DOS + 1)
 
-#define FIRST_ACTIVATING_BUTTON		BUTTON_ID_COPY
-#define LAST_ACTIVATING_BUTTON		BUTTON_ID_LOAD
-#define FIRST_PERMSTATE_BUTTON		BUTTON_ID_DEV_SD_CARD
-#define LAST_PERMSTATE_BUTTON		BUTTON_ID_QUIT
+#define UI_BUTTON_STATE_INACTIVE	false
+#define UI_BUTTON_STATE_ACTIVE		true
+
+#define UI_BUTTON_STATE_UNCHANGED	false
+#define UI_BUTTON_STATE_CHANGED		true
 
 #define DEVICE_ID_UNSET				-1
 #define DEVICE_ID_ERROR				-2
 
-#define UI_BUTTON_STATE_DISABLED	0
-#define UI_BUTTON_STATE_NORMAL		1
-#define UI_BUTTON_STATE_SELECTED	2
-
 #define UI_MIDDLE_AREA_START_X			35
-#define UI_MIDDLE_AREA_START_Y			7
+#define UI_MIDDLE_AREA_START_Y			4
 #define UI_MIDDLE_AREA_WIDTH			10
 
 #define UI_MIDDLE_AREA_DEV_MENU_Y		(UI_MIDDLE_AREA_START_Y + 0)
@@ -91,7 +98,7 @@
 #define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DIR_CMD_Y + 5)
 #define UI_MIDDLE_AREA_FILE_CMD_Y		(UI_MIDDLE_AREA_FILE_MENU_Y + 3)
 
-#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 8)
+#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 13)
 #define UI_MIDDLE_AREA_APP_CMD_Y		(UI_MIDDLE_AREA_APP_MENU_Y + 3)
 
 #define UI_PANEL_INNER_WIDTH			33
@@ -176,7 +183,19 @@ typedef struct UI_Button
 	uint8_t		y1_;
 	uint8_t		string_id_;
 	bool		active_;	// 0-disabled/inactive, 1-enabled/active
+	bool		changed_;	// set to true when the active/inactive state has changed compared to previous render. set to false after rendering
+	uint8_t		key_;		// the keyboard code (foenix ascii) for the key that activates the menu
 } UI_Button;
+
+typedef struct UI_Menu_Enabler_Info
+{
+	uint8_t		file_type_;
+	bool		for_disk_;	
+	bool		for_flash_;
+	bool		is_kup_;
+	bool		other_panel_for_disk_;	
+	bool		other_panel_for_flash_;
+} UI_Menu_Enabler_Info;
 
 /*****************************************************************************/
 /*                       Public Function Prototypes                          */
@@ -185,15 +204,21 @@ typedef struct UI_Button
 // swap the copy >>> button for copy <<< and vice versa
 void Screen_SwapCopyDirectionIndicator(void);
 
-// populate button objects, etc. no drawing.
-void Screen_InitializeUI(void);
-
 // set up screen variables and draw screen for first time
 void Screen_Render(void);
 
-// redraw file menu buttons in activated/inactivated state as appropriate
-// device buttons are always activated, so are only drawn once
-void Screen_DrawFileMenuItems(bool as_active);
+// Sets active/inactive for menu items whose active state only needs to be set once, on app startup
+// does not render
+void Screen_SetInitialMenuStates(uint8_t num_disk_systems);
+
+// determine which menu items should active, which inactive
+// sets inactive/active, and flags any that changed since last evaluation
+// does not render
+void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info);
+
+// renders the menu items, as either active or inactive, as appropriate. 
+// active/inactive and changed/not changed must previously have been set
+void Screen_RenderMenu(void);
 
 // have screen function draw the sort triangle in the right place
 void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function);

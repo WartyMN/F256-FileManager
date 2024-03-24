@@ -105,6 +105,10 @@ void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number);
 // returns the row num (-1, or 0-n) of the currently selected bank
 int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys);
 
+// gets the KUP-edness of the current bank: true if KUP, false if not a KUP bank or if no current bank selected
+// returns false if the bank is not a KUP
+bool MemSys_GetCurrentRowKUPState(FMMemorySystem* the_memsys);
+
 // Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP name that matches exactly
 FMBankObject* MemSys_FindBankByKUPName(FMMemorySystem* the_memsys, char* search_phrase, int compare_len);
 

@@ -19,6 +19,7 @@
 #include "app.h"
 #include "comm_buffer.h"
 #include "file.h"
+#include "folder.h"
 #include "general.h"
 #include "kernel.h"
 #include "memory.h"
@@ -51,8 +52,49 @@
 
 #pragma data-name ("OVERLAY_SCREEN")
 
-static File_Panel		panel[NUM_PANELS];
-static UI_Button		uibutton[NUM_BUTTONS];
+static File_Panel		panel[NUM_PANELS] =
+{
+	{PANEL_ID_LEFT,		DEVICE_ID_UNSET,	UI_LEFT_PANEL_BODY_X1,	UI_VIEW_PANEL_BODY_Y1,	UI_LEFT_PANEL_BODY_X2,	UI_VIEW_PANEL_BODY_Y2,	UI_VIEW_PANEL_BODY_WIDTH},
+	{PANEL_ID_RIGHT,	DEVICE_ID_UNSET,	UI_RIGHT_PANEL_BODY_X1,	UI_VIEW_PANEL_BODY_Y1,	UI_RIGHT_PANEL_BODY_X2,	UI_VIEW_PANEL_BODY_Y2,	UI_VIEW_PANEL_BODY_WIDTH},
+};
+
+static UI_Button		uibutton[NUM_BUTTONS] =
+{
+	// DEVICE actions
+	{BUTTON_ID_DEV_SD_CARD,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y,		ID_STR_DEV_SD,				UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SWITCH_TO_SD	}, 
+	{BUTTON_ID_DEV_FLOPPY_1,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 1,	ID_STR_DEV_FLOPPY_1,		UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SWITCH_TO_FLOPPY_1	}, 
+	{BUTTON_ID_DEV_FLOPPY_2,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 2,	ID_STR_DEV_FLOPPY_2,		UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SWITCH_TO_FLOPPY_2	}, 
+	{BUTTON_ID_DEV_RAM,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 3,	ID_STR_DEV_RAM,				UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_SWITCH_TO_RAM	}, 
+	{BUTTON_ID_DEV_FLASH,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 4,	ID_STR_DEV_FLASH,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_SWITCH_TO_FLASH	}, 
+	{BUTTON_ID_REFRESH,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 5,	ID_STR_DEV_REFRESH_LISTING,	UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_REFRESH_PANEL	}, 
+	{BUTTON_ID_FORMAT,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DEV_CMD_Y + 6,	ID_STR_DEV_FORMAT,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_FORMAT_DISK	}, 
+	// DIRECTORY actions
+	{BUTTON_ID_MAKE_DIR,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DIR_CMD_Y,		ID_STR_DEV_MAKE_DIR,		UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_NEW_FOLDER	}, 
+	{BUTTON_ID_SORT_BY_TYPE,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DIR_CMD_Y + 1,	ID_STR_DEV_SORT_BY_TYPE,	UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SORT_BY_TYPE	}, 
+	{BUTTON_ID_SORT_BY_NAME,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DIR_CMD_Y + 2,	ID_STR_DEV_SORT_BY_NAME,	UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SORT_BY_NAME	}, 
+	{BUTTON_ID_SORT_BY_SIZE,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_DIR_CMD_Y + 3,	ID_STR_DEV_SORT_BY_SIZE,	UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SORT_BY_SIZE	}, 
+	// FILE actions
+	{BUTTON_ID_COPY,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y,		ID_STR_FILE_COPY_RIGHT,		UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_COPY	}, 
+	{BUTTON_ID_DELETE,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 1,	ID_STR_FILE_DELETE,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_DELETE_ALT	}, 
+	{BUTTON_ID_DUPLICATE,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 2,	ID_STR_FILE_DUP,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_DUPLICATE	}, 
+	{BUTTON_ID_RENAME,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 3,	ID_STR_FILE_RENAME,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_RENAME	}, 
+	// FILE & BANK actions
+	{BUTTON_ID_TEXT_VIEW,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 4,	ID_STR_FILE_TEXT_PREVIEW,	UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_VIEW_AS_TEXT	}, 
+	{BUTTON_ID_HEX_VIEW,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 5,	ID_STR_FILE_HEX_PREVIEW,	UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_VIEW_AS_HEX	}, 
+	{BUTTON_ID_LOAD,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 6,	ID_STR_FILE_LOAD,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_LOAD	}, 
+	// BANK actions
+	{BUTTON_ID_BANK_FILL,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 7,	ID_STR_BANK_FILL,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_FILL_MEMORY	}, 
+	{BUTTON_ID_BANK_CLEAR,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 8,	ID_STR_BANK_CLEAR,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_CLEAR_MEMORY	}, 
+	{BUTTON_ID_BANK_SAVE,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 9,	ID_STR_BANK_SAVE,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SAVE_MEMORY	}, 
+	{BUTTON_ID_BANK_LOAD,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 10,	ID_STR_BANK_LOAD,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_LOAD_MEMORY	}, 
+	{BUTTON_ID_BANK_FIND,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 11,	ID_STR_BANK_FIND,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_FIND_MEMORY	}, 
+	// APP actions
+	{BUTTON_ID_SET_CLOCK,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y,		ID_STR_APP_SET_CLOCK,		UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_SET_TIME	}, 
+	{BUTTON_ID_ABOUT,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 1,	ID_STR_APP_ABOUT,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_ABOUT	}, 
+	{BUTTON_ID_EXIT_TO_BASIC,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 2,	ID_STR_APP_EXIT_TO_BASIC,	UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_EXIT_TO_BASIC	}, 
+	{BUTTON_ID_EXIT_TO_DOS,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 3,	ID_STR_APP_EXIT_TO_DOS,		UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_EXIT_TO_DOS	}, 
+	{BUTTON_ID_QUIT,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 4,	ID_STR_APP_QUIT,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_QUIT	}, 
+};
  
 static uint8_t			screen_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] = 
 {
@@ -65,6 +107,9 @@ static uint8_t			screen_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] =
 /*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
+
+extern int8_t				global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
+extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 
 extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 extern bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
@@ -118,27 +163,8 @@ void Screen_DrawUI(void)
 		Text_DrawBoxCoordsFancy(x1, y1, x2, y2, PANEL_FOREGROUND_COLOR, PANEL_BACKGROUND_COLOR);
 		Text_SetCharAtXY(x1, y1, SC_T_RIGHT);
 		Text_SetCharAtXY(x1 + (UI_PANEL_TAB_WIDTH - 1), y1, SC_T_UP);
-
-		// draw file list head rows
-// 		x1 += UI_PANEL_FILENAME_OFFSET;
-// 		++y1;
-// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILENAME), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
-// 		x1 += UI_PANEL_FILETYPE_OFFSET;
-// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILETYPE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
-// 		x1 += UI_PANEL_FILESIZE_OFFSET;
-// 		Text_DrawStringAtXY(x1, y1, General_GetString(ID_STR_LBL_FILESIZE), LIST_HEADER_COLOR, PANEL_BACKGROUND_COLOR);
 	}
 	
-	// draw permanently enabled buttons. 
-	// see Screen_DrawFileMenuItems() for the file menu items - they need to be redrawn during main loop
-	for (i = FIRST_PERMSTATE_BUTTON; i <= LAST_PERMSTATE_BUTTON; i++)
-	{
-		x1 = uibutton[i].x1_;
-		y1 = uibutton[i].y1_;
-		Text_DrawHLine(UI_MIDDLE_AREA_START_X, y1, UI_MIDDLE_AREA_WIDTH, CH_SPACE, MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR, CHAR_AND_ATTR);
-		Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[i].string_id_), MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR);
-	}
-		
 	// draw device menu
 	Text_DrawHLine(UI_MIDDLE_AREA_START_X, UI_MIDDLE_AREA_DEV_MENU_Y, UI_MIDDLE_AREA_WIDTH, CH_UNDERSCORE, MENU_ACCENT_COLOR, APP_BACKGROUND_COLOR, CHAR_AND_ATTR);
 	Text_DrawStringAtXY(UI_MIDDLE_AREA_START_X, UI_MIDDLE_AREA_DEV_MENU_Y + 1, General_GetString(ID_STR_MENU_DEVICE), MENU_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
@@ -199,25 +225,391 @@ void Screen_DrawPanelHeader(uint8_t x, bool for_disk)
 }
 
 
-// redraw file menu buttons in activated/inactivated state as appropriate
-// device buttons are always activated, so are only drawn once
-void Screen_DrawFileMenuItems(bool as_active)
+// Sets active/inactive for menu items whose active state only needs to be set once, on app startup
+// does not render
+void Screen_SetInitialMenuStates(uint8_t num_disk_systems)
+{
+	uint8_t		i;
+	
+	for (i=0; i < num_disk_systems; i++)
+	{
+		// technically, could just do something like "uibutton[global_connected_device[i]].active_ = true, but if the IDs change, it would break. and button IDs are not explicitly DESIGNED to be same as disk IDs.
+		//DEBUG_OUT(("%s %d: for num_disk_systems=%u, global_connected_device[i]=%u", __func__ , __LINE__, num_disk_systems, global_connected_device[i]));
+
+		if (global_connected_device[i] == 0)
+		{
+			uibutton[BUTTON_ID_DEV_SD_CARD].active_ = true;
+			uibutton[BUTTON_ID_DEV_SD_CARD].changed_ = true;
+		}
+		else if (global_connected_device[i] == 1)
+		{
+			uibutton[BUTTON_ID_DEV_FLOPPY_1].active_ = true;
+			uibutton[BUTTON_ID_DEV_FLOPPY_1].changed_ = true;
+		}
+		else if (global_connected_device[i] == 2)
+		{
+			uibutton[BUTTON_ID_DEV_FLOPPY_2].active_ = true;
+			uibutton[BUTTON_ID_DEV_FLOPPY_2].changed_ = true;
+		}
+	}
+
+	if (global_started_from_flash == true)
+	{
+		uibutton[BUTTON_ID_QUIT].active_ = false;
+		uibutton[BUTTON_ID_QUIT].changed_ = true;
+	}
+	else
+	{
+		uibutton[BUTTON_ID_QUIT].active_ = true;
+		uibutton[BUTTON_ID_QUIT].changed_ = true;
+	}
+
+	//DEBUG_OUT(("%s %d: start from flash=%u, quit button active=%u SD card active=%u", __func__ , __LINE__, global_started_from_flash, uibutton[BUTTON_ID_QUIT].active_, uibutton[BUTTON_ID_DEV_SD_CARD].active_));
+}
+
+
+// determine which menu items should active, which inactive
+// sets inactive/active, and flags any that changed since last evaluation
+// does not render
+void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
+{
+	bool	for_disk = the_enabling_info->for_disk_;
+	bool	for_flash = the_enabling_info->for_flash_;
+	bool	is_kup = the_enabling_info->is_kup_;
+	uint8_t	the_file_type = the_enabling_info->file_type_;
+	bool	other_panel_for_disk = the_enabling_info->other_panel_for_disk_;
+	bool	other_panel_for_flash = the_enabling_info->other_panel_for_flash_;
+	
+// LOGIC:
+//       - Pass it some info on the currently selected item and panel:
+//         - Panel:
+//             - # of files in panel
+//             - Bank vs file
+//             - Flash vs RAM
+//         - File:
+//             - File type (if file type=0, then assume no file selected/no file available)
+//         - Also info on the selected item in the other panel:
+//             - Bank vs file
+//             - File type? 
+//             - Flash vs RAM
+
+	//DEBUG_OUT(("%s %d: for disk=%u, for flash=%u, is kup=%u, file_type=%u, other for disk=%u, other for flash=%u", __func__ , __LINE__, for_disk, for_flash, is_kup, the_file_type, other_panel_for_disk, other_panel_for_flash));
+		
+// #define _CBM_T_REG      0x10U   /* Bit set for regular files */
+// #define _CBM_T_HEADER   0x05U   /* Disk header / title */
+// #define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
+// #define FNX_FILETYPE_FONT	200	// any 2k file ending in .fnt
+// #define FNX_FILETYPE_EXE	201	// any .pgz, etc executable
+// #define FNX_FILETYPE_BASIC	202	// a .bas file that f/manager will try to pass to SuperBASIC
+// #define FNX_FILETYPE_MUSIC	203	// a .mod file that f/manager will try to pass to modojr
+// #define FNX_FILETYPE_IMAGE	204 // a .256 or .lbm image file.
+
+	// - Always active items that don’t need to be in screen overlay and don’t need activation check:
+	//     - Superbasic, DOS, About. Set Time. Refresh panel.
+	//     - View as text, view as Hex
+	// will not actively set/unset. they start out activated and never change.
+
+    // - Items that need a check on startup only, and can stay the same afterwords:
+    //    - Quit
+    //    - 0, 1, 2 (SD card, floppy1, floppy2)
+    // will set these in a different function that is only called once, on startup.
+	
+	if (for_disk == false)
+	{
+		// handle memory system-specific menu items
+
+		//     - Only active when a memory system is selected:
+		//         - Search raw memory
+		//     - Only active when RAM is selected:
+		//         - Fill, Clear
+		//     - Only active when flash/ram is selected, and other panel has a file system showing
+		//         - Save 8192 byte bank to disk
+		//     - Activated when memory system and is KUP bank:
+		//         - load file (e.g, run a KUP if doing memory)
+
+// 		if (uibutton[BUTTON_ID_BANK_FIND].active_ != true)
+// 		{
+// 			uibutton[BUTTON_ID_BANK_FIND].active_ = true;
+// 			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
+// 		}
+
+		if (for_flash == false)
+		{
+			if (uibutton[BUTTON_ID_BANK_FILL].active_ != true)
+			{
+				uibutton[BUTTON_ID_BANK_FILL].active_ = true;
+				uibutton[BUTTON_ID_BANK_FILL].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_BANK_CLEAR].active_ != true)
+			{
+				uibutton[BUTTON_ID_BANK_CLEAR].active_ = true;
+				uibutton[BUTTON_ID_BANK_CLEAR].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_BANK_FILL].active_ != false)
+			{
+				uibutton[BUTTON_ID_BANK_FILL].active_ = false;
+				uibutton[BUTTON_ID_BANK_FILL].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_BANK_CLEAR].active_ != false)
+			{
+				uibutton[BUTTON_ID_BANK_CLEAR].active_ = false;
+				uibutton[BUTTON_ID_BANK_CLEAR].changed_ = true;
+			}
+		}
+
+		if (is_kup == true)
+		{
+			if (uibutton[BUTTON_ID_LOAD].active_ != true)
+			{
+				uibutton[BUTTON_ID_LOAD].active_ = true;
+				uibutton[BUTTON_ID_LOAD].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_LOAD].active_ != false)
+			{
+				uibutton[BUTTON_ID_LOAD].active_ = false;
+				uibutton[BUTTON_ID_LOAD].changed_ = true;
+			}
+		}
+		
+		// for bank save, other panel must be a file panel
+		if (other_panel_for_disk == true)
+		{
+			if (uibutton[BUTTON_ID_BANK_SAVE].active_ != true)
+			{
+				uibutton[BUTTON_ID_BANK_SAVE].active_ = true;
+				uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_BANK_SAVE].active_ != false)
+			{
+				uibutton[BUTTON_ID_BANK_SAVE].active_ = false;
+				uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
+			}
+		}
+		
+		// disable disk-system-only items
+		if (uibutton[BUTTON_ID_COPY].active_ != false)
+		{
+			uibutton[BUTTON_ID_COPY].active_ = false;
+			uibutton[BUTTON_ID_COPY].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_DELETE].active_ != false)
+		{
+			uibutton[BUTTON_ID_DELETE].active_ = false;
+			uibutton[BUTTON_ID_DELETE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_DUPLICATE].active_ != false)
+		{
+			uibutton[BUTTON_ID_DUPLICATE].active_ = false;
+			uibutton[BUTTON_ID_DUPLICATE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_RENAME].active_ != false)
+		{
+			uibutton[BUTTON_ID_RENAME].active_ = false;
+			uibutton[BUTTON_ID_RENAME].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_FORMAT].active_ != false)
+		{
+			uibutton[BUTTON_ID_FORMAT].active_ = false;
+			uibutton[BUTTON_ID_FORMAT].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_MAKE_DIR].active_ != false)
+		{
+			uibutton[BUTTON_ID_MAKE_DIR].active_ = false;
+			uibutton[BUTTON_ID_MAKE_DIR].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_TYPE].active_ != false)
+		{
+			uibutton[BUTTON_ID_SORT_BY_TYPE].active_ = false;
+			uibutton[BUTTON_ID_SORT_BY_TYPE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_NAME].active_ != false)
+		{
+			uibutton[BUTTON_ID_SORT_BY_NAME].active_ = false;
+			uibutton[BUTTON_ID_SORT_BY_NAME].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_SIZE].active_ != false)
+		{
+			uibutton[BUTTON_ID_SORT_BY_SIZE].active_ = false;
+			uibutton[BUTTON_ID_SORT_BY_SIZE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_BANK_LOAD].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_LOAD].active_ = false;
+			uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
+		}		
+	}
+	else
+	{
+		// handle disk system-specific menu items
+
+		//     - Only active when a file system is selected:
+		//         - New Folder, Format Disk, copy file, duplicate file, rename file, delete file, sort by name/data/size/type
+		//     - Only active when a file is selected, and other panel has RAM showing
+		//         - Load 8192 byte bank from disk
+		//     - Activated when file system and known file type:
+		//         - Select file/load file
+
+		if (uibutton[BUTTON_ID_COPY].active_ != true)
+		{
+			uibutton[BUTTON_ID_COPY].active_ = true;
+			uibutton[BUTTON_ID_COPY].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_DELETE].active_ != true)
+		{
+			uibutton[BUTTON_ID_DELETE].active_ = true;
+			uibutton[BUTTON_ID_DELETE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_DUPLICATE].active_ != true)
+		{
+			uibutton[BUTTON_ID_DUPLICATE].active_ = true;
+			uibutton[BUTTON_ID_DUPLICATE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_RENAME].active_ != true)
+		{
+			uibutton[BUTTON_ID_RENAME].active_ = true;
+			uibutton[BUTTON_ID_RENAME].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_FORMAT].active_ != true)
+		{
+			uibutton[BUTTON_ID_FORMAT].active_ = true;
+			uibutton[BUTTON_ID_FORMAT].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_MAKE_DIR].active_ != true)
+		{
+			uibutton[BUTTON_ID_MAKE_DIR].active_ = true;
+			uibutton[BUTTON_ID_MAKE_DIR].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_TYPE].active_ != true)
+		{
+			uibutton[BUTTON_ID_SORT_BY_TYPE].active_ = true;
+			uibutton[BUTTON_ID_SORT_BY_TYPE].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_NAME].active_ != true)
+		{
+			uibutton[BUTTON_ID_SORT_BY_NAME].active_ = true;
+			uibutton[BUTTON_ID_SORT_BY_NAME].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_SORT_BY_SIZE].active_ != true)
+		{
+			uibutton[BUTTON_ID_SORT_BY_SIZE].active_ = true;
+			uibutton[BUTTON_ID_SORT_BY_SIZE].changed_ = true;
+		}
+
+		if (the_file_type == _CBM_T_DIR || the_file_type == FNX_FILETYPE_FONT || the_file_type == FNX_FILETYPE_EXE || the_file_type == FNX_FILETYPE_IMAGE || the_file_type == FNX_FILETYPE_MUSIC || the_file_type == FNX_FILETYPE_BASIC)
+		{
+			if (uibutton[BUTTON_ID_LOAD].active_ != true)
+			{
+				uibutton[BUTTON_ID_LOAD].active_ = true;
+				uibutton[BUTTON_ID_LOAD].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_LOAD].active_ != false)
+			{
+				uibutton[BUTTON_ID_LOAD].active_ = false;
+				uibutton[BUTTON_ID_LOAD].changed_ = true;
+			}
+		}
+
+		// for bank load, other panel must be a memory panel
+		if (other_panel_for_disk == false)
+		{
+			if (uibutton[BUTTON_ID_BANK_LOAD].active_ != true)
+			{
+				uibutton[BUTTON_ID_BANK_LOAD].active_ = true;
+				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_BANK_LOAD].active_ != false)
+			{
+				uibutton[BUTTON_ID_BANK_LOAD].active_ = false;
+				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
+			}
+		}
+		
+		// disable all memory-system-only items
+
+// 		if (uibutton[BUTTON_ID_BANK_FIND].active_ != false)
+// 		{
+// 			uibutton[BUTTON_ID_BANK_FIND].active_ = false;
+// 			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
+// 		}
+
+		if (uibutton[BUTTON_ID_BANK_FILL].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_FILL].active_ = false;
+			uibutton[BUTTON_ID_BANK_FILL].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_BANK_CLEAR].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_CLEAR].active_ = false;
+			uibutton[BUTTON_ID_BANK_CLEAR].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_BANK_SAVE].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_SAVE].active_ = false;
+			uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
+		}
+	}
+}
+
+
+// renders the menu items, as either active or inactive, as appropriate. 
+// active/inactive and changed/not changed must previously have been set
+void Screen_RenderMenu(void)
 {
 	uint8_t		i;
 	uint8_t		x1;
 	uint8_t		y1;
 	uint8_t		text_color;
 
-	text_color = (as_active == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
-	
 	// draw buttons
-	for (i = FIRST_ACTIVATING_BUTTON; i <= LAST_ACTIVATING_BUTTON; i++)
+	for (i = 0; i < NUM_BUTTONS; i++)
 	{
-		//text_color = (uibutton[i].active_ == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
-		x1 = uibutton[i].x1_;
-		y1 = uibutton[i].y1_;
-		Text_DrawHLine(UI_MIDDLE_AREA_START_X, y1, UI_MIDDLE_AREA_WIDTH, CH_SPACE, text_color, MENU_BACKGROUND_COLOR, CHAR_AND_ATTR);
-		Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[i].string_id_), text_color, MENU_BACKGROUND_COLOR);
+		//DEBUG_OUT(("%s %d: btn %i change=%u, active=%u, %s", __func__ , __LINE__, i, uibutton[i].changed_, uibutton[i].active_, General_GetString(uibutton[i].string_id_)));
+		
+		if (uibutton[i].changed_ == true)
+		{
+			text_color = (uibutton[i].active_ == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
+			x1 = uibutton[i].x1_;
+			y1 = uibutton[i].y1_;
+			Text_DrawHLine(UI_MIDDLE_AREA_START_X, y1, UI_MIDDLE_AREA_WIDTH, CH_SPACE, text_color, MENU_BACKGROUND_COLOR, CHAR_AND_ATTR);
+			Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[i].string_id_), text_color, MENU_BACKGROUND_COLOR);
+			uibutton[i].changed_ = false;
+		}
 	}
 }
 
@@ -225,9 +617,6 @@ void Screen_DrawFileMenuItems(bool as_active)
 // swap the copy >>> button for copy <<< and vice versa
 void Screen_SwapCopyDirectionIndicator(void)
 {
-	uint8_t		x1;
-	uint8_t		y1;
-
 	if (uibutton[BUTTON_ID_COPY].string_id_ == ID_STR_FILE_COPY_RIGHT)
 	{
 		uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_LEFT;
@@ -237,172 +626,7 @@ void Screen_SwapCopyDirectionIndicator(void)
 		uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_RIGHT;
 	}
 
-	x1 = uibutton[BUTTON_ID_COPY].x1_;
-	y1 = uibutton[BUTTON_ID_COPY].y1_;
-	Text_DrawStringAtXY(x1, y1, General_GetString(uibutton[BUTTON_ID_COPY].string_id_), MENU_FOREGROUND_COLOR, MENU_BACKGROUND_COLOR);
-}
-
-
-// populate button objects, etc. no drawing.
-void Screen_InitializeUI(void)
-{
-	panel[PANEL_ID_LEFT].id_ = PANEL_ID_LEFT;
-	panel[PANEL_ID_LEFT].device_id_ = DEVICE_ID_UNSET;
-	panel[PANEL_ID_LEFT].x1_ = UI_LEFT_PANEL_BODY_X1;
-	panel[PANEL_ID_LEFT].y1_ = UI_VIEW_PANEL_BODY_Y1;
-	panel[PANEL_ID_LEFT].width_ = UI_VIEW_PANEL_BODY_WIDTH;
-	panel[PANEL_ID_LEFT].x2_ = UI_LEFT_PANEL_BODY_X2;
-	panel[PANEL_ID_LEFT].y2_ = UI_VIEW_PANEL_BODY_Y2;
-
-	panel[PANEL_ID_RIGHT].id_ = PANEL_ID_RIGHT;
-	panel[PANEL_ID_RIGHT].device_id_ = DEVICE_ID_UNSET;
-	panel[PANEL_ID_RIGHT].x1_ = UI_RIGHT_PANEL_BODY_X1;
-	panel[PANEL_ID_RIGHT].y1_ = UI_VIEW_PANEL_BODY_Y1;
-	panel[PANEL_ID_RIGHT].width_ = UI_VIEW_PANEL_BODY_WIDTH;
-	panel[PANEL_ID_RIGHT].x2_ = UI_RIGHT_PANEL_BODY_X2;
-	panel[PANEL_ID_RIGHT].y2_ = UI_VIEW_PANEL_BODY_Y2;
-
-	// set up the buttons - DEVICE actions
-	uibutton[BUTTON_ID_DEV_SD_CARD].id_ = BUTTON_ID_DEV_SD_CARD;
-	uibutton[BUTTON_ID_DEV_SD_CARD].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DEV_SD_CARD].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y;
-	uibutton[BUTTON_ID_DEV_SD_CARD].string_id_ = ID_STR_DEV_SD;
-	//uibutton[BUTTON_ID_DEV_SD_CARD].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DEV_FLOPPY_1].id_ = BUTTON_ID_DEV_FLOPPY_1;
-	uibutton[BUTTON_ID_DEV_FLOPPY_1].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DEV_FLOPPY_1].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 1;
-	uibutton[BUTTON_ID_DEV_FLOPPY_1].string_id_ = ID_STR_DEV_FLOPPY_1;
-	//uibutton[BUTTON_ID_DEV_FLOPPY_1].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DEV_FLOPPY_2].id_ = BUTTON_ID_DEV_FLOPPY_2;
-	uibutton[BUTTON_ID_DEV_FLOPPY_2].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DEV_FLOPPY_2].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 2;
-	uibutton[BUTTON_ID_DEV_FLOPPY_2].string_id_ = ID_STR_DEV_FLOPPY_2;
-	//uibutton[BUTTON_ID_DEV_FLOPPY_2].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DEV_RAM].id_ = BUTTON_ID_DEV_RAM;
-	uibutton[BUTTON_ID_DEV_RAM].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DEV_RAM].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 3;
-	uibutton[BUTTON_ID_DEV_RAM].string_id_ = ID_STR_DEV_RAM;
-	//uibutton[BUTTON_ID_DEV_RAM].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DEV_FLASH].id_ = BUTTON_ID_DEV_FLASH;
-	uibutton[BUTTON_ID_DEV_FLASH].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DEV_FLASH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 4;
-	uibutton[BUTTON_ID_DEV_FLASH].string_id_ = ID_STR_DEV_FLASH;
-	//uibutton[BUTTON_ID_DEV_FLASH].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_REFRESH].id_ = BUTTON_ID_REFRESH;
-	uibutton[BUTTON_ID_REFRESH].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_REFRESH].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 5;
-	uibutton[BUTTON_ID_REFRESH].string_id_ = ID_STR_DEV_REFRESH_LISTING;
-	//uibutton[BUTTON_ID_REFRESH].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_FORMAT].id_ = BUTTON_ID_FORMAT;
-	uibutton[BUTTON_ID_FORMAT].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_FORMAT].y1_ = UI_MIDDLE_AREA_DEV_CMD_Y + 6;
-	uibutton[BUTTON_ID_FORMAT].string_id_ = ID_STR_DEV_FORMAT;
-	//uibutton[BUTTON_ID_FORMAT].state_ = UI_BUTTON_STATE_DISABLED;
-
-	// set up the buttons - DIRECTORY actions
-	uibutton[BUTTON_ID_MAKE_DIR].id_ = BUTTON_ID_MAKE_DIR;
-	uibutton[BUTTON_ID_MAKE_DIR].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_MAKE_DIR].y1_ = UI_MIDDLE_AREA_DIR_CMD_Y;
-	uibutton[BUTTON_ID_MAKE_DIR].string_id_ = ID_STR_DEV_MAKE_DIR;
-	//uibutton[BUTTON_ID_MAKE_DIR].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_SORT_BY_TYPE].id_ = BUTTON_ID_SORT_BY_TYPE;
-	uibutton[BUTTON_ID_SORT_BY_TYPE].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_SORT_BY_TYPE].y1_ = UI_MIDDLE_AREA_DIR_CMD_Y + 1;
-	uibutton[BUTTON_ID_SORT_BY_TYPE].string_id_ = ID_STR_DEV_SORT_BY_TYPE;
-	//uibutton[BUTTON_ID_SORT_BY_TYPE].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_SORT_BY_NAME].id_ = BUTTON_ID_SORT_BY_NAME;
-	uibutton[BUTTON_ID_SORT_BY_NAME].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_SORT_BY_NAME].y1_ = UI_MIDDLE_AREA_DIR_CMD_Y + 2;
-	uibutton[BUTTON_ID_SORT_BY_NAME].string_id_ = ID_STR_DEV_SORT_BY_NAME;
-	//uibutton[BUTTON_ID_SORT_BY_NAME].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_SORT_BY_SIZE].id_ = BUTTON_ID_SORT_BY_SIZE;
-	uibutton[BUTTON_ID_SORT_BY_SIZE].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_SORT_BY_SIZE].y1_ = UI_MIDDLE_AREA_DIR_CMD_Y + 3;
-	uibutton[BUTTON_ID_SORT_BY_SIZE].string_id_ = ID_STR_DEV_SORT_BY_SIZE;
-	//uibutton[BUTTON_ID_SORT_BY_SIZE].state_ = UI_BUTTON_STATE_DISABLED;
-
-	// set up the buttons - FILE actions
-	uibutton[BUTTON_ID_COPY].id_ = BUTTON_ID_COPY;
-	uibutton[BUTTON_ID_COPY].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_COPY].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y;
-	uibutton[BUTTON_ID_COPY].string_id_ = ID_STR_FILE_COPY_RIGHT;
-	//uibutton[BUTTON_ID_COPY].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DELETE].id_ = BUTTON_ID_DELETE;
-	uibutton[BUTTON_ID_DELETE].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DELETE].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 1;
-	uibutton[BUTTON_ID_DELETE].string_id_ = ID_STR_FILE_DELETE;
-	//uibutton[BUTTON_ID_DELETE].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_DUPLICATE].id_ = BUTTON_ID_DUPLICATE;
-	uibutton[BUTTON_ID_DUPLICATE].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_DUPLICATE].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 2;
-	uibutton[BUTTON_ID_DUPLICATE].string_id_ = ID_STR_FILE_DUP;
-	//uibutton[BUTTON_ID_DUPLICATE].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_RENAME].id_ = BUTTON_ID_RENAME;
-	uibutton[BUTTON_ID_RENAME].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_RENAME].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 3;
-	uibutton[BUTTON_ID_RENAME].string_id_ = ID_STR_FILE_RENAME;
-	//uibutton[BUTTON_ID_RENAME].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_TEXT_VIEW].id_ = BUTTON_ID_TEXT_VIEW;
-	uibutton[BUTTON_ID_TEXT_VIEW].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_TEXT_VIEW].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 4;
-	uibutton[BUTTON_ID_TEXT_VIEW].string_id_ = ID_STR_FILE_TEXT_PREVIEW;
-	//uibutton[BUTTON_ID_TEXT_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_HEX_VIEW].id_ = BUTTON_ID_HEX_VIEW;
-	uibutton[BUTTON_ID_HEX_VIEW].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_HEX_VIEW].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 5;
-	uibutton[BUTTON_ID_HEX_VIEW].string_id_ = ID_STR_FILE_HEX_PREVIEW;
-	//uibutton[BUTTON_ID_HEX_VIEW].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_LOAD].id_ = BUTTON_ID_LOAD;
-	uibutton[BUTTON_ID_LOAD].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_LOAD].y1_ = UI_MIDDLE_AREA_FILE_CMD_Y + 6;
-	uibutton[BUTTON_ID_LOAD].string_id_ = ID_STR_FILE_LOAD;
-	//uibutton[BUTTON_ID_LOAD].state_ = UI_BUTTON_STATE_DISABLED;
-
-	// set up the buttons - APP actions
-	uibutton[BUTTON_ID_SET_CLOCK].id_ = BUTTON_ID_SET_CLOCK;
-	uibutton[BUTTON_ID_SET_CLOCK].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_SET_CLOCK].y1_ = UI_MIDDLE_AREA_APP_CMD_Y;
-	uibutton[BUTTON_ID_SET_CLOCK].string_id_ = ID_STR_APP_SET_CLOCK;
-	//uibutton[BUTTON_ID_SET_CLOCK].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_ABOUT].id_ = BUTTON_ID_ABOUT;
-	uibutton[BUTTON_ID_ABOUT].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_ABOUT].y1_ = UI_MIDDLE_AREA_APP_CMD_Y + 1;
-	uibutton[BUTTON_ID_ABOUT].string_id_ = ID_STR_APP_ABOUT;
-	//uibutton[BUTTON_ID_ABOUT].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_EXIT_TO_BASIC].id_ = BUTTON_ID_EXIT_TO_BASIC;
-	uibutton[BUTTON_ID_EXIT_TO_BASIC].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_EXIT_TO_BASIC].y1_ = UI_MIDDLE_AREA_APP_CMD_Y + 2;
-	uibutton[BUTTON_ID_EXIT_TO_BASIC].string_id_ = ID_STR_APP_EXIT_TO_BASIC;
-	//uibutton[BUTTON_ID_QUIT].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_EXIT_TO_DOS].id_ = BUTTON_ID_EXIT_TO_DOS;
-	uibutton[BUTTON_ID_EXIT_TO_DOS].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_EXIT_TO_DOS].y1_ = UI_MIDDLE_AREA_APP_CMD_Y + 3;
-	uibutton[BUTTON_ID_EXIT_TO_DOS].string_id_ = ID_STR_APP_EXIT_TO_DOS;
-	//uibutton[BUTTON_ID_QUIT].state_ = UI_BUTTON_STATE_DISABLED;
-
-	uibutton[BUTTON_ID_QUIT].id_ = BUTTON_ID_QUIT;
-	uibutton[BUTTON_ID_QUIT].x1_ = UI_MIDDLE_AREA_START_X;
-	uibutton[BUTTON_ID_QUIT].y1_ = UI_MIDDLE_AREA_APP_CMD_Y + 4;
-	uibutton[BUTTON_ID_QUIT].string_id_ = ID_STR_APP_QUIT;
-	//uibutton[BUTTON_ID_QUIT].state_ = UI_BUTTON_STATE_DISABLED;
+	uibutton[BUTTON_ID_COPY].changed_ = true;
 }
 
 
