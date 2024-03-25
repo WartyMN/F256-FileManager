@@ -36,6 +36,9 @@
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
+#define PARAM_ONLY_RENDER_CHANGED_ITEMS		true	// parameter for Screen_RenderMenu
+#define PARAM_RENDER_ALL_MENU_ITEMS			false	// parameter for Screen_RenderMenu
+
 // there are 12 buttons which can be accessed with the same code
 #define NUM_BUTTONS					28
 
@@ -211,6 +214,11 @@ void Screen_Render(void);
 // does not render
 void Screen_SetInitialMenuStates(uint8_t num_disk_systems);
 
+// Get user input and vet it against the menu items that are currently enabled
+// returns 0 if the key pressed was for a disabled menu item
+// returns the key pressed if it matched an enabled menu item, or if wasn't a known (to Screen) input. This lets App still allow for cursor keys, etc, which aren't represented by menu items
+uint8_t Screen_GetValidUserInput(void);
+
 // determine which menu items should active, which inactive
 // sets inactive/active, and flags any that changed since last evaluation
 // does not render
@@ -218,7 +226,8 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info);
 
 // renders the menu items, as either active or inactive, as appropriate. 
 // active/inactive and changed/not changed must previously have been set
-void Screen_RenderMenu(void);
+// if sparse_render is true, only those items that have a different enable decision since last render will be re-rendered. Set sparse_render to false if drawing menu for first time or after clearing screen, etc. 
+void Screen_RenderMenu(bool sparse_render);
 
 // have screen function draw the sort triangle in the right place
 void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function);

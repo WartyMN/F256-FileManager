@@ -156,7 +156,7 @@
 
 
 // key codes for user input
-#define ACTION_INVALID_INPUT	255	// this will represent illegal keyboard command by user
+#define ACTION_INVALID_INPUT		255	// this will represent illegal keyboard command by user
 
 #define ACTION_CANCEL				CH_ESC
 #define ACTION_CANCEL_ALT			CH_RUNSTOP

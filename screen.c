@@ -22,6 +22,7 @@
 #include "folder.h"
 #include "general.h"
 #include "kernel.h"
+#include "keyboard.h"
 #include "memory.h"
 #include "sys.h"
 #include "text.h"
@@ -268,6 +269,43 @@ void Screen_SetInitialMenuStates(uint8_t num_disk_systems)
 }
 
 
+// Get user input and vet it against the menu items that are currently enabled
+// returns ACTION_INVALID_INPUT if the key pressed was for a disabled menu item
+// returns the key pressed if it matched an enabled menu item, or if wasn't a known (to Screen) input. This lets App still allow for cursor keys, etc, which aren't represented by menu items
+uint8_t Screen_GetValidUserInput(void)
+{
+	uint8_t		user_input;
+	uint8_t		i;
+	
+	user_input = Keyboard_GetChar();
+
+	// check input against active menu items
+	for (i = 0; i < NUM_BUTTONS; i++)
+	{
+		//DEBUG_OUT(("%s %d: btn %i change=%u, active=%u, %s", __func__ , __LINE__, i, uibutton[i].changed_, uibutton[i].active_, General_GetString(uibutton[i].string_id_)));
+		
+		// check if the key entered matches the key for any menu items
+		if (uibutton[i].key_ == user_input)
+		{
+			// found a match, but is this menu enabled or disabled?
+			if (uibutton[i].active_ == true)
+			{
+				// valid entry. 
+				return user_input;
+			}
+			else
+			{
+				// invalid entry
+				return ACTION_INVALID_INPUT;
+			}
+		}
+	}
+
+	// if still here, it wasn't tied to a menu item. May still be of interest to App, so return it.
+	return user_input;
+}
+
+
 // determine which menu items should active, which inactive
 // sets inactive/active, and flags any that changed since last evaluation
 // does not render
@@ -469,12 +507,6 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		//     - Activated when file system and known file type:
 		//         - Select file/load file
 
-		if (uibutton[BUTTON_ID_COPY].active_ != true)
-		{
-			uibutton[BUTTON_ID_COPY].active_ = true;
-			uibutton[BUTTON_ID_COPY].changed_ = true;
-		}
-
 		if (uibutton[BUTTON_ID_DELETE].active_ != true)
 		{
 			uibutton[BUTTON_ID_DELETE].active_ = true;
@@ -541,12 +573,19 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		}
 
 		// for bank load, other panel must be a memory panel
+		// conversely, for copy, the other panel must be a disk panel
 		if (other_panel_for_disk == false)
 		{
 			if (uibutton[BUTTON_ID_BANK_LOAD].active_ != true)
 			{
 				uibutton[BUTTON_ID_BANK_LOAD].active_ = true;
 				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
+			}
+			
+			if (uibutton[BUTTON_ID_COPY].active_ != false)
+			{
+				uibutton[BUTTON_ID_COPY].active_ = false;
+				uibutton[BUTTON_ID_COPY].changed_ = true;
 			}
 		}
 		else
@@ -555,6 +594,12 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 			{
 				uibutton[BUTTON_ID_BANK_LOAD].active_ = false;
 				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
+			}
+			
+			if (uibutton[BUTTON_ID_COPY].active_ != true)
+			{
+				uibutton[BUTTON_ID_COPY].active_ = true;
+				uibutton[BUTTON_ID_COPY].changed_ = true;
 			}
 		}
 		
@@ -589,7 +634,8 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 
 // renders the menu items, as either active or inactive, as appropriate. 
 // active/inactive and changed/not changed must previously have been set
-void Screen_RenderMenu(void)
+// if sparse_render is true, only those items that have a different enable decision since last render will be re-rendered. Set sparse_render to false if drawing menu for first time or after clearing screen, etc. 
+void Screen_RenderMenu(bool sparse_render)
 {
 	uint8_t		i;
 	uint8_t		x1;
@@ -601,7 +647,7 @@ void Screen_RenderMenu(void)
 	{
 		//DEBUG_OUT(("%s %d: btn %i change=%u, active=%u, %s", __func__ , __LINE__, i, uibutton[i].changed_, uibutton[i].active_, General_GetString(uibutton[i].string_id_)));
 		
-		if (uibutton[i].changed_ == true)
+		if (uibutton[i].changed_ == true || sparse_render == false)
 		{
 			text_color = (uibutton[i].active_ == true ? MENU_FOREGROUND_COLOR : MENU_INACTIVE_COLOR);
 			x1 = uibutton[i].x1_;
