@@ -56,9 +56,10 @@
 #define PANEL_ID_RIGHT				1
 
 
-#define APP_DIALOG_WIDTH			42
-#define APP_DIALOG_HEIGHT			7
-#define APP_DIALOG_BUFF_SIZE		((APP_DIALOG_WIDTH+2) * (APP_DIALOG_HEIGHT+2))	// for the temp char and color buffs when opening a window, this is how much mem we'll reserve for each
+#define APP_DIALOG_WIDTH					42
+#define APP_DIALOG_HEIGHT					7
+#define APP_DIALOG_STARTING_NUM_BUTTONS		2
+#define APP_DIALOG_BUFF_SIZE				((APP_DIALOG_WIDTH+2) * (APP_DIALOG_HEIGHT+2))	// for the temp char and color buffs when opening a window, this is how much mem we'll reserve for each
 
 #define FILE_MAX_FILENAME_SIZE_CBM	(16+1)	// CBM DOS defined
 #define FILE_MAX_FILENAME_SIZE		(40+1)	// in F256 kernel, total path can't be longer than 255 chars.

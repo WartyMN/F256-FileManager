@@ -748,3 +748,18 @@ char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* pr
 	return global_string_buff2;
 }
 
+
+// show user a 2 button confirmation dialog and have them click a button
+// returns true if user selected the "positive" button, or false if they selected the "negative" button
+bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_string_id, uint8_t positive_btn_label_string_id, uint8_t negative_btn_label_string_id)
+{
+	// copy title, body text, and buttons
+	General_Strlcpy((char*)&global_dlg_title, dialog_title, 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(dialog_body_string_id), 70);
+	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(negative_btn_label_string_id), 10);
+	General_Strlcpy((char*)&global_dlg_button[1], General_GetString(positive_btn_label_string_id), 10);
+					
+	global_dlg.num_buttons_ = 2;
+
+	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+}

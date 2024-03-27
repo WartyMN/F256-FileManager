@@ -562,29 +562,27 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 // DANGER WILL ROBINSON!
 bool Panel_FormatDrive(WB2KViewPanel* the_panel)
 {
-	bool				name_entered;
 	int8_t				result_code;
-	int8_t				the_player_choice;
-	
-	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_FORMAT_TITLE), 36);
-	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
-	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
-	General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
 
-	the_player_choice = Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
-
-	if (the_player_choice != 1)
+	App_LoadOverlay(OVERLAY_SCREEN);
+	if (Screen_ShowUserTwoButtonDialog(
+		General_GetString(ID_STR_DLG_FORMAT_TITLE), 
+		ID_STR_DLG_ARE_YOU_SURE, 
+		ID_STR_DLG_YES, 
+		ID_STR_DLG_NO
+		) != 1)
 	{
 		return false;
 	}
 
 	// leaving dialog title still at format?, pull it up again with text input field so user can enter new disk name
-	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
-
-	name_entered = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, FILE_MAX_FILENAME_SIZE);
+	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
+	*global_string_buff2 = 0;
+	
+	global_string_buff2 = Screen_GetFileNameFromUser(General_GetString(ID_STR_DLG_FORMAT_TITLE), global_string_buff1, global_string_buff2);
 
 	// did user enter a name?
-	if (name_entered == false)
+	if (global_string_buff2 == NULL)
 	{
 		return false;
 	}
@@ -1038,7 +1036,6 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 {
 	WB2KFileObject*		the_file;
 	int16_t				the_current_row;
-	int8_t				the_player_choice;
 	bool				success;
 	char				delete_file_name_buff[FILE_MAX_FILENAME_SIZE];
 	char*				delete_file_name = delete_file_name_buff;
@@ -1054,20 +1051,21 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
 	strcpy(delete_file_name, the_file->file_name_);
-	
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), delete_file_name);
-	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
-	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ARE_YOU_SURE), 70);
-	General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
-	General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
 
-	the_player_choice = Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+	App_LoadOverlay(OVERLAY_SCREEN);
 
-	if (the_player_choice != 1)
+	if (Screen_ShowUserTwoButtonDialog(
+		global_string_buff1, 
+		ID_STR_DLG_ARE_YOU_SURE, 
+		ID_STR_DLG_YES, 
+		ID_STR_DLG_NO
+		) != 1)
 	{
 		return false;
 	}
 
+	App_LoadOverlay(OVERLAY_DISKSYS);
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 
 	success = File_Delete(global_temp_path_1, the_file->is_directory_);

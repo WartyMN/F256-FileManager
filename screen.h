@@ -241,4 +241,9 @@ void Screen_DrawPanelHeader(uint8_t panel_id, bool for_disk);
 // returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
 char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename);
 
+// show user a 2 button confirmation dialog and have them click a button
+// returns true if user selected the "positive" button, or false if they selected the "negative" button
+bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_string_id, uint8_t positive_btn_label_string_id, uint8_t negative_btn_label_string_id);
+
+
 #endif /* SCREEN_H_ */

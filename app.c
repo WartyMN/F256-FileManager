@@ -96,7 +96,19 @@ bool					global_started_from_flash;		// tracks whether app started from flash or
 bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
 
 WB2KViewPanel			app_file_panel[2];
-TextDialogTemplate		global_dlg;	// dialog we'll configure and re-use for different purposes
+
+
+TextDialogTemplate		global_dlg = 
+{
+	(SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2, 16, APP_DIALOG_WIDTH, APP_DIALOG_HEIGHT, 
+	APP_DIALOG_STARTING_NUM_BUTTONS, NULL, NULL, 
+	{NULL, NULL, NULL},
+	{CH_RUNSTOP, CH_ENTER, CH_DEL},
+	{COLOR_GREEN, COLOR_RED, COLOR_BLUE},
+	{false, true, false},
+};	// dialog we'll configure and re-use for different purposes
+
+
 char					global_dlg_title[36];	// arbitrary
 char					global_dlg_body_msg[70];	// arbitrary
 char					global_dlg_button[3][10];	// arbitrary
@@ -215,16 +227,6 @@ void App_Initialize(void)
 	Screen_ShowAppAboutInfo();
 
 	// set up the dialog template we'll use throughout the app
-	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
-	global_dlg.y_ = 16;
-	global_dlg.width_ = APP_DIALOG_WIDTH;
-	global_dlg.height_ = APP_DIALOG_HEIGHT;
-	global_dlg.num_buttons_ = 2;
-	global_dlg.btn_shortcut_[0] = CH_ESC; // OSF_CH_ESC;
-	global_dlg.btn_shortcut_[1] = CH_ENTER;
-	global_dlg.btn_is_affirmative_[0] = false;
-	global_dlg.btn_is_affirmative_[1] = true;
-
 	global_dlg.title_text_ = global_dlg_title;
 	global_dlg.body_text_ = global_dlg_body_msg;
 	global_dlg.btn_label_[0] = global_dlg_button[0];
@@ -583,14 +585,13 @@ uint8_t App_MainLoop(void)
 					break;
 					
 				case ACTION_QUIT:
-					General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_ARE_YOU_SURE), COMM_BUFFER_MAX_STRING_LEN);
-					General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_QUIT_CONFIRM), APP_DIALOG_WIDTH);
-					General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_NO), 10);
-					General_Strlcpy((char*)&global_dlg_button[1], General_GetString(ID_STR_DLG_YES), 10);
-					
-					global_dlg.num_buttons_ = 2;
-					
-					if (Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr) > 0)
+					App_LoadOverlay(OVERLAY_SCREEN);
+					if (Screen_ShowUserTwoButtonDialog(
+						General_GetString(ID_STR_DLG_ARE_YOU_SURE), 
+						ID_STR_DLG_QUIT_CONFIRM, 
+						ID_STR_DLG_YES, 
+						ID_STR_DLG_NO
+						) > 0)
 					{
 						exit_main_loop = true;
 						continue;
@@ -844,14 +845,14 @@ void App_Exit(uint8_t the_error_number)
 {
 	if (the_error_number != ERROR_NO_ERROR)
 	{
+		App_LoadOverlay(OVERLAY_SCREEN);
 		sprintf(global_string_buff1, General_GetString(ID_STR_MSG_FATAL_ERROR), the_error_number);
-		General_Strlcpy((char*)&global_dlg_title, global_string_buff1, MAX_STRING_COMP_LEN);
-		General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_MSG_FATAL_ERROR_BODY), APP_DIALOG_WIDTH);
-		General_Strlcpy((char*)&global_dlg_button[0], General_GetString(ID_STR_DLG_OK), 10);
-		
-		global_dlg.num_buttons_ = 2;
-		
-		Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+		Screen_ShowUserTwoButtonDialog(
+			global_string_buff1, 
+			ID_STR_MSG_FATAL_ERROR_BODY, 
+			ID_STR_DLG_OK, 
+			ID_STR_DLG_OK
+			);
 	}
 
 	// close log file if debugging flags were passed
