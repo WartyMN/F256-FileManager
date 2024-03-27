@@ -48,6 +48,10 @@
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
+#define PAGES_PER_BANK	32	// page=256b, bank=8192b, 8192/256=32
+
+#define PARAM_MARK_SELECTION_AS_ACTIVE		true	// param for Bank_Render(). When marking selection, use the active formatting.
+#define PARAM_MARK_SELECTION_AS_INACTIVE	true	// param for Bank_Render(). When marking selection, use the inactive formatting.
 
 /*****************************************************************************/
 /*                               Enumerations                                */
@@ -137,7 +141,7 @@ int16_t Bank_AskForFillValue(void);
 // **** OTHER FUNCTIONS *****
 
 // mark file as selected, and refresh display accordingly
-bool Bank_MarkSelected(FMBankObject* the_bank, int8_t y_offset);
+bool Bank_MarkSelected(FMBankObject* the_bank, int8_t y_offset, bool as_active);
 
 // mark file as un-selected, and refresh display accordingly
 bool Bank_MarkUnSelected(FMBankObject* the_bank, int8_t y_offset);

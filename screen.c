@@ -86,9 +86,7 @@ static UI_Button		uibutton[NUM_BUTTONS] =
 	// BANK actions
 	{BUTTON_ID_BANK_FILL,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 7,	ID_STR_BANK_FILL,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_FILL_MEMORY	}, 
 	{BUTTON_ID_BANK_CLEAR,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 8,	ID_STR_BANK_CLEAR,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_CLEAR_MEMORY	}, 
-	{BUTTON_ID_BANK_SAVE,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 9,	ID_STR_BANK_SAVE,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SAVE_MEMORY	}, 
-	{BUTTON_ID_BANK_LOAD,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 10,	ID_STR_BANK_LOAD,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_LOAD_MEMORY	}, 
-	{BUTTON_ID_BANK_FIND,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 11,	ID_STR_BANK_FIND,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_FIND_MEMORY	}, 
+	{BUTTON_ID_BANK_FIND,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 9,	ID_STR_BANK_FIND,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_FIND_MEMORY	}, 
 	// APP actions
 	{BUTTON_ID_SET_CLOCK,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y,		ID_STR_APP_SET_CLOCK,		UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_SET_TIME	}, 
 	{BUTTON_ID_ABOUT,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 1,	ID_STR_APP_ABOUT,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_ABOUT	}, 
@@ -118,6 +116,13 @@ extern bool					global_clock_is_visible;		// tracks whether or not the clock sho
 extern char*				global_string[NUM_STRINGS];
 extern char*				global_string_buff1;
 extern char*				global_string_buff2;
+
+extern TextDialogTemplate	global_dlg;	// dialog we'll configure and re-use for different purposes
+extern char					global_dlg_title[36];	// arbitrary
+extern char					global_dlg_body_msg[70];	// arbitrary
+extern char					global_dlg_button[3][10];	// arbitrary
+extern uint8_t				temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
+extern uint8_t				temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern uint8_t				zp_bank_num;
 extern uint8_t				io_bank_value_kernel;	// stores value for the physical bank pointing to C000-DFFF whenever we change it, so we can restore it.
@@ -417,29 +422,22 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 			}
 		}
 		
-		// for bank save, other panel must be a file panel
-		if (other_panel_for_disk == true)
+		// for copy, the other panel can't be flash, but in all other combinations, it should be active.
+		if (other_panel_for_flash == true)
 		{
-			if (uibutton[BUTTON_ID_BANK_SAVE].active_ != true)
+			if (uibutton[BUTTON_ID_COPY].active_ != false)
 			{
-				uibutton[BUTTON_ID_BANK_SAVE].active_ = true;
-				uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
+				uibutton[BUTTON_ID_COPY].active_ = false;
+				uibutton[BUTTON_ID_COPY].changed_ = true;
 			}
 		}
 		else
 		{
-			if (uibutton[BUTTON_ID_BANK_SAVE].active_ != false)
+			if (uibutton[BUTTON_ID_COPY].active_ != true)
 			{
-				uibutton[BUTTON_ID_BANK_SAVE].active_ = false;
-				uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
+				uibutton[BUTTON_ID_COPY].active_ = true;
+				uibutton[BUTTON_ID_COPY].changed_ = true;
 			}
-		}
-		
-		// disable disk-system-only items
-		if (uibutton[BUTTON_ID_COPY].active_ != false)
-		{
-			uibutton[BUTTON_ID_COPY].active_ = false;
-			uibutton[BUTTON_ID_COPY].changed_ = true;
 		}
 
 		if (uibutton[BUTTON_ID_DELETE].active_ != false)
@@ -489,12 +487,6 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 			uibutton[BUTTON_ID_SORT_BY_SIZE].active_ = false;
 			uibutton[BUTTON_ID_SORT_BY_SIZE].changed_ = true;
 		}
-
-		if (uibutton[BUTTON_ID_BANK_LOAD].active_ != false)
-		{
-			uibutton[BUTTON_ID_BANK_LOAD].active_ = false;
-			uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
-		}		
 	}
 	else
 	{
@@ -572,16 +564,9 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 			}
 		}
 
-		// for bank load, other panel must be a memory panel
-		// conversely, for copy, the other panel must be a disk panel
-		if (other_panel_for_disk == false)
+		// for copy, the other panel can't be flash, but in all other combinations, it should be active.
+		if (other_panel_for_flash == true)
 		{
-			if (uibutton[BUTTON_ID_BANK_LOAD].active_ != true)
-			{
-				uibutton[BUTTON_ID_BANK_LOAD].active_ = true;
-				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
-			}
-			
 			if (uibutton[BUTTON_ID_COPY].active_ != false)
 			{
 				uibutton[BUTTON_ID_COPY].active_ = false;
@@ -590,19 +575,13 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		}
 		else
 		{
-			if (uibutton[BUTTON_ID_BANK_LOAD].active_ != false)
-			{
-				uibutton[BUTTON_ID_BANK_LOAD].active_ = false;
-				uibutton[BUTTON_ID_BANK_LOAD].changed_ = true;
-			}
-			
 			if (uibutton[BUTTON_ID_COPY].active_ != true)
 			{
 				uibutton[BUTTON_ID_COPY].active_ = true;
 				uibutton[BUTTON_ID_COPY].changed_ = true;
 			}
 		}
-		
+
 		// disable all memory-system-only items
 
 // 		if (uibutton[BUTTON_ID_BANK_FIND].active_ != false)
@@ -621,12 +600,6 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		{
 			uibutton[BUTTON_ID_BANK_CLEAR].active_ = false;
 			uibutton[BUTTON_ID_BANK_CLEAR].changed_ = true;
-		}
-
-		if (uibutton[BUTTON_ID_BANK_SAVE].active_ != false)
-		{
-			uibutton[BUTTON_ID_BANK_SAVE].active_ = false;
-			uibutton[BUTTON_ID_BANK_SAVE].changed_ = true;
 		}
 	}
 }
@@ -734,4 +707,44 @@ void Screen_ShowAppAboutInfo(void)
 }
 
 
+// show user a dialog and have them enter a filename
+// returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
+char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename)
+{
+	bool				success;
+	uint8_t				orig_dialog_width;
+	uint8_t				temp_dialog_width;
+	
+	// copy title and body text
+	General_Strlcpy((char*)&global_dlg_title, dialog_title, 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, dialog_body, 70);
+
+	// copy the current file name into the edit buffer so user can edit
+	General_Strlcpy(global_string_buff2, provided_filename, FILE_MAX_FILENAME_SIZE);
+	
+	orig_dialog_width = global_dlg.width_;
+	temp_dialog_width = General_Strnlen(provided_filename, FILE_MAX_FILENAME_SIZE) + 2; // +2 is for box draw chars
+	
+	if (temp_dialog_width < orig_dialog_width)
+	{
+		temp_dialog_width = orig_dialog_width - 2;
+	}
+	else
+	{
+		global_dlg.width_ = temp_dialog_width;
+		temp_dialog_width -= 2;
+	}
+	
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width);
+
+	global_dlg.width_ = orig_dialog_width;
+
+	// did user enter a name?
+	if (success == false)
+	{
+		return NULL;
+	}
+	
+	return global_string_buff2;
+}
 

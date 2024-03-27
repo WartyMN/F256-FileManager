@@ -514,7 +514,7 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 			}
 			
 			// address display at left
-			sprintf(global_string_buff1, "%06luX: ", loc_in_file);
+			sprintf(global_string_buff1, "%06lX: ", loc_in_file);
 			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 		
 			// main hex display in middle

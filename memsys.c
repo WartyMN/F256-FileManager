@@ -127,7 +127,7 @@ FMMemorySystem* MemSys_NewOrReset(FMMemorySystem* existing_memsys, bool is_flash
 
 	// set some other props
 	the_memsys->is_flash_ = is_flash;
-	the_memsys->cur_row_ = -1; // leave at -1 until MemSys_SetBankSelectionByRow() or it won't detect a change
+	the_memsys->cur_row_ = 0; // leave at -1 until MemSys_SetBankSelectionByRow() or it won't detect a change
 
 	return the_memsys;
 
@@ -210,6 +210,44 @@ int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys)
 	}
 	
 	return the_memsys->cur_row_;
+}
+
+
+// returns the currently selected bank or NULL if no bank selected
+FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys)
+{
+	if (the_memsys == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//App_Exit(ERROR_MEMSYS_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+		return NULL;
+	}
+	
+	if (the_memsys->cur_row_ < 0)
+	{
+		return NULL;
+	}
+	
+	return &the_memsys->bank_[the_memsys->cur_row_];
+}
+
+
+// returns the currently selected bank's bank_num or 255 if no bank selected
+uint8_t MemSys_GetCurrentBankNum(FMMemorySystem* the_memsys)
+{
+	if (the_memsys == NULL)
+	{
+		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+		//App_Exit(ERROR_MEMSYS_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+		return NULL;
+	}
+	
+	if (the_memsys->cur_row_ < 0)
+	{
+		return NULL;
+	}
+	
+	return the_memsys->bank_[the_memsys->cur_row_].bank_num_;
 }
 
 
@@ -566,7 +604,7 @@ void MemSys_PopulateBanks(FMMemorySystem* the_memsys)
 
 	
 // select or unselect 1 file by row id, and change cur_row_ accordingly
-bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset)
+bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active)
 {
 	FMBankObject*		the_bank;
 	FMBankObject*		the_prev_selected_bank;
@@ -606,7 +644,7 @@ bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, 
 
 		the_memsys->cur_row_ = the_row;
 
-		if (Bank_MarkSelected(the_bank, y_offset) == false)
+		if (Bank_MarkSelected(the_bank, y_offset, as_active) == false)
 		{
 			// the passed file was null. do anything?
 			LOG_ERR(("%s %d: couldn't mark bank '%s' as selected", __func__ , __LINE__, the_bank->name_));

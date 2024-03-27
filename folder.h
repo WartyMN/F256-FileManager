@@ -42,6 +42,7 @@
 #include "app.h"
 #include "file.h"
 #include "list.h"
+#include <stdio.h>
 
 /*****************************************************************************/
 /*                            Macro Definitions                              */
@@ -255,6 +256,9 @@ bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row
 // populate the folder's List by iterating through the DOS List objects and treating each as a folder/file
 bool Folder_PopulateVolumeList(WB2KFolderObject* the_folder);
 
+// get a file handle for the target path, in "write" mode
+// returns NULL on any error, including not being able to get a good handle
+FILE* Folder_GetTargetHandleForWriting(const char* the_target_file_path);
 
 
 // TEMPORARY DEBUG FUNCTIONS

@@ -2,53 +2,53 @@
 0	30	Are you sure you want to exit?
 1	13	Are you sure?
 2	16	Rename file '%s'
-3	12	Delete '%s'?
-4	22	Erase and format disk?
-5	3	Yes
-6	2	No
-7	2	OK
-8	6	Cancel
-9	15	Enter new name:
-10	23	Set Current Date & Time
-11	39	Enter date and time as 'YY-MM-DD HH:mm'
-12	16	Fill Memory Bank
-13	40	Enter a number or character to fill with
-14	29	Bank %02X filled with %u (%c)
-15	20	Create new directory
-16	25	Enter new directory name:
-17	7	  OTHER
-18	10	C Set time
-19	7	a About
-20	6	q Quit
-21	7	b BASIC
-22	5	d DOS
-23	10	  DEVICE  
-24	9	0 SD Card
-25	10	1 Floppy 1
-26	10	2 Floppy 2
-27	5	8 RAM
-28	7	9 Flash
-29	8	` Format
-30	9	(SD Card)
-31	9	DIRECTORY
-32	9	m New dir
-33	9	R Refresh
-34	7	T ~Type
-35	7	N ~Name
-36	7	S ~Size
-37	9	FILE/BANK
-38	10	c <<<<<<<<
-39	10	c >>>>>>>>
-40	8	x Delete
-41	10	p Duplicat
-42	8	r Rename
-43	10	t Txt View
-44	10	h Hex View
-45	6	l Load
-46	7	z Clear
-47	6	F Fill
-48	10	s Save Mem
-49	10	L Load Mem
+3	20	Copy to file on disk
+4	25	Enter name for this file:
+5	12	Delete '%s'?
+6	22	Erase and format disk?
+7	3	Yes
+8	2	No
+9	2	OK
+10	6	Cancel
+11	15	Enter new name:
+12	23	Set Current Date & Time
+13	39	Enter date and time as 'YY-MM-DD HH:mm'
+14	16	Fill Memory Bank
+15	40	Enter a number or character to fill with
+16	29	Bank %02X filled with %u (%c)
+17	20	Create new directory
+18	25	Enter new directory name:
+19	7	  OTHER
+20	10	C Set time
+21	7	a About
+22	6	q Quit
+23	7	b BASIC
+24	5	d DOS
+25	10	  DEVICE  
+26	9	0 SD Card
+27	10	1 Floppy 1
+28	10	2 Floppy 2
+29	5	8 RAM
+30	7	9 Flash
+31	8	` Format
+32	9	(SD Card)
+33	9	DIRECTORY
+34	9	m New dir
+35	9	R Refresh
+36	7	T ~Type
+37	7	N ~Name
+38	7	S ~Size
+39	9	FILE/BANK
+40	10	c Copy<<<<
+41	10	c Copy>>>>
+42	8	x Delete
+43	10	p Duplicat
+44	8	r Rename
+45	10	t Txt View
+46	10	h Hex View
+47	6	l Load
+48	7	z Clear
+49	6	F Fill
 50	10	f Find Mem
 51	4	NAME
 52	4	DAYS
@@ -93,13 +93,14 @@
 91	33	No disk detected in disk drive %u
 92	31	Error: Could not open file '%s'
 93	31	Error: Could not list directory
-94	19	Out of memory error
-95	46	https://github.com/WartyMN/F256jr-FileManager/
-96	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-97	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-98	42	Compact pexec loader for flash by dwsJason
-99	36	F256 SuperBASIC %c2023 Paul Robson. 
-100	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
-101	6	F256JR
-102	5	F256K
-103	18	<unknown hardware>
+94	39	Error: You cannot copy a bank to itself
+95	19	Out of memory error
+96	46	https://github.com/WartyMN/F256jr-FileManager/
+97	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+98	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+99	42	Compact pexec loader for flash by dwsJason
+100	36	F256 SuperBASIC %c2023 Paul Robson. 
+101	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+102	6	F256JR
+103	5	F256K
+104	18	<unknown hardware>

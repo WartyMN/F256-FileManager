@@ -258,7 +258,7 @@ void Bank_Fill(FMBankObject* the_bank, uint8_t the_fill_value)
 
 	memset(the_buffer, the_fill_value, STORAGE_FILE_BUFFER_1_LEN);
 	
-	for (i = 0; i < 64; i++)
+	for (i = 0; i < PAGES_PER_BANK; i++)
 	{
 		App_EMDataCopy((uint8_t*)the_buffer, the_bank->bank_num_, i, PARAM_COPY_TO_EM);
 	}
@@ -350,7 +350,7 @@ int16_t Bank_AskForFillValue(void)
 
 
 // mark file as selected, and refresh display accordingly
-bool Bank_MarkSelected(FMBankObject* the_bank, int8_t y_offset)
+bool Bank_MarkSelected(FMBankObject* the_bank, int8_t y_offset, bool as_active)
 {
 	// LOGIC: if file was already selected, don't do anything. don't change state, don't change visual appearance
 
@@ -367,7 +367,7 @@ bool Bank_MarkSelected(FMBankObject* the_bank, int8_t y_offset)
 		the_bank->selected_ = true;
 
 		// re-render with selected state
-		Bank_Render(the_bank, the_bank->selected_, y_offset, true);	// if we're here, panel must be active?
+		Bank_Render(the_bank, the_bank->selected_, y_offset, as_active);	// if we're here, panel must be active?
 	}
 
 	return true;
@@ -389,7 +389,7 @@ bool Bank_MarkUnSelected(FMBankObject* the_bank, int8_t y_offset)
 		the_bank->selected_ = false;
 
 		// re-render with un-selected state
-		Bank_Render(the_bank, the_bank->selected_, y_offset, true);	// if we're here, panel must be active?
+		Bank_Render(the_bank, the_bank->selected_, y_offset, PARAM_MARK_SELECTION_AS_ACTIVE);	// if we're here, panel must be active?
 	}
 
 	return true;

@@ -61,10 +61,6 @@
 /*                          File-scoped Variables                            */
 /*****************************************************************************/
 
-extern TextDialogTemplate	global_dlg;	// dialog we'll configure and re-use for different purposes
-extern char					global_dlg_title[36];	// arbitrary
-extern char					global_dlg_body_msg[70];	// arbitrary
-extern char					global_dlg_button[3][10];	// arbitrary
 
 /*****************************************************************************/
 /*                             Global Variables                              */
@@ -78,9 +74,14 @@ extern char*		global_string_buff2;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
-extern uint8_t		temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
-extern uint8_t		temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
+
+extern TextDialogTemplate	global_dlg;	// dialog we'll configure and re-use for different purposes
+extern char					global_dlg_title[36];	// arbitrary
+extern char					global_dlg_body_msg[70];	// arbitrary
+extern char					global_dlg_button[3][10];	// arbitrary
+extern uint8_t				temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
+extern uint8_t				temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern uint8_t				zp_bank_num;
 #pragma zpsym ("zp_bank_num");
@@ -903,8 +904,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 {
 	WB2KFileObject*		the_file;
 	bool				success;
-	uint8_t				orig_dialog_width;
-	uint8_t				temp_dialog_width;
+	char*				new_file_name;
 	
 	App_LoadOverlay(OVERLAY_DISKSYS);
 	
@@ -919,35 +919,19 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 // 	Buffer_NewMessage(global_string_buff1);
 
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), the_file->file_name_);
-	General_Strlcpy((char*)&global_dlg_title, global_string_buff1, 36);
-	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
 
 	// copy the current file name into the edit buffer so user can edit
 	General_Strlcpy(global_string_buff2, the_file->file_name_, FILE_MAX_FILENAME_SIZE);
-	
-	orig_dialog_width = global_dlg.width_;
-	temp_dialog_width = General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 2; // +2 is for box draw chars
-	
-	if (temp_dialog_width < orig_dialog_width)
-	{
-		temp_dialog_width = orig_dialog_width - 2;
-	}
-	else
-	{
-		global_dlg.width_ = temp_dialog_width;
-		temp_dialog_width -= 2;
-	}
-	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width);
 
-	global_dlg.width_ = orig_dialog_width;
-
-	// did user enter a name?
-	if (success == false)
+	App_LoadOverlay(OVERLAY_SCREEN);
+	new_file_name = Screen_GetFileNameFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), global_string_buff2);
+	App_LoadOverlay(OVERLAY_DISKSYS);
+	
+	if (new_file_name == NULL)
 	{
 		return false;
 	}
-
+	
 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
 	General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_panel->root_folder_->file_path_, global_string_buff2);
 
@@ -1021,7 +1005,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 		{
 			// until SuperBASIC will accept a file path, only thing we can do is load file into $28000, tell user to type "XGO" once basic loads, then switch to basic.
-			success = File_LoadFileToEM(global_temp_path_1);
+			success = File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
 			
 			if (success)
 			{
@@ -1119,24 +1103,135 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 // copy the currently selected file to the other panel
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
 {
+	uint8_t				i;
+	uint8_t				num_pages;
+	uint8_t				src_bank_num;
+	uint8_t				dst_bank_num;
+	uint32_t			percent_read;
 	bool				success;
+	FILE*				the_target_handle;
+	WB2KFileObject*		the_file;
+	char*				the_name;
+	uint8_t*			the_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
 
-	App_LoadOverlay(OVERLAY_DISKSYS);
+	// for BSAVE
+
+	// possible scenarios:
+	//   1. both panels are disk systems. copy disk to disk
+	//   2. src panel is disk, target panel is memory: copy file from disk to memory, starting with selected bank in other panel
+	//   3. src panel is memory, other panel is disk: copy 8192 bytes from current bank to a new file in the other panel. ask for filename
+	//   4. src panel is memory, other panel is memory: copy 8192 bytes from current bank to other panel's selected bank
 	
-	success = Folder_CopyCurrentFile(the_panel->root_folder_, the_other_panel->root_folder_);
-	
-	if (success)
+	if (the_panel->for_disk_ == false)
 	{
-		Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		src_bank_num = MemSys_GetCurrentBankNum(the_panel->memory_system_);
 	}
-	else
+	
+	if (the_other_panel->for_disk_ == false)
 	{
-		Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
+		dst_bank_num = MemSys_GetCurrentBankNum(the_other_panel->memory_system_);
+	}
+	
+	if (the_panel->for_disk_ == true && the_other_panel->for_disk_ == true)
+	{
+		// copy a file from disk to disk
+		App_LoadOverlay(OVERLAY_DISKSYS);
+		success = Folder_CopyCurrentFile(the_panel->root_folder_, the_other_panel->root_folder_);
+		
+		if (success)
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_MSG_DONE));
+		}
+		else
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_ERROR_GENERIC_DISK));
+		}
+	}
+	else if (the_panel->for_disk_ == true && the_other_panel->for_disk_ == false)
+	{
+		// load a file from disk into memory
+		App_LoadOverlay(OVERLAY_DISKSYS);
+		the_file = Folder_GetCurrentFile(the_panel->root_folder_);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+		the_name = the_file->file_name_;
+		num_pages = the_file->size_/256;
+		success = File_LoadFileToEM(global_temp_path_1, dst_bank_num);
+	}
+	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == true)
+	{
+		// copy memory bank to file on disk
+
+		// set up a 'what's the file name?' dialog box
+		sprintf(global_string_buff1, General_GetString(ID_STR_DLG_COPY_TO_FILE_TITLE), the_file->file_name_);
+	
+		// copy the current bank name into the edit buffer so user can edit
+		sprintf(global_string_buff2, "Bank_%02X.bin", src_bank_num);
+		
+		App_LoadOverlay(OVERLAY_SCREEN);	
+		the_name = Screen_GetFileNameFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_FILE_NAME), global_string_buff2);
+		App_LoadOverlay(OVERLAY_DISKSYS);
+		
+		if (the_name == NULL)
+		{
+			return false;
+		}
+
+		General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_other_panel->root_folder_->file_path_, the_name);
+	
+		// get a target handle for writing
+		if ( (the_target_handle = Folder_GetTargetHandleForWriting(global_temp_path_2)) == NULL)
+		{
+			return false;
+		}
+
+		// prepare to use progress bar
+		App_ShowProgressBar();
+
+		// loop until all 8192 bytes of source bank have been witten out, writing STORAGE_FILE_BUFFER_1_LEN bytes per loop (sized to available buffer)
+		for (i = 0; i < PAGES_PER_BANK; i++)
+		{
+			App_EMDataCopy(the_buffer, src_bank_num, i, PARAM_COPY_FROM_EM);
+
+			fwrite(the_buffer, 1, STORAGE_FILE_BUFFER_1_LEN, the_target_handle);
+			
+			percent_read = ((uint32_t)i * 100) / (uint32_t)PAGES_PER_BANK;
+			
+			App_UpdateProgressBar((uint8_t)percent_read);		
+		}
+		
+		fclose(the_target_handle);
+
+		// clear the progress bar
+		App_HideProgressBar();
+		
+		success = true;
+	}
+	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == false)
+	{
+		// copy memory bank to memory bank
+		if (src_bank_num == dst_bank_num)
+		{
+			// can't copy to/from same memory bank!
+			Buffer_NewMessage(General_GetString(ID_STR_ERROR_ATTEMPT_COPY_BANK_TO_ITSELF));
+			return false;
+		}
+		
+		for (i = 0; i < PAGES_PER_BANK; i++)
+		{
+			App_EMDataCopy(the_buffer, src_bank_num, i, PARAM_COPY_FROM_EM);
+			App_EMDataCopy(the_buffer, dst_bank_num, i, PARAM_COPY_TO_EM);
+		}
+
+		success = true;
 	}
 	
 	Panel_Refresh(the_other_panel);
+	// refresh this panel too, in case both panels are pointing at same folder and user really just did a duplicate operation
+	Panel_Refresh(the_panel);
 	
-	return true;
+	return success;
 }
 
 
@@ -1174,13 +1269,13 @@ bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 		the_name = the_file->file_name_;
 		num_pages = the_file->size_/256;
 		bank_num = EM_STORAGE_START_PHYS_BANK_NUM;
-		success = File_LoadFileToEM(global_temp_path_1);
+		success = File_LoadFileToEM(global_temp_path_1, bank_num);
 	}
 	else
 	{
 		// for view memory, no question of success: it is already there always
 		the_name = the_panel->memory_system_->bank_[the_current_row].name_;
-		num_pages = 32;	// 64 pages per bank (8192/256=32)
+		num_pages = PAGES_PER_BANK;	// 32 pages per bank (8192/256=32)
 		bank_num = the_panel->memory_system_->bank_[the_current_row].bank_num_;
 		success = true;
 	}
@@ -1284,7 +1379,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 	else
 	{
 		App_LoadOverlay(OVERLAY_MEMSYSTEM);
-		success = MemSys_SetBankSelectionByRow(the_panel->memory_system_, the_row, do_selection, the_panel->y_);
+		success = MemSys_SetBankSelectionByRow(the_panel->memory_system_, the_row, do_selection, the_panel->y_, the_panel->active_);
 	}
 	
 	// is the newly selected file visible? If not, scroll to make it visible
@@ -1622,10 +1717,7 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 		Panel_ReflowContent(the_panel);
 		Panel_RenderContents(the_panel);
 		
-		if (the_panel->active_ == true)
-		{
-			MemSys_SetBankSelectionByRow(the_panel->memory_system_, 0, true, the_panel->y_);
-		}
+		MemSys_SetBankSelectionByRow(the_panel->memory_system_, 0, PARAM_MARK_SELECTED, the_panel->y_, the_panel->active_);
 	}
 }
 

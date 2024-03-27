@@ -49,6 +49,10 @@
 
 #define MEMORY_BANK_COUNT		64	// 64 banks each for RAM and Flash in an F256
 
+#define PARAM_MARK_SELECTED		true	// param for MemSys_SetBankSelectionByRow
+#define PARAM_MARK_UNSELECTED	true	// param for MemSys_SetBankSelectionByRow
+
+
 
 /*****************************************************************************/
 /*                               Enumerations                                */
@@ -105,6 +109,12 @@ void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number);
 // returns the row num (-1, or 0-n) of the currently selected bank
 int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys);
 
+// returns the currently selected bank or NULL if no bank selected
+FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys);
+
+// returns the currently selected bank's bank_num or 255 if no bank selected
+uint8_t MemSys_GetCurrentBankNum(FMMemorySystem* the_memsys);
+
 // gets the KUP-edness of the current bank: true if KUP, false if not a KUP bank or if no current bank selected
 // returns false if the bank is not a KUP
 bool MemSys_GetCurrentRowKUPState(FMMemorySystem* the_memsys);
@@ -134,7 +144,7 @@ bool MemSys_CopyBank(FMMemorySystem* the_memsys, FMBankObject* the_bank, FMMemor
 void MemSys_PopulateBanks(FMMemorySystem* the_memsys);
 
 // select or unselect 1 bank by row id, and change cur_row_ accordingly
-bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset);
+bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active);
 
 // runs (executes) the program in the current bank, if the bank is a KUP bank
 // returns false if the bank is not a KUP

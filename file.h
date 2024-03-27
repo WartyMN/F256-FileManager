@@ -130,9 +130,9 @@ char* File_GetFileSizeStringCopy(WB2KFileObject* the_file);
 // Returns false on any error
 bool File_ReadFontData(char* the_file_path);
 
-// Load the selected file into EM, starting at $28000.
+// Load the selected file into EM, starting at the address associated with the specified em_bank_num
 // Returns false on any error
-bool File_LoadFileToEM(char* the_file_path);
+bool File_LoadFileToEM(char* the_file_path, uint8_t em_bank_num);
 
 // get the free disk space on the parent disk of the file
 // returns -1 in event of error

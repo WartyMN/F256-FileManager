@@ -40,7 +40,7 @@
 #define PARAM_RENDER_ALL_MENU_ITEMS			false	// parameter for Screen_RenderMenu
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					28
+#define NUM_BUTTONS					26
 
 // DEVICE actions
 #define BUTTON_ID_DEV_SD_CARD		0
@@ -68,9 +68,7 @@
 // memory bank buttons
 #define BUTTON_ID_BANK_FILL			(BUTTON_ID_LOAD + 1)
 #define BUTTON_ID_BANK_CLEAR		(BUTTON_ID_BANK_FILL + 1)
-#define BUTTON_ID_BANK_SAVE			(BUTTON_ID_BANK_CLEAR + 1)
-#define BUTTON_ID_BANK_LOAD			(BUTTON_ID_BANK_SAVE + 1)
-#define BUTTON_ID_BANK_FIND			(BUTTON_ID_BANK_LOAD + 1)
+#define BUTTON_ID_BANK_FIND			(BUTTON_ID_BANK_CLEAR + 1)
 
 // app menu buttons
 #define BUTTON_ID_SET_CLOCK			(BUTTON_ID_BANK_FIND + 1)
@@ -92,7 +90,7 @@
 #define UI_MIDDLE_AREA_START_Y			4
 #define UI_MIDDLE_AREA_WIDTH			10
 
-#define UI_MIDDLE_AREA_DEV_MENU_Y		(UI_MIDDLE_AREA_START_Y + 0)
+#define UI_MIDDLE_AREA_DEV_MENU_Y		(UI_MIDDLE_AREA_START_Y + 2)
 #define UI_MIDDLE_AREA_DEV_CMD_Y		(UI_MIDDLE_AREA_DEV_MENU_Y + 3)
 
 #define UI_MIDDLE_AREA_DIR_MENU_Y		(UI_MIDDLE_AREA_DEV_CMD_Y + 8)
@@ -101,7 +99,7 @@
 #define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DIR_CMD_Y + 5)
 #define UI_MIDDLE_AREA_FILE_CMD_Y		(UI_MIDDLE_AREA_FILE_MENU_Y + 3)
 
-#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 13)
+#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 11)
 #define UI_MIDDLE_AREA_APP_CMD_Y		(UI_MIDDLE_AREA_APP_MENU_Y + 3)
 
 #define UI_PANEL_INNER_WIDTH			33
@@ -238,5 +236,9 @@ void Screen_ShowAppAboutInfo(void);
 // draw just the 3 column headers in the specified panel
 // if for_disk is true, will use name/type/size. if false, will use name/bank num/addr
 void Screen_DrawPanelHeader(uint8_t panel_id, bool for_disk);
+
+// show user a dialog and have them enter a filename
+// returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
+char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename);
 
 #endif /* SCREEN_H_ */

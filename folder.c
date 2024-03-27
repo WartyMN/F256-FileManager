@@ -94,15 +94,12 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 // copy file bytes. Returns number of bytes copied, or -1 in event of any error
 int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_target_file_path, int32_t expected_bytes)
 {
-	FILEmimic*  target_mimic;
 	FILE*		the_source_handle;
 	FILE*		the_target_handle;
 	uint8_t*	the_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
-	uint8_t		tries_made = 0;
 	int16_t		bytes_read = 0;
 	int16_t		total_bytes_read = 0;
 	uint32_t	percent_read = 0;
-	bool		good_tgt_handle = false;
 	bool		keep_going = true;
 	
 
@@ -121,44 +118,12 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 	}
 	else
 	{
-		// Open target file for Writing
-		// NOTE: this is in a loop because I was getting cases where the 2nd copy operation would get a bad handle. then 3rd would work, etc. 
-		
-		while (good_tgt_handle == false && tries_made < 6)
-		{
-			the_target_handle = fopen(the_target_file_path, "w");
-		
-			if (the_target_handle == NULL)
-			{
-				//sprintf(global_string_buff1, "target file '%s' could not be opened", the_target_file_path);
-				//Buffer_NewMessage(global_string_buff1);
-				LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
-				goto error;
-			}
+		// Get a target file handle for Writing
+		the_target_handle = Folder_GetTargetHandleForWriting(the_target_file_path);
 
-			target_mimic = (FILEmimic*)the_target_handle;
-			
-			//sprintf(global_string_buff1, "tries=%u, tgt file f_fd=%x, f_flags=%x, f_pushback=%x, tgt FILE=%p", tries_made, target_mimic->f_fd, target_mimic->f_flags, target_mimic->f_pushback, the_target_handle);
-			//Buffer_NewMessage(global_string_buff1);
-			
-			if (target_mimic->f_fd != 1)
-			{
-				good_tgt_handle = true;
-			}
-			else
-			{
-				//fclose(the_target_handle);
-				// NOTE: if I close the "bad" target handle, the system will keep reselecting it. and since it's bad, it will never work
-				//   leaving it open seems to basically have the effect of "forgetting" this file handle, which lets it move on to the
-				//   next, which seems to work consistently. I don't know what cc65 is doing here, or why this happens. 
-			}
-			
-			++tries_made;
-		}
-		
-		if (good_tgt_handle == false)
+		if (the_target_handle == NULL)
 		{
-			//LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
 			goto error;
 		}
 
@@ -2195,7 +2160,56 @@ bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row
 }	
 
 
+// get a file handle for the target path, in "write" mode
+// returns NULL on any error, including not being able to get a good handle
+FILE* Folder_GetTargetHandleForWriting(const char* the_target_file_path)
+{
+	FILEmimic*  target_mimic;
+	uint8_t		tries_made = 0;
+	bool		good_tgt_handle = false;
+	FILE*		the_target_handle;
+		
+	// Open target file for Writing
+	// NOTE: this is in a loop because I was getting cases where the 2nd copy operation would get a bad handle. then 3rd would work, etc. 
+	
+	while (good_tgt_handle == false && tries_made < 6)
+	{
+		the_target_handle = fopen(the_target_file_path, "w");
+	
+		if (the_target_handle == NULL)
+		{
+			LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+			return NULL;
+		}
 
+		target_mimic = (FILEmimic*)the_target_handle;
+		
+		//sprintf(global_string_buff1, "tries=%u, tgt file f_fd=%x, f_flags=%x, f_pushback=%x, tgt FILE=%p", tries_made, target_mimic->f_fd, target_mimic->f_flags, target_mimic->f_pushback, the_target_handle);
+		//Buffer_NewMessage(global_string_buff1);
+		
+		if (target_mimic->f_fd != 1)
+		{
+			good_tgt_handle = true;
+		}
+		else
+		{
+			//fclose(the_target_handle);
+			// NOTE: if I close the "bad" target handle, the system will keep reselecting it. and since it's bad, it will never work
+			//   leaving it open seems to basically have the effect of "forgetting" this file handle, which lets it move on to the
+			//   next, which seems to work consistently. I don't know what cc65 is doing here, or why this happens. 
+		}
+		
+		++tries_made;
+	}
+	
+	if (good_tgt_handle == false)
+	{
+		//LOG_ERR(("%s %d: file '%s' could not be opened for writing", __func__ , __LINE__, the_target_file_path));
+		return NULL;
+	}
+	
+	return the_target_handle;
+}
 
 
 // TEMPORARY DEBUG FUNCTIONS

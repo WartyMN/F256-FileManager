@@ -618,9 +618,9 @@ error:
 }
 
 
-// Load the selected file into EM, starting at $28000.
+// Load the selected file into EM, starting at the address associated with the specified em_bank_num
 // Returns false on any error
-bool File_LoadFileToEM(char* the_file_path)
+bool File_LoadFileToEM(char* the_file_path, uint8_t em_bank_num)
 {
 	// LOGIC
 	//   does not care about file type: any time of file will allowed
@@ -685,7 +685,7 @@ bool File_LoadFileToEM(char* the_file_path)
 			keep_going = false;
 		}
 
-		App_EMDataCopy((uint8_t*)STORAGE_FILE_BUFFER_1, EM_STORAGE_START_PHYS_BANK_NUM, page_num++, PARAM_COPY_TO_EM);
+		App_EMDataCopy((uint8_t*)STORAGE_FILE_BUFFER_1, em_bank_num, page_num++, PARAM_COPY_TO_EM);
 		
 	} while (keep_going == true);
 
