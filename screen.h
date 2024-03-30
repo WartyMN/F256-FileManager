@@ -238,10 +238,6 @@ void Screen_ShowAppAboutInfo(void);
 // if for_disk is true, will use name/type/size. if false, will use name/bank num/addr
 void Screen_DrawPanelHeader(uint8_t panel_id, bool for_disk);
 
-// show user a dialog and have them enter a filename
-// returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
-char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename);
-
 // show user a dialog and have them enter a string
 // if a prefilled string is not needed, set starter_string to an empty string
 // set max_len to the maximum number of bytes/characters that should be collected from user

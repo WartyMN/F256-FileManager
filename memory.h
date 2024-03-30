@@ -45,10 +45,10 @@
 #define ZP_PHYS_ADDR_HI		0x1E	// zero-page address pointing to a 20-bit physical memory address
 #define ZP_CPU_ADDR_LO		0x1F	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
 #define ZP_CPU_ADDR_HI		0x20	// zero-page address pointing to a 16-bit address in 6502 memory space (virtual 64k)
-#define ZP_TEMP_1			0x21	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_2			0x22	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_3			0x23	// zero-page address we will use for temp variable storage in assembly routines
-#define ZP_TEMP_4			0x24	// zero-page address we will use for temp variable storage in assembly routines
+#define ZP_SEARCH_LOC_BYTE	0x21	// zero-page address holding the current search location's byte offset within the page being searched
+#define ZP_SEARCH_LOC_PAGE	0x22	// zero-page address holding the current search location's page number within the bank being searched
+#define ZP_SEARCH_LOC_BANK	0x23	// zero-page address holding the current search location's bank number
+#define ZP_TEMP_1			0x24	// zero-page address we will use for temp variable storage in assembly routines
 #define ZP_OTHER_PARAM		0x25	// zero-page address we will use for communicating 1 byte to/from assembly routines
 #define ZP_OLD_IO_PAGE		0x26	// zero-page address holding the original IO page # before being changed
 //#define ZP_X				0x13	// zero-page address we will use for passing X coordinate to assembly routines

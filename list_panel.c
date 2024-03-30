@@ -89,13 +89,13 @@ extern uint8_t				temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD:
 extern uint8_t				temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern uint8_t				zp_bank_num;
-extern uint8_t	zp_temp_1;
-extern uint8_t	zp_temp_2;
-extern uint8_t	zp_temp_3;
+extern uint8_t	zp_search_loc_byte;
+extern uint8_t	zp_search_loc_page;
+extern uint8_t	zp_search_loc_bank;
 
-#pragma zpsym ("zp_temp_1");
-#pragma zpsym ("zp_temp_2");
-#pragma zpsym ("zp_temp_3");
+#pragma zpsym ("zp_search_loc_byte");
+#pragma zpsym ("zp_search_loc_page");
+#pragma zpsym ("zp_search_loc_bank");
 #pragma zpsym ("zp_bank_num");
 
 extern struct call_args args; // in gadget's version of f256 lib, this is allocated and initialized with &args in crt0. 
@@ -591,7 +591,7 @@ bool Panel_FormatDrive(WB2KViewPanel* the_panel)
 	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), 70);
 	*global_string_buff2 = 0;
 	
-	global_string_buff2 = Screen_GetFileNameFromUser(General_GetString(ID_STR_DLG_FORMAT_TITLE), global_string_buff1, global_string_buff2);
+	global_string_buff2 = Screen_GetStringFromUser(General_GetString(ID_STR_DLG_FORMAT_TITLE), global_string_buff1, global_string_buff2, FILE_MAX_FILENAME_SIZE);
 
 	// did user enter a name?
 	if (global_string_buff2 == NULL)
@@ -925,8 +925,8 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-// 	sprintf(global_string_buff1, "file to rename='%s'", the_file->file_name_);
-// 	Buffer_NewMessage(global_string_buff1);
+	//sprintf(global_string_buff1, "file to rename='%s'", the_file->file_name_);
+	//Buffer_NewMessage(global_string_buff1);
 
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), the_file->file_name_);
 
@@ -934,11 +934,13 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	General_Strlcpy(global_string_buff2, the_file->file_name_, FILE_MAX_FILENAME_SIZE);
 
 	App_LoadOverlay(OVERLAY_SCREEN);
-	new_file_name = Screen_GetFileNameFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), global_string_buff2);
+	new_file_name = Screen_GetStringFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), global_string_buff2, FILE_MAX_FILENAME_SIZE);
 	App_LoadOverlay(OVERLAY_DISKSYS);
 	
 	if (new_file_name == NULL)
 	{
+		//sprintf(global_string_buff1, "user canceled out of rename dialog");
+		//Buffer_NewMessage(global_string_buff1);
 		return false;
 	}
 	
@@ -1114,7 +1116,6 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_panel)
 {
 	uint8_t				i;
-	uint8_t				num_pages;
 	uint8_t				src_bank_num;
 	uint8_t				dst_bank_num;
 	uint32_t			percent_read;
@@ -1165,8 +1166,6 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		the_file = Folder_GetCurrentFile(the_panel->root_folder_);
 		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-		the_name = the_file->file_name_;
-		num_pages = the_file->size_/256;
 		success = File_LoadFileToEM(global_temp_path_1, dst_bank_num);
 	}
 	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == true)
@@ -1174,13 +1173,13 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 		// copy memory bank to file on disk
 
 		// set up a 'what's the file name?' dialog box
-		sprintf(global_string_buff1, General_GetString(ID_STR_DLG_COPY_TO_FILE_TITLE), the_file->file_name_);
-	
+		General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_COPY_TO_FILE_TITLE), 70);
+		
 		// copy the current bank name into the edit buffer so user can edit
 		sprintf(global_string_buff2, "Bank_%02X.bin", src_bank_num);
 		
 		App_LoadOverlay(OVERLAY_SCREEN);	
-		the_name = Screen_GetFileNameFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_FILE_NAME), global_string_buff2);
+		the_name = Screen_GetStringFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_FILE_NAME), global_string_buff2, FILE_MAX_FILENAME_SIZE);
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		
 		if (the_name == NULL)
@@ -1692,7 +1691,7 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 // TODO: consider adding a boolean "do reflow". 
 void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 {
-	WB2KFileObject*		the_current_file = NULL;
+	WB2KFileObject*		the_current_file;
 	
 	// LOGIC: 
 	//   the panel has a concept of currently selected row. this is used to determine bounds for cursor up/down file selection
@@ -1775,17 +1774,17 @@ bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel)
 
 	// prepare for search
 	memcpy(global_search_phrase, search_phrase, global_search_phrase_len);
-	*(uint8_t*)ZP_TEMP_1 = 0;	// start at begining of page
-	*(uint8_t*)ZP_TEMP_2 = 0;	// start at first page in bank
-	*(uint8_t*)ZP_TEMP_3 = the_bank_num;	// start at the currently selected bank
+	*(uint8_t*)ZP_SEARCH_LOC_BYTE = 0;	// start at begining of page
+	*(uint8_t*)ZP_SEARCH_LOC_PAGE = 0;	// start at first page in bank
+	*(uint8_t*)ZP_SEARCH_LOC_BANK = the_bank_num;	// start at the currently selected bank
 	
-	DEBUG_OUT(("%s %d: ZP_TEMP_1=%x, ZP_TEMP_2=%x, ZP_TEMP_3=%x, phrase='%s', len=%u", __func__ , __LINE__, zp_temp_1, zp_temp_2, zp_temp_3, search_phrase, global_search_phrase_len));
+	//DEBUG_OUT(("%s %d: ZP_SEARCH_LOC_BYTE=%x, ZP_SEARCH_LOC_PAGE=%x, ZP_SEARCH_LOC_BANK=%x, phrase='%s', len=%u", __func__ , __LINE__, zp_search_loc_byte, zp_search_loc_page, zp_search_loc_bank, search_phrase, global_search_phrase_len));
 	
 	App_LoadOverlay(OVERLAY_EM);	
 
 	if ( (global_find_next_enabled = EM_SearchMemory(PARAM_START_FROM_THIS_BANK)) == false)
 	{
-		DEBUG_OUT(("%s %d: nothing found", __func__ , __LINE__));
+		//DEBUG_OUT(("%s %d: nothing found", __func__ , __LINE__));
 		return false;
 	}
 	

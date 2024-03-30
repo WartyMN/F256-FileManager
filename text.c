@@ -1229,6 +1229,8 @@ int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char
 	//   bottom row takes 1, buttons take 1, and there is one row of padding above and below the buttons
 // 	avail_height = the_dialog_template->height_ - 7;
 	
+	//DEBUG_OUT(("%s %d: the_max_length=%u, avail_width=%u", __func__ , __LINE__, the_max_length, avail_width));
+	
 	if (the_max_length > avail_width)
 	{
 		return the_result;

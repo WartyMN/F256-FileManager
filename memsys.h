@@ -119,17 +119,17 @@ uint8_t MemSys_GetCurrentBankNum(FMMemorySystem* the_memsys);
 // returns false if the bank is not a KUP
 bool MemSys_GetCurrentRowKUPState(FMMemorySystem* the_memsys);
 
-// Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP name that matches exactly
-FMBankObject* MemSys_FindBankByKUPName(FMMemorySystem* the_memsys, char* search_phrase, int compare_len);
+// // Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP name that matches exactly
+// FMBankObject* MemSys_FindBankByKUPName(FMMemorySystem* the_memsys, char* search_phrase, int compare_len);
 
-// Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP description that contains the search phrase
-// DOES NOT REQUIRE a match to the full KUP description
-FMBankObject* MemSys_FindBankByKUPDescriptionContains(FMMemorySystem* the_memsys, char* search_phrase, int compare_len);
+// // Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP description that contains the search phrase
+// // DOES NOT REQUIRE a match to the full KUP description
+// FMBankObject* MemSys_FindBankByKUPDescriptionContains(FMMemorySystem* the_memsys, char* search_phrase, int compare_len);
 
-// Returns NULL if nothing matches, or returns pointer to first BankObject that contains the search phrase
-// starting_bank_num is the first bank num to start searching in
-// NOTE: does NOT wrap around to bank 0 after hitting bank 63
-FMBankObject* MemSys_FindBankContainingPhrase(FMMemorySystem* the_memsys, char* search_phrase, int compare_len, uint8_t starting_bank_num);
+// // Returns NULL if nothing matches, or returns pointer to first BankObject that contains the search phrase
+// // starting_bank_num is the first bank num to start searching in
+// // NOTE: does NOT wrap around to bank 0 after hitting bank 63
+// FMBankObject* MemSys_FindBankContainingPhrase(FMMemorySystem* the_memsys, char* search_phrase, int compare_len, uint8_t starting_bank_num);
 
 // looks through all banks in the bank list, comparing the passed row to that of each bank.
 // Returns NULL if nothing matches, or returns pointer to first matching bank object

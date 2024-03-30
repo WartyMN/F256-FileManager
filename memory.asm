@@ -38,10 +38,10 @@
 	.exportzp	_zp_phys_addr_hi
 	.exportzp	_zp_cpu_addr_lo
 	.exportzp	_zp_cpu_addr_hi
+	.exportzp	_zp_search_loc_byte
+	.exportzp	_zp_search_loc_page
+	.exportzp	_zp_search_loc_bank
 	.exportzp	_zp_temp_1
-	.exportzp	_zp_temp_2
-	.exportzp	_zp_temp_3
-	.exportzp	_zp_temp_4
 	.exportzp	_zp_other_byte
 
 	.exportzp	_global_string_buffer
@@ -81,10 +81,10 @@ _zp_phys_addr_med:		.res 1
 _zp_phys_addr_hi:		.res 1
 _zp_cpu_addr_lo:		.res 1
 _zp_cpu_addr_hi:		.res 1	; $20
+_zp_search_loc_byte:	.res 1
+_zp_search_loc_page:	.res 1
+_zp_search_loc_bank:	.res 1
 _zp_temp_1:				.res 1
-_zp_temp_2:				.res 1
-_zp_temp_3:				.res 1
-_zp_temp_4:				.res 1
 _zp_other_byte:			.res 1
 _zp_old_io_page:		.res 1	;-- $26
 ;_zp_x:					.res 1

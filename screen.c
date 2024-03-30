@@ -768,9 +768,11 @@ void Screen_ShowAppAboutInfo(void)
 }
 
 
-// show user a dialog and have them enter a filename
-// returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
-char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename)
+// show user a dialog and have them enter a string
+// if a prefilled string is not needed, set starter_string to an empty string
+// set max_len to the maximum number of bytes/characters that should be collected from user
+// returns NULL if user cancels out of dialog, or returns a path to the string the user provided
+char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* starter_string, uint8_t max_len)
 {
 	bool				success;
 	uint8_t				orig_dialog_width;
@@ -780,11 +782,14 @@ char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* pr
 	General_Strlcpy((char*)&global_dlg_title, dialog_title, 36);
 	General_Strlcpy((char*)&global_dlg_body_msg, dialog_body, 70);
 
-	// copy the current file name into the edit buffer so user can edit
-	General_Strlcpy(global_string_buff2, provided_filename, FILE_MAX_FILENAME_SIZE);
+	// copy the starter string into the edit buffer so user can edit
+	General_Strlcpy(global_string_buff2, starter_string, max_len + 1);
 	
+	// adjust dialog width temporarily, if necessary and possible
 	orig_dialog_width = global_dlg.width_;
-	temp_dialog_width = General_Strnlen(provided_filename, FILE_MAX_FILENAME_SIZE) + 2; // +2 is for box draw chars
+	temp_dialog_width = General_Strnlen(starter_string,  max_len) + 2; // +2 is for box draw chars
+	
+	DEBUG_OUT(("%s %d: orig_dialog_width=%u, temp width=%u, max_len=%u, starter='%s'", __func__ , __LINE__, orig_dialog_width, temp_dialog_width, max_len, starter_string));
 	
 	if (temp_dialog_width < orig_dialog_width)
 	{
@@ -798,34 +803,8 @@ char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* pr
 	
 	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width);
 
+	// restore normal dialog width
 	global_dlg.width_ = orig_dialog_width;
-
-	// did user enter a name?
-	if (success == false)
-	{
-		return NULL;
-	}
-	
-	return global_string_buff2;
-}
-
-
-// show user a dialog and have them enter a string
-// if a prefilled string is not needed, set starter_string to an empty string
-// set max_len to the maximum number of bytes/characters that should be collected from user
-// returns NULL if user cancels out of dialog, or returns a path to the string the user provided
-char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* starter_string, uint8_t max_len)
-{
-	bool				success;
-	
-	// copy title and body text
-	General_Strlcpy((char*)&global_dlg_title, dialog_title, 36);
-	General_Strlcpy((char*)&global_dlg_body_msg, dialog_body, 70);
-
-	// copy the starter string into the edit buffer so user can edit
-	General_Strlcpy(global_string_buff2, starter_string, max_len + 1);
-	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, max_len);
 
 	// did user enter a name?
 	if (success == false)
@@ -862,7 +841,6 @@ uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
 	uint8_t		this_byte;
 	int16_t		byte[2];
 	uint8_t		the_len = 0;
-	uint8_t		the_index;
 	char*		local_string = *the_string;
 	char		converted_storage[16];	// 32 chars is max search len, but 1 for #, takes 2 for each byte, but + for terminator
 	char*		converted = converted_storage;
@@ -871,31 +849,28 @@ uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
 	//   if the string is just normal text, we don't change it, we just return the len
 	//   if the string is a series of hex chars, we overwrite from the beginning of the string with the byte values
 
-	DEBUG_OUT(("%s %d: local_string='%s'", __func__ , __LINE__, local_string));
+	//DEBUG_OUT(("%s %d: local_string='%s'", __func__ , __LINE__, local_string));
 	
 	this_byte = *local_string++;
 
-	DEBUG_OUT(("%s %d: first byte=%x ('%c')", __func__ , __LINE__, this_byte, this_byte));
+	//DEBUG_OUT(("%s %d: first byte=%x ('%c')", __func__ , __LINE__, this_byte, this_byte));
 	
 	if (this_byte != '#')
 	{
 		// treat string as a normal string
 		--local_string;
-		DEBUG_OUT(("%s %d: doesn't start with #, treating as string with len %u", __func__ , __LINE__, strlen(local_string)));
+		//DEBUG_OUT(("%s %d: doesn't start with #, treating as string with len %u", __func__ , __LINE__, strlen(local_string)));
 		return strlen(local_string);
 	}
 
-	the_index = 1;	// start past the # char
-	
 	// assume user was trying to provide series of hex numbers
 	while (*local_string)
 	{
 		byte[0] = ScreenConvertHexCharToByteValue(*local_string++);
 		byte[1] = ScreenConvertHexCharToByteValue(*local_string++);
 		this_byte = *local_string++; // will be comma if there is another number encoded here
-		DEBUG_OUT(("%s %d: byte0=%x, byte1=%x, this_byte=%x (%c), index=%u", __func__ , __LINE__, byte[0], byte[1], this_byte, this_byte, the_index));
-		DEBUG_OUT(("%s %d: the_len=%u, val=%x", __func__ , __LINE__, the_len, (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1]));
-		the_index += 3;	// we read 3 bytes
+		//DEBUG_OUT(("%s %d: byte0=%x, byte1=%x, this_byte=%x (%c)", __func__ , __LINE__, byte[0], byte[1], this_byte, this_byte));
+		//DEBUG_OUT(("%s %d: the_len=%u, val=%x", __func__ , __LINE__, the_len, (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1]));
 		
 		if (byte[0] < 0 || byte[1] < 0)
 		{
@@ -903,9 +878,8 @@ uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
 			goto conversion_complete;
 		}
 		
-		//local_string[the_len++] = (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1];
 		converted_storage[the_len++] = (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1];
-		DEBUG_OUT(("%s %d: converted_storage[the_len-1]=%x", __func__ , __LINE__, converted_storage[the_len-1]));
+		//DEBUG_OUT(("%s %d: converted_storage[the_len-1]=%x", __func__ , __LINE__, converted_storage[the_len-1]));
 		
 		if (this_byte == 0)
 		{
@@ -914,18 +888,16 @@ uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
 		}
 		else if (this_byte != ',')
 		{
-			// not sure what's next, but let's give user benefit of doubt and assume they forgot the commas
+			// not sure what's next, but let's give user benefit of doubt and assume they left out commas and just entered FFEEDD0102 etc.
 			--local_string;
-			//--the_len;
-			--the_index;
-			DEBUG_OUT(("%s %d: third char wasn't comma. the_len=%u, converted='%s', index now %u", __func__ , __LINE__, the_len, converted, the_index));
+			//DEBUG_OUT(("%s %d: third char wasn't comma. the_len=%u, converted='%s'", __func__ , __LINE__, the_len, converted));
 		}
 	}
 	
 conversion_complete:
 	converted_storage[the_len] = 0; // final terminator for good measure.
 	memcpy(*the_string, converted_storage, the_len);
-	DEBUG_OUT(("%s %d: final conversion = %x%x%x%x%x%x, len=%u", __func__ , __LINE__, converted_storage[0], converted_storage[1], converted_storage[2], converted_storage[3], converted_storage[4], converted_storage[5], the_len));
+	//DEBUG_OUT(("%s %d: final conversion = %x%x%x%x%x%x, len=%u", __func__ , __LINE__, converted_storage[0], converted_storage[1], converted_storage[2], converted_storage[3], converted_storage[4], converted_storage[5], the_len));
 	return the_len;
 }
 

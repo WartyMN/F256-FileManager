@@ -268,80 +268,80 @@ bool MemSys_GetCurrentRowKUPState(FMMemorySystem* the_memsys)
 }
 
 
-// Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP name that matches exactly
-FMBankObject* MemSys_FindBankByKUPName(FMMemorySystem* the_memsys, char* search_phrase, int compare_len)
-{
-	// LOGIC:
-	//   iterate through all banks in the memory system
-	//   when comparing, the int compare_len is used to limit the number of chars of bank that are searched
+// // Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP name that matches exactly
+// FMBankObject* MemSys_FindBankByKUPName(FMMemorySystem* the_memsys, char* search_phrase, int compare_len)
+// {
+// 	// LOGIC:
+// 	//   iterate through all banks in the memory system
+// 	//   when comparing, the int compare_len is used to limit the number of chars of bank that are searched
+// 
+// 	uint8_t		i;
+// 
+// 	if (the_memsys == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	for (i=0; i < MEMORY_BANK_COUNT; i++)
+// 	{
+// 		if ( General_Strncasecmp(search_phrase, the_memsys->bank_[i].name_, compare_len) == 0)
+// 		{
+// 			return &the_memsys->bank_[i];
+// 		}
+// 	}
+// 
+// 	DEBUG_OUT(("%s %d: couldn't find bank name match for '%s'. compare_len=%i", __func__ , __LINE__, search_phrase, compare_len));
+// 
+// 	return NULL;
+// }
 
-	uint8_t		i;
 
-	if (the_memsys == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
+// // Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP description that contains the search phrase
+// // DOES NOT REQUIRE a match to the full KUP description
+// FMBankObject* MemSys_FindBankByKUPDescriptionContains(FMMemorySystem* the_memsys, char* search_phrase, int compare_len)
+// {
+// 	// LOGIC:
+// 	//   iterate through all banks in the memory system
+// 	//   when comparing, the int compare_len is used to limit the number of chars of bank that are searched
+// 	
+// 	// TODO: write a general routine to find matches to an arbitrary string (not NULL terminated?) of chars starting at a given memory loc
+// 	//    what is here is just a starting match to the description string.
+// 	//    hmm. check standard C libs, I think there is something already that will do this, at least with strings. won't help in memory.
+// 
+// 	uint8_t		i;
+// 
+// 	if (the_memsys == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		return NULL;
+// 	}
+// 
+// 	for (i=0; i < MEMORY_BANK_COUNT; i++)
+// 	{
+// 		if ( General_Strncasecmp(search_phrase, the_memsys->bank_[i].description_, compare_len) == 0)
+// 		{
+// 			return &the_memsys->bank_[i];
+// 		}
+// 	}
+// 
+// 	DEBUG_OUT(("%s %d: couldn't find bank description match for '%s'. compare_len=%i", __func__ , __LINE__, search_phrase, compare_len));
+// 
+// 	return NULL;
+// }
 
-	for (i=0; i < MEMORY_BANK_COUNT; i++)
-	{
-		if ( General_Strncasecmp(search_phrase, the_memsys->bank_[i].name_, compare_len) == 0)
-		{
-			return &the_memsys->bank_[i];
-		}
-	}
-
-	DEBUG_OUT(("%s %d: couldn't find bank name match for '%s'. compare_len=%i", __func__ , __LINE__, search_phrase, compare_len));
-
-	return NULL;
-}
-
-
-// Returns NULL if nothing matches, or returns pointer to first BankObject with a KUP description that contains the search phrase
-// DOES NOT REQUIRE a match to the full KUP description
-FMBankObject* MemSys_FindBankByKUPDescriptionContains(FMMemorySystem* the_memsys, char* search_phrase, int compare_len)
-{
-	// LOGIC:
-	//   iterate through all banks in the memory system
-	//   when comparing, the int compare_len is used to limit the number of chars of bank that are searched
-	
-	// TODO: write a general routine to find matches to an arbitrary string (not NULL terminated?) of chars starting at a given memory loc
-	//    what is here is just a starting match to the description string.
-	//    hmm. check standard C libs, I think there is something already that will do this, at least with strings. won't help in memory.
-
-	uint8_t		i;
-
-	if (the_memsys == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		return NULL;
-	}
-
-	for (i=0; i < MEMORY_BANK_COUNT; i++)
-	{
-		if ( General_Strncasecmp(search_phrase, the_memsys->bank_[i].description_, compare_len) == 0)
-		{
-			return &the_memsys->bank_[i];
-		}
-	}
-
-	DEBUG_OUT(("%s %d: couldn't find bank description match for '%s'. compare_len=%i", __func__ , __LINE__, search_phrase, compare_len));
-
-	return NULL;
-}
-
-// Returns NULL if nothing matches, or returns pointer to first BankObject that contains the search phrase
-// starting_bank_num is the first bank num to start searching in
-// NOTE: does NOT wrap around to bank 0 after hitting bank 63
-FMBankObject* MemSys_FindBankContainingPhrase(FMMemorySystem* the_memsys, char* search_phrase, int compare_len, uint8_t starting_bank_num)
-{
-	// TODO: write routine for bring EM in 256b chunks at a time, searching for first hit on given string of chars
-	//       needs to return the exact memory loc
-	//       needs to be able to search across 256b boundaries
-	//       needs to be able to accept a starting addr that isn't 0 (in other words, "find next", not just find first).
-	
-	return NULL;
-}
+// // Returns NULL if nothing matches, or returns pointer to first BankObject that contains the search phrase
+// // starting_bank_num is the first bank num to start searching in
+// // NOTE: does NOT wrap around to bank 0 after hitting bank 63
+// FMBankObject* MemSys_FindBankContainingPhrase(FMMemorySystem* the_memsys, char* search_phrase, int compare_len, uint8_t starting_bank_num)
+// {
+// 	// TODO: write routine for bring EM in 256b chunks at a time, searching for first hit on given string of chars
+// 	//       needs to return the exact memory loc
+// 	//       needs to be able to search across 256b boundaries
+// 	//       needs to be able to accept a starting addr that isn't 0 (in other words, "find next", not just find first).
+// 	
+// 	return NULL;
+// }
 
 
 // looks through all files in the bank list, comparing the passed row to that of each bank.
