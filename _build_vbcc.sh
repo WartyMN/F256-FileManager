@@ -17,12 +17,12 @@ VERSION_STRING="1.0b24"
 #DEBUG_DEF_1="-DLOG_LEVEL_1"
 #DEBUG_DEF_2="-DLOG_LEVEL_2"
 #DEBUG_DEF_3="-DLOG_LEVEL_3"
-DEBUG_DEF_4="-DLOG_LEVEL_4"
+#DEBUG_DEF_4="-DLOG_LEVEL_4"
 #DEBUG_DEF_5="-DLOG_LEVEL_5"
 DEBUG_DEF_1=
 DEBUG_DEF_2=
 DEBUG_DEF_3=
-#DEBUG_DEF_4=
+DEBUG_DEF_4=
 DEBUG_DEF_5=
 
 # whether disk or serial debug will be used, IF debug is actually on
@@ -127,21 +127,37 @@ echo "\n**************************\nCC65 tasks complete\n***********************
 cp ../strings/strings.bin .
 
 
-#build pgZ
-# cd ../release
- fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "fmanager.rom.5" "strings.bin")
- addr=("990700" "000001" "002001" "004001" "006001" "008001" "004002")
+#build pgZ for disk
+fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "fmanager.rom.5" "strings.bin")
+addr=("990700" "000001" "002001" "004001" "006001" "008001" "004002")
 
- for ((i = 1; i <= $#fname; i++)); do
-   v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
- done
+for ((i = 1; i <= $#fname; i++)); do
+v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
+done
 
- echo -n 'Z' >> pgZ_start.hdr
- echo -n '\x99\x07\x00\x00\x00\x00' >> pgZ_end.hdr
+echo -n 'Z' >> pgZ_start.hdr
+echo -n '\x99\x07\x00\x00\x00\x00' >> pgZ_end.hdr
 
- cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 fmanager.rom.3.hdr fmanager.rom.3 fmanager.rom.4.hdr fmanager.rom.4 fmanager.rom.5.hdr fmanager.rom.5 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
+cat pgZ_start.hdr fmanager.rom.hdr fmanager.rom fmanager.rom.1.hdr fmanager.rom.1 fmanager.rom.2.hdr fmanager.rom.2 fmanager.rom.3.hdr fmanager.rom.3 fmanager.rom.4.hdr fmanager.rom.4 fmanager.rom.5.hdr fmanager.rom.5 strings.bin.hdr strings.bin pgZ_end.hdr > fm.pgZ 
 
- rm *.hdr
+rm *.hdr
+
+cp fm.pgZ fm_install/disk/
+
+# copy pgz binary to SD Card on F256 via fnxmanager
+#python3 $FOENIXMGR/FoenixMgr/fnxmgr.py --copy fm.pgZ
+
+
+# copy latest readme, etc files to the install dir
+cp $PROJECT/documentation/_user_guide.md fm_install/
+cp $PROJECT/documentation/installing.md fm_install/
+cp $PROJECT/documentation/using.md fm_install/
+cp $PROJECT/documentation/flash_configurations.png fm_install/
+
+
+# copy latest flash configuration files to the flash install subdir
+cp $PROJECT/flash_config/* fm_install/flash/
+
 
 # build as firmware/flashware
 
@@ -149,25 +165,20 @@ cp ../strings/strings.bin .
 cat fm_firmware_header.bin fm.pgz > fm.bin
 
 # split the fm.bin up  (header + cat program)
-cd fm_flash
-split -d -b8192 ../fm.bin fm.
+cd fm_install/flash
+split -d -b8192 ../../fm.bin fm.
 
 # make the last chunk be exactly 8k
 truncate -s 8K fm.06
 
 # zip it up
-cd ../
-zip -vrq fm_"$VERSION_STRING"_flash.zip fm_flash/ -x "*.DS_Store"
+cd ../../
+zip -vrq fm_"$VERSION_STRING"_install.zip fm_install/ -x "*.DS_Store"
 
 # clear temp files
 rm fmanager.ro*
 rm strings.bin
 rm fm.bin
-
-# copy pgz binary to SD Card on F256 via fnxmanager
-python3 $FOENIXMGR/FoenixMgr/fnxmgr.py --copy fm.pgZ
-
-# upload bin to flash memory
 
 
 
