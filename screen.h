@@ -40,7 +40,7 @@
 #define PARAM_RENDER_ALL_MENU_ITEMS			false	// parameter for Screen_RenderMenu
 
 // there are 12 buttons which can be accessed with the same code
-#define NUM_BUTTONS					26
+#define NUM_BUTTONS					27
 
 // DEVICE actions
 #define BUTTON_ID_DEV_SD_CARD		0
@@ -69,9 +69,10 @@
 #define BUTTON_ID_BANK_FILL			(BUTTON_ID_LOAD + 1)
 #define BUTTON_ID_BANK_CLEAR		(BUTTON_ID_BANK_FILL + 1)
 #define BUTTON_ID_BANK_FIND			(BUTTON_ID_BANK_CLEAR + 1)
+#define BUTTON_ID_BANK_FIND_NEXT	(BUTTON_ID_BANK_FIND + 1)
 
 // app menu buttons
-#define BUTTON_ID_SET_CLOCK			(BUTTON_ID_BANK_FIND + 1)
+#define BUTTON_ID_SET_CLOCK			(BUTTON_ID_BANK_FIND_NEXT + 1)
 #define BUTTON_ID_ABOUT				(BUTTON_ID_SET_CLOCK + 1)
 #define BUTTON_ID_EXIT_TO_BASIC		(BUTTON_ID_ABOUT + 1)
 #define BUTTON_ID_EXIT_TO_DOS		(BUTTON_ID_EXIT_TO_BASIC + 1)
@@ -99,7 +100,7 @@
 #define UI_MIDDLE_AREA_FILE_MENU_Y		(UI_MIDDLE_AREA_DIR_CMD_Y + 5)
 #define UI_MIDDLE_AREA_FILE_CMD_Y		(UI_MIDDLE_AREA_FILE_MENU_Y + 3)
 
-#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 11)
+#define UI_MIDDLE_AREA_APP_MENU_Y		(UI_MIDDLE_AREA_FILE_CMD_Y + 12)
 #define UI_MIDDLE_AREA_APP_CMD_Y		(UI_MIDDLE_AREA_APP_MENU_Y + 3)
 
 #define UI_PANEL_INNER_WIDTH			33
@@ -241,9 +242,21 @@ void Screen_DrawPanelHeader(uint8_t panel_id, bool for_disk);
 // returns NULL if user cancels out of dialog, or returns a path to the string holding the edited name
 char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* provided_filename);
 
+// show user a dialog and have them enter a string
+// if a prefilled string is not needed, set starter_string to an empty string
+// set max_len to the maximum number of bytes/characters that should be collected from user
+// returns NULL if user cancels out of dialog, or returns a path to the string the user provided
+char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* starter_string, uint8_t max_len);
+
 // show user a 2 button confirmation dialog and have them click a button
 // returns true if user selected the "positive" button, or false if they selected the "negative" button
 bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_string_id, uint8_t positive_btn_label_string_id, uint8_t negative_btn_label_string_id);
+
+// utility function for checking user input for either normal string or series of numbers
+// if preceded by "#" will check for list of 2-digit hex numbers. eg, (#FF,AA,01,00,EE).
+// will convert to bytes and terminate with 0. In example above, it will return 5 as the len. 
+// either way, will return the length of the set of characters that should be thought of as one unit. 
+uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string);
 
 
 #endif /* SCREEN_H_ */

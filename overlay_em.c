@@ -20,6 +20,7 @@
 // project includes
 #include "overlay_em.h"
 #include "app.h"
+#include "bank.h"
 #include "comm_buffer.h"
 #include "file.h"
 #include "general.h"
@@ -60,18 +61,29 @@
 static uint8_t				em_temp_buffer_384b_storage[384];
 static uint8_t*				em_temp_buffer_384b = em_temp_buffer_384b_storage;
 
-
-
 /*****************************************************************************/
 /*                             Global Variables                              */
 /*****************************************************************************/
 
+extern uint8_t				global_search_phrase_len;
+extern char*				global_search_phrase;
+extern char*				global_search_phrase_human_readable;
 extern char*				global_string[NUM_STRINGS];
 extern char*				global_string_buff1;
 extern char*				global_string_buff2;
 
+extern bool					global_find_next_enabled;
+
 extern uint8_t				zp_bank_num;
 extern uint8_t				io_bank_value_kernel;	// stores value for the physical bank pointing to C000-DFFF whenever we change it, so we can restore it.
+
+extern uint8_t	zp_temp_1;
+extern uint8_t	zp_temp_2;
+extern uint8_t	zp_temp_3;
+
+#pragma zpsym ("zp_temp_1");
+#pragma zpsym ("zp_temp_2");
+#pragma zpsym ("zp_temp_3");
 
 #pragma zpsym ("zp_bank_num");
 
@@ -578,49 +590,203 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 }
 
 
+// searches memory starting at the passed bank num, for the sequence of characters found in global_search_phrase/len
+// global_search_phrase can be NULL terminated or not (null terminator will not be searched for; use byte string to find instead if important.
+// if new_search is false, it will start at the previous find position + 1. 
+// prep before calling:
+//    make sure global_search_phrase and global_search_phrase_len have been set
+//    set ZP_TEMP_3 to the bank to start searching in (e.g, 9, to start searching in the 10th bank at $12000)
+//    set ZP_TEMP_2 to the page within the bank to start search. (e.g., 1 to start searching at offset $100)
+//    set ZP_TEMP_1 to the byte offset within the page to start search. if continueing a search, this should be (at least) 1 more than the start of the last result hit.
+// search will continue until last bank num in system is hit, or a find is made.
+// if no hit, will return false.
+// if a match is found:
+//    will return true
+//    will set ZP_TEMP_1 to the byte offset within the current page being examined. (e.g, for hit at $A123: 35)
+//    will set ZP_TEMP_2 to the page the hit was found on (e.g, for hit at $A123: 1)
+//    will set ZP_TEMP_3 to the bank the hit was found on (e.g, for hit at $A123: 5)
+bool EM_SearchMemory(bool new_search)
+{
+	// LOGIC
+	//       after detecting we have <(search-string-length) chars left, and more chunks to go, copy remainder to another 256b buffer. copy more in. process remainder buffer first.
 
-// // scan through all EM, checking each 8k bank for a KUP program signature
-// void EM_ScanForKUP(void)
-// {
-// 	uint8_t		i = 0;
-// 	uint8_t*	copy_buffer;
-// 	
-// 	uint8_t		kup_version;
-// 	uint8_t*	kup_name;
-// 	uint8_t*	kup_args;	// we don't care, but need to get past them to get to description
-// 	uint8_t*	kup_description;
-// 	uint8_t		the_len;
-// 	
-// 	// primary local buffer will use 384b dedicated storage in the EM overlay (only needs 256 technically, but this gives us some flex)
-// 	copy_buffer = em_temp_buffer_384b;
-// 	
-// 	// read the first 256 bytes of every bank in extended memory
-// 	for (i = 8; i < 80; i++)
-// 	{
-// 		App_EMDataCopy(copy_buffer, i, 0, PARAM_COPY_FROM_EM);
-// 		
-// 		// check for KUP signature $F2$56
-// 		if (copy_buffer[0] == 0xF2 && copy_buffer[1] == 0x56)
-// 		{
-// 			kup_version = copy_buffer[6];
-// 			
-// 			// get name: all versions of KUP supported the name
-// 			kup_name = &copy_buffer[10];
-// 			the_len = General_Strnlen((char*)kup_name, 128);
-// 			
-// 			if (kup_version > 0)
-// 			{
-// 				kup_args = kup_name + the_len + 1;
-// 				the_len = General_Strnlen((char*)kup_args, 128);
-// 				kup_description = kup_args + the_len + 1;
-// 			}
-// 			else
-// 			{
-// 				kup_description = (uint8_t*)"";
-// 			}
-// 			
-// 			sprintf(global_string_buff1, "EM bank %02x: '%s': '%s'", i, kup_name, kup_description);
-// 			Buffer_NewMessage(global_string_buff1);
-// 		}
-// 	}	
-// }
+	char*		this_phrase;
+	uint8_t		i;
+	uint8_t		starting_offset;
+	uint8_t		this_temp_bank_num;
+	uint8_t		this_temp_page_num;
+	uint8_t*	buffer_curr_loc;
+	uint8_t*	copy_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
+	uint8_t*	this_memory_loc;
+	uint16_t	remain_len = 0;
+	uint16_t	this_remain_len;
+	uint32_t	find_location;
+
+// 	// set up the display line buffer, using the other 204b interbank buffers. (STORAGE_STRING_BUFFER_1_LEN)
+// 	line_buffer = (char*)STORAGE_STRING_BUFFER_2;
+// 	line_buffer[0] = 0;
+	
+	DEBUG_OUT(("%s %d: search_len=%u, new_search=%u", __func__ , __LINE__, global_search_phrase_len, new_search));
+	DEBUG_OUT(("%s %d: first 6 of search phrase = %x%x%x%x%x%x", __func__ , __LINE__, global_search_phrase[0], global_search_phrase[1], global_search_phrase[2], global_search_phrase[3], global_search_phrase[4], global_search_phrase[5]));
+
+	// want to have this global flag start at false every time as there are multiple failure routes
+	global_find_next_enabled = false;
+
+	// if this is a new search, leave zp1-3 as is. 
+	// if this is a find next operation, start at position immediately following the last good hit
+	if (new_search == false)
+	{
+		if (zp_temp_1 < 255)
+		{
+			++zp_temp_1;
+		}
+		else
+		{
+			zp_temp_1 = 0;
+			
+			if (zp_temp_2 < PAGES_PER_BANK)
+			{
+				++zp_temp_2;
+			}
+			else
+			{
+				zp_temp_2 = 0;
+			
+				if (zp_temp_3 < NUM_MEMORY_BANKS)
+				{
+					++zp_temp_3;
+				}
+				else
+				{
+					// apparently last search ended on the last byte of system memory!
+					return false;
+				}
+			}
+		}
+	}
+	
+	starting_offset = zp_temp_1;
+	remain_len = 256 - starting_offset;
+
+	// bank loop
+	while (*(uint8_t*)ZP_TEMP_3 < NUM_MEMORY_BANKS) //NUM_MEMORY_BANKS
+	{
+		
+		// page loop
+		while (*(uint8_t*)ZP_TEMP_2 < PAGES_PER_BANK)
+		{
+			App_EMDataCopy(copy_buffer, zp_temp_3, zp_temp_2, PARAM_COPY_FROM_EM);
+	
+			buffer_curr_loc = copy_buffer + starting_offset;
+			starting_offset = 0; // only need this on the first page we copy in
+
+			DEBUG_OUT(("%s %d: remain_len=%u, buffer_curr_loc=%p", __func__ , __LINE__, remain_len, buffer_curr_loc ));
+			DEBUG_OUT(("%s %d: ZP_TEMP_1=%x, ZP_TEMP_2=%x, ZP_TEMP_3=%x", __func__ , __LINE__, zp_temp_1, zp_temp_2, zp_temp_3));
+			
+			// start compare, looking for first byte in memory that matches first byte of search
+			
+			for (; remain_len > 0; buffer_curr_loc++, --remain_len, ++zp_temp_1)
+			{
+				if (*buffer_curr_loc != *global_search_phrase)
+				{
+					continue;
+				}
+				
+				DEBUG_OUT(("%s %d: match to first char %x found at curr_loc=%p (%06lx), remain_len=%i", __func__ , __LINE__, *global_search_phrase, buffer_curr_loc , (uint32_t)((uint32_t)zp_temp_3 * (uint32_t)8192) + (uint32_t)zp_temp_2 * (uint32_t)256 + zp_temp_1, remain_len));
+				// found match to first char
+				this_phrase = global_search_phrase;
+				this_memory_loc = buffer_curr_loc;
+				this_remain_len = remain_len;
+				
+				for (i = 1; i < global_search_phrase_len; ++i, --this_remain_len)
+				{
+					++this_phrase;
+					++this_memory_loc;
+					
+					if (this_remain_len == 1)
+					{
+						DEBUG_OUT(("%s %d: hit end of page while checking a potential match %c,%p,%i", __func__ , __LINE__, *this_phrase, this_memory_loc, i));
+						
+						if (i == global_search_phrase_len)
+						{
+							DEBUG_OUT(("%s %d: ... but the last char of phrase was the last byte of page, so it's ok", __func__ , __LINE__));
+						}
+						else
+						{
+							DEBUG_OUT(("%s %d: ... still have %u more chars to find, so need to pull in a new bank temporarily", __func__ , __LINE__, global_search_phrase_len - i));
+							// need to peek into the next bank, without throwing off zp #s. for all we know, this search is still going to fail (eg, we found "auto", phrase is "automobile", and first part of next bank is "matic", not "mobile".)
+							// can't destroy the current buffer for this reason, so we'll use a string buffer as the temp one.
+							
+							// but can't search past end of memory, so check that first
+							if (*(uint8_t*)ZP_TEMP_3 < NUM_MEMORY_BANKS || (*(uint8_t*)ZP_TEMP_2 < PAGES_PER_BANK))
+							{
+								this_temp_bank_num = zp_temp_3;
+								
+								// are we just going to the next page, or also to the next bank?
+								if (zp_temp_2 < PAGES_PER_BANK)
+								{
+									this_temp_page_num = zp_temp_2 + 1;
+								}
+								else
+								{
+									this_temp_page_num = 0;
+									++this_temp_bank_num;
+								}
+								App_EMDataCopy((uint8_t*)global_string_buff2, this_temp_bank_num, this_temp_page_num, PARAM_COPY_FROM_EM);
+								// now we can continue matching check
+								this_remain_len = 256;
+								this_memory_loc = (uint8_t*)global_string_buff2;
+							}
+							else
+							{
+								DEBUG_OUT(("%s %d: can't do a temp bank read, because we were on the last page of the bank of memory! zp3=%u, zp2=%u", __func__ , __LINE__, zp_temp_3, zp_temp_2));
+								
+								goto no_match;
+							}
+						}
+					}
+					
+					if (*this_phrase != *this_memory_loc)
+					{
+						break;
+					}
+					DEBUG_OUT(("%s %d: char match='%c' %x, i=%u", __func__ , __LINE__, *this_phrase, *this_phrase, i));
+				}
+				
+				if (i == global_search_phrase_len)
+				{
+					// all the chars must have matched
+					find_location = (uint32_t)((uint32_t)zp_temp_3 * (uint32_t)8192) + (uint32_t)zp_temp_2 * 256 + zp_temp_1;
+					sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SEARCH_BANK_SUCCESS), global_search_phrase_human_readable, find_location, *(uint8_t*)ZP_TEMP_3);
+					Buffer_NewMessage(global_string_buff1);
+					
+					return true;
+				}					
+			}
+			
+			// need to get another page of memory
+			remain_len = 256;
+
+			// give user a chance to stop search
+			if (Keyboard_GetKeyIfPressed() == CH_RUNSTOP)
+			{
+				goto no_match;
+			}
+
+			++zp_temp_2;	// == page counter
+			*(uint8_t*)ZP_TEMP_1 = 0;	// start the byte-in-page counter over again
+		}
+		
+		*(uint8_t*)ZP_TEMP_2 = 0;	// start the page counter over again.
+		
+		++zp_temp_3;	// == bank number
+	}
+	
+no_match:
+	zp_temp_1 = 255;	// to make it doubly clear we didn't find anything
+	sprintf(global_string_buff1, General_GetString(ID_STR_MSG_SEARCH_BANK_FAILURE), global_search_phrase_human_readable);
+	Buffer_NewMessage(global_string_buff1);
+	return false;
+}
+
+

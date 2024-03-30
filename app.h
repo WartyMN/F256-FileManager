@@ -185,7 +185,9 @@
 #define ACTION_CLEAR_MEMORY			'z'
 #define ACTION_SAVE_MEMORY			's'
 #define ACTION_LOAD_MEMORY			'L'
-#define ACTION_FIND_MEMORY			'f'
+#define ACTION_SEARCH_MEMORY		'f'
+#define ACTION_SEARCH_MEMORY_NEXT	'g'
+
 
 // folder actions
 #define ACTION_NEW_FOLDER			'm' // for "mkdir"

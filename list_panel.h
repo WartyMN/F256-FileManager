@@ -211,6 +211,9 @@ bool Panel_FillCurrentBank(WB2KViewPanel* the_panel);
 // fill the currently selected memory bank with zeros
 bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel);
 
+// initiate a memory search at the start of the currently selected bank
+bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel);
+
 
 // TEMPORARY DEBUG FUNCTIONS
 

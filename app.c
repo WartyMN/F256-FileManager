@@ -87,6 +87,13 @@ static uint8_t				app_progress_bar_char[8] =
 /*                             Global Variables                              */
 /*****************************************************************************/
 
+char					app_search_phrase_human_readable_storage[MAX_SEARCH_PHRASE_LEN + 1];
+char					app_search_phrase_storage[MAX_SEARCH_PHRASE_LEN + 1];
+char*					global_search_phrase_human_readable = app_search_phrase_human_readable_storage;
+char*					global_search_phrase = app_search_phrase_storage;
+uint8_t					global_search_phrase_len;
+
+
 char*					global_named_app_dos = "dos";
 char*					global_named_app_basic = "basic";
 
@@ -94,6 +101,7 @@ int8_t					global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, et
 
 bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
+bool					global_find_next_enabled = false;	// tracks whether find next is callable. turned on by finding at a match, turned off by hitting end of memory without a match.
 
 WB2KViewPanel			app_file_panel[2];
 
@@ -487,7 +495,16 @@ uint8_t App_MainLoop(void)
 				case ACTION_CLEAR_MEMORY:
 					success = Panel_ClearCurrentBank(the_panel);						
 					break;
+					
+				case ACTION_SEARCH_MEMORY:
+					success = Panel_SearchCurrentBank(the_panel);
+					break;
 
+				case ACTION_SEARCH_MEMORY_NEXT:
+					App_LoadOverlay(OVERLAY_EM);
+					success = global_find_next_enabled = EM_SearchMemory(PARAM_START_AFTER_LAST_HIT);					
+					break;
+					
 				case ACTION_SWAP_ACTIVE_PANEL:
 					// mark old panel inactive, mark new panel active, set new active panel id
 					App_SwapActivePanel();

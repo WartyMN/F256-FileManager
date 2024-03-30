@@ -86,7 +86,10 @@ static UI_Button		uibutton[NUM_BUTTONS] =
 	// BANK actions
 	{BUTTON_ID_BANK_FILL,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 7,	ID_STR_BANK_FILL,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_FILL_MEMORY	}, 
 	{BUTTON_ID_BANK_CLEAR,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 8,	ID_STR_BANK_CLEAR,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_CLEAR_MEMORY	}, 
-	{BUTTON_ID_BANK_FIND,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 9,	ID_STR_BANK_FIND,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_FIND_MEMORY	}, 
+	{BUTTON_ID_BANK_FIND,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 9,	ID_STR_BANK_FIND,			UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SEARCH_MEMORY	}, 
+	{BUTTON_ID_BANK_FIND_NEXT,	UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_FILE_CMD_Y + 10,	ID_STR_BANK_FIND_NEXT,		UI_BUTTON_STATE_INACTIVE,	UI_BUTTON_STATE_CHANGED,	ACTION_SEARCH_MEMORY	}, 
+	
+	
 	// APP actions
 	{BUTTON_ID_SET_CLOCK,		UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y,		ID_STR_APP_SET_CLOCK,		UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_SET_TIME	}, 
 	{BUTTON_ID_ABOUT,			UI_MIDDLE_AREA_START_X,		UI_MIDDLE_AREA_APP_CMD_Y + 1,	ID_STR_APP_ABOUT,			UI_BUTTON_STATE_ACTIVE,		UI_BUTTON_STATE_CHANGED,	ACTION_ABOUT	}, 
@@ -109,8 +112,8 @@ static uint8_t			screen_titlebar[UI_BYTE_SIZE_OF_APP_TITLEBAR] =
 
 extern int8_t				global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
 extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
+extern bool					global_find_next_enabled;
 
-extern bool					global_started_from_flash;		// tracks whether app started from flash or from disk
 extern bool					global_clock_is_visible;		// tracks whether or not the clock should be drawn. set to false when not showing main 2-panel screen.
 
 extern char*				global_string[NUM_STRINGS];
@@ -135,6 +138,11 @@ extern uint8_t				io_bank_value_kernel;	// stores value for the physical bank po
 /*****************************************************************************/
 
 void Screen_DrawUI(void);
+
+// attempts to convert the passed character to a byte value by treating it as hex. 
+// if not hex, it will return -1
+int16_t ScreenConvertHexCharToByteValue(uint8_t the_char);
+
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
@@ -196,6 +204,36 @@ void Screen_DrawUI(void)
 	Buffer_DrawCommunicationArea();
 	Buffer_RefreshDisplay();
 }
+
+
+// attempts to convert the passed character to a byte value by treating it as hex. 
+// if not hex, it will return -1
+int16_t ScreenConvertHexCharToByteValue(uint8_t the_char)
+{
+	if (the_char > 47 && the_char < 58)
+	{
+		// decimal digit char
+		the_char -= 48;
+	}
+	else if (the_char > 64 && the_char < 71)
+	{
+		// uppercase hex digit char
+		the_char -= 55; // A-F = 10-15 values
+	}
+	else if (the_char > 96 && the_char < 103)
+	{
+		// lowercase hex digit char
+		the_char -= 87; // A-F = 10-15 values
+	}
+	else
+	{
+		return -1;
+	}
+	
+	return the_char;
+}
+
+
 
 /*****************************************************************************/
 /*                        Public Function Definitions                        */
@@ -370,11 +408,28 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		//     - Activated when memory system and is KUP bank:
 		//         - load file (e.g, run a KUP if doing memory)
 
-// 		if (uibutton[BUTTON_ID_BANK_FIND].active_ != true)
-// 		{
-// 			uibutton[BUTTON_ID_BANK_FIND].active_ = true;
-// 			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
-// 		}
+		if (uibutton[BUTTON_ID_BANK_FIND].active_ != true)
+		{
+			uibutton[BUTTON_ID_BANK_FIND].active_ = true;
+			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
+		}
+
+		if (global_find_next_enabled == true)
+		{
+			if (uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ != true)
+			{
+				uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ = true;
+				uibutton[BUTTON_ID_BANK_FIND_NEXT].changed_ = true;
+			}
+		}
+		else
+		{
+			if (uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ != false)
+			{
+				uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ = false;
+				uibutton[BUTTON_ID_BANK_FIND_NEXT].changed_ = true;
+			}
+		}
 
 		if (for_flash == false)
 		{
@@ -584,11 +639,17 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 
 		// disable all memory-system-only items
 
-// 		if (uibutton[BUTTON_ID_BANK_FIND].active_ != false)
-// 		{
-// 			uibutton[BUTTON_ID_BANK_FIND].active_ = false;
-// 			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
-// 		}
+		if (uibutton[BUTTON_ID_BANK_FIND].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_FIND].active_ = false;
+			uibutton[BUTTON_ID_BANK_FIND].changed_ = true;
+		}
+
+		if (uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ != false)
+		{
+			uibutton[BUTTON_ID_BANK_FIND_NEXT].active_ = false;
+			uibutton[BUTTON_ID_BANK_FIND_NEXT].changed_ = true;
+		}
 
 		if (uibutton[BUTTON_ID_BANK_FILL].active_ != false)
 		{
@@ -749,6 +810,33 @@ char* Screen_GetFileNameFromUser(char* dialog_title, char* dialog_body, char* pr
 }
 
 
+// show user a dialog and have them enter a string
+// if a prefilled string is not needed, set starter_string to an empty string
+// set max_len to the maximum number of bytes/characters that should be collected from user
+// returns NULL if user cancels out of dialog, or returns a path to the string the user provided
+char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* starter_string, uint8_t max_len)
+{
+	bool				success;
+	
+	// copy title and body text
+	General_Strlcpy((char*)&global_dlg_title, dialog_title, 36);
+	General_Strlcpy((char*)&global_dlg_body_msg, dialog_body, 70);
+
+	// copy the starter string into the edit buffer so user can edit
+	General_Strlcpy(global_string_buff2, starter_string, max_len + 1);
+	
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, max_len);
+
+	// did user enter a name?
+	if (success == false)
+	{
+		return NULL;
+	}
+	
+	return global_string_buff2;
+}
+
+
 // show user a 2 button confirmation dialog and have them click a button
 // returns true if user selected the "positive" button, or false if they selected the "negative" button
 bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_string_id, uint8_t positive_btn_label_string_id, uint8_t negative_btn_label_string_id)
@@ -763,3 +851,81 @@ bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_stri
 
 	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
 }
+
+
+// utility function for checking user input for either normal string or series of numbers
+// if preceded by "#" will check for list of 2-digit hex numbers. eg, (#FF,AA,01,00,EE).
+// will convert to bytes and terminate with 0. In example above, it will return 5 as the len. 
+// either way, will return the length of the set of characters that should be thought of as one unit. 
+uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
+{
+	uint8_t		this_byte;
+	int16_t		byte[2];
+	uint8_t		the_len = 0;
+	uint8_t		the_index;
+	char*		local_string = *the_string;
+	char		converted_storage[16];	// 32 chars is max search len, but 1 for #, takes 2 for each byte, but + for terminator
+	char*		converted = converted_storage;
+	
+	// LOGIC:
+	//   if the string is just normal text, we don't change it, we just return the len
+	//   if the string is a series of hex chars, we overwrite from the beginning of the string with the byte values
+
+	DEBUG_OUT(("%s %d: local_string='%s'", __func__ , __LINE__, local_string));
+	
+	this_byte = *local_string++;
+
+	DEBUG_OUT(("%s %d: first byte=%x ('%c')", __func__ , __LINE__, this_byte, this_byte));
+	
+	if (this_byte != '#')
+	{
+		// treat string as a normal string
+		--local_string;
+		DEBUG_OUT(("%s %d: doesn't start with #, treating as string with len %u", __func__ , __LINE__, strlen(local_string)));
+		return strlen(local_string);
+	}
+
+	the_index = 1;	// start past the # char
+	
+	// assume user was trying to provide series of hex numbers
+	while (*local_string)
+	{
+		byte[0] = ScreenConvertHexCharToByteValue(*local_string++);
+		byte[1] = ScreenConvertHexCharToByteValue(*local_string++);
+		this_byte = *local_string++; // will be comma if there is another number encoded here
+		DEBUG_OUT(("%s %d: byte0=%x, byte1=%x, this_byte=%x (%c), index=%u", __func__ , __LINE__, byte[0], byte[1], this_byte, this_byte, the_index));
+		DEBUG_OUT(("%s %d: the_len=%u, val=%x", __func__ , __LINE__, the_len, (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1]));
+		the_index += 3;	// we read 3 bytes
+		
+		if (byte[0] < 0 || byte[1] < 0)
+		{
+			// one or both chars were not hex chars. abandon effort.
+			goto conversion_complete;
+		}
+		
+		//local_string[the_len++] = (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1];
+		converted_storage[the_len++] = (uint8_t)byte[0] * (uint8_t)16 + (uint8_t)byte[1];
+		DEBUG_OUT(("%s %d: converted_storage[the_len-1]=%x", __func__ , __LINE__, converted_storage[the_len-1]));
+		
+		if (this_byte == 0)
+		{
+			// hit end of search string
+			goto conversion_complete;
+		}
+		else if (this_byte != ',')
+		{
+			// not sure what's next, but let's give user benefit of doubt and assume they forgot the commas
+			--local_string;
+			//--the_len;
+			--the_index;
+			DEBUG_OUT(("%s %d: third char wasn't comma. the_len=%u, converted='%s', index now %u", __func__ , __LINE__, the_len, converted, the_index));
+		}
+	}
+	
+conversion_complete:
+	converted_storage[the_len] = 0; // final terminator for good measure.
+	memcpy(*the_string, converted_storage, the_len);
+	DEBUG_OUT(("%s %d: final conversion = %x%x%x%x%x%x, len=%u", __func__ , __LINE__, converted_storage[0], converted_storage[1], converted_storage[2], converted_storage[3], converted_storage[4], converted_storage[5], the_len));
+	return the_len;
+}
+

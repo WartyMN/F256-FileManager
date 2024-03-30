@@ -74,7 +74,12 @@ extern char*		global_string_buff2;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
-extern int8_t		global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
+extern bool					global_find_next_enabled;
+
+extern int8_t				global_connected_device[DEVICE_MAX_DEVICE_COUNT];	// will be 8, 9, etc, if connected, or -1 if not..
+extern char*				global_search_phrase;
+extern char*				global_search_phrase_human_readable;
+extern uint8_t				global_search_phrase_len;
 
 extern TextDialogTemplate	global_dlg;	// dialog we'll configure and re-use for different purposes
 extern char					global_dlg_title[36];	// arbitrary
@@ -84,6 +89,13 @@ extern uint8_t				temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD:
 extern uint8_t				temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern uint8_t				zp_bank_num;
+extern uint8_t	zp_temp_1;
+extern uint8_t	zp_temp_2;
+extern uint8_t	zp_temp_3;
+
+#pragma zpsym ("zp_temp_1");
+#pragma zpsym ("zp_temp_2");
+#pragma zpsym ("zp_temp_3");
 #pragma zpsym ("zp_bank_num");
 
 extern struct call_args args; // in gadget's version of f256 lib, this is allocated and initialized with &args in crt0. 
@@ -1717,6 +1729,70 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 		
 		MemSys_SetBankSelectionByRow(the_panel->memory_system_, 0, PARAM_MARK_SELECTED, the_panel->y_, the_panel->active_);
 	}
+}
+
+
+// initiate a memory search at the start of the currently selected bank
+bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel)
+{
+	uint8_t		the_bank_num;
+	char*		search_phrase;
+	
+	if (the_panel->for_disk_ == true)
+	{
+		return false;
+	}
+
+	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+	the_bank_num = MemSys_GetCurrentBankNum(the_panel->memory_system_);
+	
+	// set up a 'enter search search phrase' dialog box
+	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_SEARCH_BANK_TITLE), 70);
+
+	// copy the previous human-readable version of global search phrase into a temp buffer
+	General_Strlcpy(global_string_buff2, global_search_phrase_human_readable, MAX_SEARCH_PHRASE_LEN + 1);
+
+	// ask user what they want to search for, showing them the previous thing they searched for, if any		
+	App_LoadOverlay(OVERLAY_SCREEN);	
+	search_phrase = Screen_GetStringFromUser(global_string_buff1, General_GetString(ID_STR_DLG_SEARCH_BANK_BODY), global_string_buff2, MAX_SEARCH_PHRASE_LEN);
+	
+	if (search_phrase == NULL)
+	{
+		global_search_phrase_len = 0;
+		*global_search_phrase = 0;
+		return false;
+	}
+
+	// get a copy of the phrase as  entered, to keep as the human-readable version. for hex bytes, this matters. for normal strings, it will be same thing user entered.
+	General_Strlcpy(global_search_phrase_human_readable, search_phrase, MAX_SEARCH_PHRASE_LEN + 1);
+	
+	// Process user entry to see if they typed in a direct search phrase, or enter a string of numbers
+	//   LOGIC:
+	//      if user start phrase with "#", then assume it will be string of hex numbers. these need to be converted to raw bytes.
+	//      if search phrase didn't start with #, then it will be left alone and just the len returned
+	
+	global_search_phrase_len = ScreenEvaluateUserStringForHexSeries(&search_phrase);
+
+	// prepare for search
+	memcpy(global_search_phrase, search_phrase, global_search_phrase_len);
+	*(uint8_t*)ZP_TEMP_1 = 0;	// start at begining of page
+	*(uint8_t*)ZP_TEMP_2 = 0;	// start at first page in bank
+	*(uint8_t*)ZP_TEMP_3 = the_bank_num;	// start at the currently selected bank
+	
+	DEBUG_OUT(("%s %d: ZP_TEMP_1=%x, ZP_TEMP_2=%x, ZP_TEMP_3=%x, phrase='%s', len=%u", __func__ , __LINE__, zp_temp_1, zp_temp_2, zp_temp_3, search_phrase, global_search_phrase_len));
+	
+	App_LoadOverlay(OVERLAY_EM);	
+
+	if ( (global_find_next_enabled = EM_SearchMemory(PARAM_START_FROM_THIS_BANK)) == false)
+	{
+		DEBUG_OUT(("%s %d: nothing found", __func__ , __LINE__));
+		return false;
+	}
+	
+	// a match was found. user has already been informed
+	// NOTE: do not need to remember this location in order to "find next" can work from here: zp1-3 were updated already	
+	
+	return true;
 }
 
 
