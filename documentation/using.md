@@ -38,9 +38,9 @@ How you start up the f/manager depends on how you installed it in the first plac
 ## Getting Stuff Done with the f/manager
 
 ### Working with Files
-- [I want to see what's on my SD Card or floppy disk](#list-files-1)
-- [I want to copy a file from one place in my SD card to another place](#copy-files-1)
-- [I want to copy a file from disk to another disk](#copy-files-2)
+- [I want to see what's on my SD Card or floppy disk](#i-want-to-see-whats-on-my-sd-card-or-floppy-disk)
+- [I want to copy a file from one place in my SD card to another place](#i-want-to-copy-a-file-from-one-place-in-my-sd-card-to-another-place)
+- [I want to copy a file from disk to another disk](#i-want-to-copy-a-file-from-disk-to-another-disk)
 - more to come...
 
 ### Working with Memory
@@ -50,24 +50,24 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [insert animated under construction GIF here]
 
 ### Doing other Stuff
-- [I want to set the system clock](#set-clock)
+- [I want to set the system clock](#i-want-to-set-the-system-clock)
 
 
 
-#### I want to see what's on my SD Card or floppy disk {#list-files-1}
+#### I want to see what's on my SD Card or floppy disk
 
 On startup, f/manager will scan your system to determine how many disk systems you have attached. Being a Foenix MicroKernel-based program, it can support device 0, the SD Card, as well as Devices 1 and 2, which are reserved for IEC floppy drives if you have any. As long as you have your SD card installed (and it is compatible), the left-hand panel will already be displaying the contents of it. If no SD card was installed, but you have 1 or floppy drives connected, f/manager will show you the contents of the floppies instead. If you have no SD card and no floppies installed, f/manager will instead show you a list of the memory banks in your computer. 
 
-#### I want to copy a file from one place in my SD card to another place {#copy-files-1}
+#### I want to copy a file from one place in my SD card to another place
 
 f/manager is a classic two-pane file manager. It will let you copy from either the left pane or the right pane, provided the opposite pane is representing a write-capable device. You can copy from flash memory to disk, for example, but you cannot copy from disk or RAM to flash. Not without reconfiguring the main deflector dish, at least. You can select the same device in both panes. This is allowed and normal, and it is in fact the easiest way to copy a file from one directory to another. Let's take an example where we care copying a file from the SD card's root directory, to a subdirectory called "Games". With the left pane activated (the active pane is the bright green one, the inactive pane is the faded one), hit '0' to show the contents of the SD card's root directory, if it is not already showing. Hit the `<TAB>` key to switch focus to the right-hand pane. Do the same thing here: hit '0' to see the root folder of the SD card. Now use the up and down cursor keys to navigate to the folder you want to copy a file to ("Games" in our example). Enter the folder by hitting, you guessed it: `<ENTER>`. The pane will reload, showing the contents of the directory you selected. Now hit the left cursor key to make the left pane the active pane again. You could also have used `<TAB>` which toggles between left and right. Use the up and down cursor keys to highlight the file you want to copy. When you have it selected, hit 'c' to start the copy operation.  
 
-#### I want to copy a file from disk to another disk {#copy-files-2}
+#### I want to copy a file from disk to another disk
 
 Easy-peasy, lemon-squeezy. Use the '0','1', and/or '2' keys to get the source and destination disks showing in the left and right panes. It doesn't matter which is at left or right. Once you have that set up, make sure the source disk pane is active (bright green). Use `<TAB>` or left/right cursor keys if necessary. Now hit the 'c' button. The Copy menu item shows a series of arrows ('<<<<' or '>>>>') to help you understand which way it will copy when you hit 'c'. That's it. The progress bar will let you know when the copy is complete. File copy is pretty fast on an SD card, but if  you were copy a large file, say "fm.pgZ" from the SD card to a floppy in a 1541 drive, well, that would give you an idea of what computing was like in the 1980s. 
 
 
-#### I want to set the system clock {#set-clock}
+#### I want to set the system clock
 
 Did you notice that yellow clock at the top right of your f/manager screen? If you have never set your clock before, it's probably showing the wrong time. Or maybe a bit of code ran wild and overwrote VICKY registers. Let's get your clock set again. Type 'C'. A dialog will open. Enter the date using the format shown. For example, to set it to April 1, 2024, 6:08 pm, you would enter "24-04-01 18:08". The seconds are always reset to 0. When I was a kid computers couldn't afford seconds. Deal with it. [What's with the weird year>month>day thing, you ask? Here you go.](https://imgs.xkcd.com/comics/iso_8601.png)
 
