@@ -53,6 +53,8 @@ cd $PROJECT
 echo "\n**************************\nCC65 compile start...\n**************************\n"
 which cc65
 
+mkdir -p $BUILD_DIR
+
 rm -r $BUILD_DIR/*.s
 rm -r $BUILD_DIR/*.o
 
@@ -162,7 +164,7 @@ cp $PROJECT/flash_config/* fm_install/flash/
 # build as firmware/flashware
 
 # cat the header with KUP header and compact pexec with the pgz file
-cat fm_firmware_header.bin fm.pgz > fm.bin
+cat $PROJECT/fm_firmware_header.bin fm.pgZ > fm.bin
 
 # split the fm.bin up  (header + cat program)
 cd fm_install/flash
