@@ -1,17 +1,11 @@
 #!/bin/zsh
 
-export CC65=/opt/homebrew/Cellar/cc65/2.19/bin
-export PATH=$CC65/bin:$PATH
-
 DEV=~/dev/bbedit-workspace-foenix
 PROJECT=$DEV/F256jr-FileManager
 CONFIG_DIR=$PROJECT/config_cc65
 
 # name that will be used in files
 VERSION_STRING="1.0b24"
-
-#DEBUG_DEFS="-DLOG_LEVEL_1 -DLOG_LEVEL_2 -DLOG_LEVEL_3 -DLOG_LEVEL_4 -DLOG_LEVEL_5"
-#DEBUG_DEFS=
 
 # debug logging levels: 1=error, 2=warn, 3=info, 4=debug general, 5=allocations
 #DEBUG_DEF_1="-DLOG_LEVEL_1"
@@ -42,7 +36,7 @@ TARGET_DEFS="-D_TRY_TO_WRITE_TO_DISK"
 #PLATFORM_DEFS="-D_SIMULATOR_" #do not define simulator if running on real hardware
 PLATFORM_DEFS= #do not define simulator if running on real hardware
 CC65TGT=none
-CC65LIB=f256_lichking_only.lib
+CC65LIB=$CONFIG_DIR/lib/f256_lichking_only.lib
 CC65CPU=65C02
 EMULATOR=/Users/micahbly/dev/bbedit-workspace-foenix/junior-emulator/emulator/jr256
 OVERLAY_CONFIG=fmanager_overlay_f256.cfg
@@ -54,6 +48,9 @@ echo "\n**************************\nCC65 compile start...\n*********************
 which cc65
 
 mkdir -p $BUILD_DIR
+mkdir -p $BUILD_DIR/fm_install/
+mkdir -p $BUILD_DIR/fm_install/disk
+mkdir -p $BUILD_DIR/fm_install/flash
 
 rm -r $BUILD_DIR/*.s
 rm -r $BUILD_DIR/*.o
@@ -133,8 +130,12 @@ cp ../strings/strings.bin .
 fname=("fmanager.rom" "fmanager.rom.1" "fmanager.rom.2" "fmanager.rom.3" "fmanager.rom.4" "fmanager.rom.5" "strings.bin")
 addr=("990700" "000001" "002001" "004001" "006001" "008001" "004002")
 
+
 for ((i = 1; i <= $#fname; i++)); do
-v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
+#linux
+#v1=$(stat -f%z $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
+#mac:
+v1=$(stat --format=%s $fname[$i]); v2=$(printf '%04x\n' $v1); v3='00'$v2; v4=$(echo -n $v3 | tac -rs ..); v5=$addr[$i]$v4;v6=$(sed -Ee 's/([A-Za-z0-9]{2})/\\\x\1/g' <<< "$v5"); echo -n $v6 > $fname[$i]'.hdr'
 done
 
 echo -n 'Z' >> pgZ_start.hdr
