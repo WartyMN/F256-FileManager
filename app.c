@@ -107,15 +107,7 @@ bool					global_find_next_enabled = false;	// tracks whether find next is callab
 WB2KViewPanel			app_file_panel[2];
 
 
-TextDialogTemplate		global_dlg = 
-{
-	(SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2, 16, APP_DIALOG_WIDTH, APP_DIALOG_HEIGHT, 
-	APP_DIALOG_STARTING_NUM_BUTTONS, NULL, NULL, 
-	{NULL, NULL, NULL},
-	{CH_RUNSTOP, CH_ENTER, CH_DEL},
-	{COLOR_GREEN, COLOR_RED, COLOR_BLUE},
-	{false, true, false},
-};	// dialog we'll configure and re-use for different purposes
+TextDialogTemplate		global_dlg;
 
 
 char					global_dlg_title[36];	// arbitrary
@@ -234,13 +226,7 @@ void App_Initialize(void)
 	// show info about the host F256 and environment, as well as copyright, version of f/manager
 	App_LoadOverlay(OVERLAY_SCREEN);
 	Screen_ShowAppAboutInfo();
-
-	// set up the dialog template we'll use throughout the app
-	global_dlg.title_text_ = global_dlg_title;
-	global_dlg.body_text_ = global_dlg_body_msg;
-	global_dlg.btn_label_[0] = global_dlg_button[0];
-	global_dlg.btn_label_[1] = global_dlg_button[1];
-
+	
 	// scan which devices are connected, so we know what panels can access
 	Buffer_NewMessage(General_GetString(ID_STR_MSG_SCANNING));
 	app_connected_drive_count = App_ScanDevices();
@@ -613,7 +599,7 @@ uint8_t App_MainLoop(void)
 						ID_STR_DLG_QUIT_CONFIRM, 
 						ID_STR_DLG_YES, 
 						ID_STR_DLG_NO
-						) > 0)
+						) == 1)
 					{
 						exit_main_loop = true;
 						continue;
@@ -919,6 +905,9 @@ int main(void)
 
 	// clear screen and draw logo
 	Startup_ShowLogo();
+
+	// initialize the shared dialog box to 2-button appearance
+	App_InitializeDialogBox();
 
 	App_LoadOverlay(OVERLAY_SCREEN);
 	

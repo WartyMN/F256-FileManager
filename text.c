@@ -1563,7 +1563,6 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 {
 	uint8_t			btn_width[3];
 	uint8_t			avail_width;
-// 	uint8_t			avail_height;
 	uint8_t			btn_x;
 	uint8_t			btn_y;
 	uint8_t			player_input;
@@ -1602,7 +1601,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 			return the_result;
 		}
 		
-		btn_width[i] = (uint8_t)General_Strnlen(the_dialog_template->btn_label_[i], TEXT_DIALOG_MAX_BTN_LABEL_LEN) + 1; // +1 because we force a space to right of all buttons
+		btn_width[i] = (uint8_t)General_Strnlen(the_dialog_template->btn_label_[i], TEXT_DIALOG_MAX_BTN_LABEL_LEN) + 2; // +2 because we force 2 spaces to right of all buttons
 		total_btn_width += btn_width[i];
 	}
 	
@@ -1649,8 +1648,10 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 	for (; i >= 0; i--)
 	{
 		uint8_t	btn_color;
+
+		btn_x -= btn_width[i];
 		
-		if (the_dialog_template->btn_is_affirmative_[i])
+		if (the_dialog_template->default_button_id_ == i)
 		{
 			btn_color = affirm_color;
 		}
@@ -1659,7 +1660,6 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 			btn_color = cancel_color;
 		}
 		
-		btn_x -= btn_width[i];
 		Text_DrawStringAtXY(btn_x, btn_y, the_dialog_template->btn_label_[i], btn_color, back_color);
 	}
 
@@ -1679,7 +1679,19 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 			if (the_dialog_template->btn_shortcut_[i] == player_input)
 			{
 				the_result = i;
+				break;
 			}
+			else if (i == the_dialog_template->default_button_id_ && player_input == the_dialog_template->default_button_shortcut_)
+			{
+				the_result =i;
+				break;
+			}
+		}
+		
+		// maybe it was the cancel shortcut instead?
+		if (the_result == DIALOG_ERROR && player_input == the_dialog_template->cancel_button_shortcut_)
+		{
+			the_result = DIALOG_CANCEL;
 		}
 	}
 	while (the_result == DIALOG_ERROR);
@@ -1709,17 +1721,16 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 //! @param	accent_color - Index to the desired accent color (0-15).
 //! @param	fore_color - Index to the desired foreground color (0-15).
 //! @param	back_color - Index to the desired background color (0-15).
-int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, uint8_t the_max_length, uint8_t accent_color, uint8_t fore_color, uint8_t back_color)
+int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, int8_t the_max_length, uint8_t accent_color, uint8_t fore_color, uint8_t back_color)
 {
 	uint8_t			avail_width;
-// 	uint8_t			avail_height;
 	uint8_t			input_x;
 	uint8_t			input_y;
 	uint8_t			x1 = the_dialog_template->x_;
 	uint8_t			y1 = the_dialog_template->y_;
 	uint8_t			x2 = x1 + the_dialog_template->width_;
 	uint8_t			y2 = y1 + the_dialog_template->height_;
-	bool			the_result = false;
+	int8_t			the_result = false;
 	
 	// ** Validity checks
 	
@@ -1734,8 +1745,6 @@ int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char
 	// available (body) height is defined by by the space under the enclosed header (-3), and over the buttons (-4)
 	//   bottom row takes 1, buttons take 1, and there is one row of padding above and below the buttons
 // 	avail_height = the_dialog_template->height_ - 7;
-	
-	//DEBUG_OUT(("%s %d: the_max_length=%u, avail_width=%u", __func__ , __LINE__, the_max_length, avail_width));
 	
 	if (the_max_length > avail_width)
 	{

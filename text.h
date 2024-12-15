@@ -133,7 +133,8 @@
 
 // **** Move these back into OS/f Text Library in the future!
 //typedef enum dialog_result
-#define DIALOG_ERROR	-1
+#define DIALOG_ERROR	-2
+#define DIALOG_CANCEL	-1
 #define DIALOG_BTN_1	0
 #define DIALOG_BTN_2	1
 #define DIALOG_BTN_3	2
@@ -161,7 +162,9 @@ typedef struct TextDialogTemplate
 	char*		btn_label_[3];
 	uint16_t	btn_keycolor_[3];
 	uint8_t		btn_shortcut_[3];
-	bool		btn_is_affirmative_[3];
+	uint8_t		default_button_id_;
+	uint8_t		default_button_shortcut_;
+	uint8_t		cancel_button_shortcut_;
 } TextDialogTemplate;
 
 
@@ -534,7 +537,7 @@ int8_t Text_DisplayDialog(TextDialogTemplate* the_dialog_template, char* char_sa
 //! @param	accent_color - Index to the desired accent color (0-15).
 //! @param	fore_color - Index to the desired foreground color (0-15).
 //! @param	back_color - Index to the desired background color (0-15).
-int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, uint8_t the_max_length, uint8_t accent_color, uint8_t fore_color, uint8_t back_color);
+int8_t Text_DisplayTextEntryDialog(TextDialogTemplate* the_dialog_template, char* char_save_mem, char* attr_save_mem, char* the_buffer, int8_t the_max_length, uint8_t accent_color, uint8_t fore_color, uint8_t back_color);
 
 
 

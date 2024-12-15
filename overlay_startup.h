@@ -52,6 +52,9 @@ void Startup_ShowLogo(void);
 // enable the random number generator, and seed it
 void Startup_InitializeRandomNumGen(void);
 
+// initialize or re-initialize the global dialog box for standard 2-button entry
+// some routine may change it temporarily to 3-button format/size
+void App_InitializeDialogBox(void);
 
 
 #endif /* OVERLAY_STARTUP_H_ */

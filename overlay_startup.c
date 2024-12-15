@@ -415,6 +415,10 @@ static uint8_t logo_color_lut[64] =
 
 extern System*			global_system;
 
+extern TextDialogTemplate	global_dlg;	// dialog we'll configure and re-use for different purposes
+extern char					global_dlg_title[36];	// arbitrary
+extern char					global_dlg_body_msg[70];	// arbitrary
+extern char					global_dlg_button[3][10];	// arbitrary
 
 
 extern char*				global_named_app_basic;
@@ -882,5 +886,31 @@ void Startup_InitializeRandomNumGen(void)
 	Sys_DisableIOBank();
 }
 
+
+// initialize or re-initialize the global dialog box for standard 2-button entry
+// some routine may change it temporarily to 3-button format/size
+void App_InitializeDialogBox(void)
+{
+	// set up the dialog template we'll use throughout the app
+	global_dlg.x_ = (SCREEN_NUM_COLS - APP_DIALOG_WIDTH)/2;
+	global_dlg.y_ = 16;
+	global_dlg.width_ = APP_DIALOG_WIDTH;
+	global_dlg.height_ = APP_DIALOG_HEIGHT;
+	global_dlg.num_buttons_ = APP_DIALOG_STARTING_NUM_BUTTONS;
+	global_dlg.title_text_ = global_dlg_title;
+	global_dlg.body_text_ = global_dlg_body_msg;
+	global_dlg.btn_label_[0] = global_dlg_button[0];
+	global_dlg.btn_label_[1] = global_dlg_button[1];
+	global_dlg.btn_label_[2] = global_dlg_button[2];
+	global_dlg.btn_keycolor_[0] = COLOR_GREEN;
+	global_dlg.btn_keycolor_[1] = COLOR_RED;
+	global_dlg.btn_keycolor_[2] = COLOR_BLUE;
+	global_dlg.btn_shortcut_[0] = 'n';
+	global_dlg.btn_shortcut_[1] = 'y';
+	global_dlg.default_button_id_ = 1;
+	global_dlg.default_button_shortcut_ = CH_ENTER;
+	global_dlg.cancel_button_shortcut_ = CH_RUNSTOP;
+
+}
 
 
