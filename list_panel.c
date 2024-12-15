@@ -21,6 +21,7 @@
 #include "api.h"
 #include "app.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "file.h"
 #include "folder.h"
 #include "general.h"
@@ -546,7 +547,7 @@ bool Panel_MakeDir(WB2KViewPanel* the_panel)
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_ENTER_NEW_FOLDER_NAME), 70);
 	global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
 	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, available_len);
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, available_len, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 
 	// did user enter a name?
 	if (success == false)

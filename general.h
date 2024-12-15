@@ -61,42 +61,12 @@
 #define GEN_NO_STRLEN_CAP		-1		//!< for the xxx_DrawString function's max_chars parameter, the value that corresponds to 'draw the entire string if it fits, do not cap it at n characters' 
 #define WORD_WRAP_MAX_LEN		192	//!< For the xxx_DrawStringInBox function, the strnlen char limit. 40*25. 
 
-#ifdef LOG_LEVEL_1 
-	#define LOG_ERR(x) General_LogError x
-#else
-	#define LOG_ERR(x)
-#endif
-#ifdef LOG_LEVEL_2
-	#define LOG_WARN(x) General_LogWarning x
-#else
-	#define LOG_WARN(x)
-#endif
-#ifdef LOG_LEVEL_3
-	#define LOG_INFO(x) General_LogInfo x
-#else
-	#define LOG_INFO(x)
-#endif
-#ifdef LOG_LEVEL_4
-	#define DEBUG_OUT(x) General_DebugOut x
-#else
-	#define DEBUG_OUT(x)
-#endif
-#ifdef LOG_LEVEL_5
-	#define LOG_ALLOC(x) General_LogAlloc x
-#else
-	#define LOG_ALLOC(x)
-#endif
 
 
 /*****************************************************************************/
 /*                               Enumerations                                */
 /*****************************************************************************/
 
-#define LogError	0
-#define LogWarning	1
-#define LogInfo		2
-#define LogDebug	3
-#define LogAlloc	4
 
 
 /*****************************************************************************/
@@ -259,10 +229,6 @@ char* General_PathPart(const char* the_file_path);
 //! @return	Returns false if no file extension found.
 bool General_ExtractFileExtensionFromFilename(const char* the_file_name, char* the_extension);
 
-// return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
-// see cbm_filetype.h
-char* General_GetFileTypeString(uint8_t cbm_filetype_id);
-
 
 
 
@@ -291,24 +257,6 @@ void General_DelayTicks(uint16_t ticks);
 // **** MISC UTILITIES *****
 
 
-// // Print out a section of memory in a hex viewer style
-// // display length is hard-coded to one screen at 80x59 (MEM_DUMP_BYTES_PER_ROW * MAX_TEXT_VIEW_ROWS_PER_PAGE)
-// void General_ViewHexDump(uint8_t* the_buffer);
-
-// **** LOGGING AND DEBUG UTILITIES *****
-
-
-
-
-
-// *********  logging functionality. requires global_log_file to have been opened.
-void General_LogError(const char* format, ...);
-void General_LogWarning(const char* format, ...);
-void General_LogInfo(const char* format, ...);
-void General_DebugOut(const char* format, ...);
-void General_LogAlloc(const char* format, ...);
-bool General_LogInitialize(void);
-void General_LogCleanUp(void);
 
 
 

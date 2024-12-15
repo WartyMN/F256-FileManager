@@ -18,6 +18,7 @@
 // project includes
 #include "app.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "file.h"
 #include "general.h"
 #include "kernel.h"
@@ -71,10 +72,74 @@ extern uint8_t				zp_bank_num;
 /*****************************************************************************/
 
 
+// return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
+// see cbm_filetype.h
+char* File_GetFileTypeString(uint8_t cbm_filetype_id);
+
 
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
+
+
+// return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
+// see cbm_filetype.h
+char* File_GetFileTypeString(uint8_t cbm_filetype_id)
+{
+	switch (cbm_filetype_id)
+	{
+// 		case _CBM_T_HEADER:
+// 			return General_GetString(ID_STR_FILETYPE_DIR);
+// 		
+// 		case _CBM_T_SEQ:
+// 			return General_GetString(ID_STR_FILETYPE_SEQ);
+// 		
+// 		case _CBM_T_PRG:
+// 			return General_GetString(ID_STR_FILETYPE_PRG);
+// 		
+// 		case _CBM_T_REL:
+// 			return General_GetString(ID_STR_FILETYPE_REL);
+
+		case FNX_FILETYPE_BASIC:	
+			// any file ending in .bas
+			return General_GetString(ID_STR_FILETYPE_BASIC);
+			
+		case FNX_FILETYPE_FONT:	
+			// any 2k file ending in .fnt
+			return General_GetString(ID_STR_FILETYPE_FONT);
+			
+		case FNX_FILETYPE_EXE:
+			// any .pgz, etc executable
+			return General_GetString(ID_STR_FILETYPE_EXE);
+
+		case FNX_FILETYPE_IMAGE:
+			// any .256, .lbm, etc, image file
+			return General_GetString(ID_STR_FILETYPE_IMAGE);
+
+		case FNX_FILETYPE_MUSIC:
+			// any .mod etc music file that modo can play
+			return General_GetString(ID_STR_FILETYPE_MUSIC);
+// 		
+//		case _CBM_T_DEL:
+		case _CBM_T_DIR:
+			return General_GetString(ID_STR_FILETYPE_DIR);
+		
+		default:
+			return General_GetString(ID_STR_FILETYPE_OTHER);
+	}
+// #define _CBM_T_REG      0x10U   /* Bit set for regular files */
+// #define _CBM_T_SEQ      0x10U
+// #define _CBM_T_PRG      0x11U
+// #define _CBM_T_USR      0x12U
+// #define _CBM_T_REL      0x13U
+// #define _CBM_T_VRP      0x14U   /* Vorpal fast-loadable format */
+// #define _CBM_T_DEL      0x00U
+// #define _CBM_T_CBM      0x01U   /* 1581 sub-partition */
+// #define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
+// #define _CBM_T_LNK      0x03U   /* IDE64 soft-link */
+// #define _CBM_T_OTHER    0x04U   /* File-type not recognized */
+// #define _CBM_T_HEADER   0x05U   /* Disk header / title */
+}
 
 
 
@@ -991,7 +1056,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( x1, y, the_file->file_name_, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( sizex, y, global_string_buff1, the_color, APP_BACKGROUND_COLOR);
-		Text_DrawStringAtXY( typex, y, General_GetFileTypeString(the_file->file_type_), the_color, APP_BACKGROUND_COLOR);
+		Text_DrawStringAtXY( typex, y, File_GetFileTypeString(the_file->file_type_), the_color, APP_BACKGROUND_COLOR);
 		
 		if (as_selected == true)
 		{

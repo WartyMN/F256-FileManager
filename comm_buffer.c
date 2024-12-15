@@ -13,8 +13,9 @@
 /*****************************************************************************/
 
 // project includes
-#include "comm_buffer.h"
 #include "app.h"
+#include "comm_buffer.h"
+#include "debug.h"
 #include "general.h"
 #include "keyboard.h"
 #include "strings.h"

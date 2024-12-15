@@ -18,6 +18,7 @@
 #include "screen.h"
 #include "app.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "file.h"
 #include "folder.h"
 #include "general.h"
@@ -160,7 +161,7 @@ void Screen_DrawUI(void)
 	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	
 	// draw the title bar at top. 3x80
-	Text_CopyMemBoxLinearBuffer((uint8_t*)&screen_titlebar, 0, 0, 79, 2, SCREEN_COPY_TO_SCREEN, SCREEN_FOR_TEXT_CHAR);
+	Text_CopyMemBoxLinearBuffer((uint8_t*)&screen_titlebar, 0, 0, 79, 2, PARAM_COPY_TO_SCREEN, PARAM_FOR_TEXT_CHAR);
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_InvertBox(48, 1, 54, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat
@@ -714,7 +715,7 @@ void Screen_SwapCopyDirectionIndicator(void)
 void Screen_Render(void)
 {
 	global_clock_is_visible = true;
-	Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
+	//Text_ClearScreen(APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 	Screen_DrawUI();
 }
 
@@ -759,7 +760,7 @@ void Screen_ShowAppAboutInfo(void)
 	}
 	
 	// show app name, version, and credit
-	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_FMANAGER), CH_COPYRIGHT, MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
+	sprintf(global_string_buff1, General_GetString(ID_STR_ABOUT_FMANAGER), CH_MISC_COPY, MAJOR_VERSION, MINOR_VERSION, UPDATE_VERSION);
 	Buffer_NewMessage(global_string_buff1);
 	
 	// also show current bytes free
@@ -801,7 +802,7 @@ char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* star
 		temp_dialog_width -= 2;
 	}
 	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width);
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
 
 	// restore normal dialog width
 	global_dlg.width_ = orig_dialog_width;
@@ -828,7 +829,7 @@ bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_stri
 					
 	global_dlg.num_buttons_ = 2;
 
-	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr);
+	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR, COLOR_RED, COLOR_GREEN);
 }
 
 

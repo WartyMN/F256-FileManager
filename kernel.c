@@ -13,7 +13,8 @@
 #include "app.h"	// need for FILE_MAX_PATHNAME_SIZE
 #include "dirent.h"  // Users are expected to "-I ." to get the local copy.
 #include "general.h" // need for strnlen
-#include "f256.h" // need for F1 key values
+#include "f256.h"
+#include "keyboard.h"  // need for F1 key values
 
 #define VECTOR(member) (size_t) (&((struct call*) 0xff00)->member)
 #define EVENT(member)  (size_t) (&((struct events*) 0)->member)

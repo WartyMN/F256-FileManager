@@ -22,6 +22,7 @@
 #include "app.h"
 #include "bank.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "file.h"
 #include "general.h"
 #include "kernel.h"

@@ -18,6 +18,7 @@
 // project includes
 #include "app.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "file.h"
 #include "list_panel.h"
 #include "folder.h"
@@ -545,7 +546,7 @@ uint8_t App_MainLoop(void)
 					General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_SET_CLOCK_BODY), APP_DIALOG_WIDTH);
 					global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
 					
-					success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 14); //YY-MM-DD HH-MM = 14
+					success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 14, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR); //YY-MM-DD HH-MM = 14
 					
 					if (success)
 					{
@@ -578,6 +579,8 @@ uint8_t App_MainLoop(void)
 					{
 						// mark old panel inactive, mark new panel active, set new active panel id
 						App_SwapActivePanel();
+						App_LoadOverlay(OVERLAY_SCREEN);
+						Screen_SwapCopyDirectionIndicator();
 						the_panel = &app_file_panel[app_active_panel_id];
 					}
 					break;
@@ -587,6 +590,8 @@ uint8_t App_MainLoop(void)
 					{
 						// mark old panel inactive, mark new panel active, set new active panel id
 						App_SwapActivePanel();
+						App_LoadOverlay(OVERLAY_SCREEN);
+						Screen_SwapCopyDirectionIndicator();
 						the_panel = &app_file_panel[app_active_panel_id];
 					}
 					break;

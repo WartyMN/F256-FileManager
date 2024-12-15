@@ -17,6 +17,7 @@
 
 // project includes
 #include "list.h"
+#include "debug.h"
 #include "general.h"
 
 // C includes

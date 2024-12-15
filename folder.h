@@ -122,9 +122,6 @@ typedef struct WB2KFolderObject
 /*****************************************************************************/
 
 void cmd_ls(void);
-// return a human-readable(ish) string for the filetype of the filetype ID passed.
-// see cbm_filetype.h
-char* File_GetFileTypeString(uint8_t cbm_filetype_id);
 
 
 // **** CONSTRUCTOR AND DESTRUCTOR *****

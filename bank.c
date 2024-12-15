@@ -16,6 +16,7 @@
 #include "app.h"
 #include "bank.h"
 #include "comm_buffer.h"
+#include "debug.h"
 #include "general.h"
 #include "kernel.h"
 #include "keyboard.h"
@@ -282,7 +283,7 @@ int16_t Bank_AskForFillValue(void)
 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_FILL_BANK_BODY), APP_DIALOG_WIDTH);
 	global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
 	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 3); //len("255")=3
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 3, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR); //len("255")=3
 	
 	// did user enter a value?
 	if (success == false)
