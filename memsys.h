@@ -135,6 +135,7 @@ bool MemSys_GetCurrentRowKUPState(FMMemorySystem* the_memsys);
 // Returns NULL if nothing matches, or returns pointer to first matching bank object
 FMBankObject* MemSys_FindBankByRow(FMMemorySystem* the_memsys, uint8_t the_row);
 
+
 // **** OTHER FUNCTIONS *****
 
 // copies the passed bank to the same bank in the target memory system
@@ -149,6 +150,10 @@ bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, 
 // runs (executes) the program in the current bank, if the bank is a KUP bank
 // returns false if the bank is not a KUP
 bool MemSys_ExecuteCurrentRow(FMMemorySystem* the_memsys);
+
+// check if user is allowed to clear, copy-to, or fill a chosen bank
+bool MemSys_BankIsWriteable(FMMemorySystem* the_memsys);
+
 
 // **** FILL AND CLEAR FUNCTIONS *****
 

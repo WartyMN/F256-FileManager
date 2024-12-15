@@ -603,6 +603,44 @@ void MemSys_PopulateBanks(FMMemorySystem* the_memsys)
 // 	return success;
 // }
 
+
+// check if user is allowed to clear, copy-to, or fill a chosen bank
+bool MemSys_BankIsWriteable(FMMemorySystem* the_memsys)
+{
+	FMBankObject*		the_bank;
+	uint8_t				i;
+	
+	// no one can write to flash
+	if (the_memsys->is_flash_ == true)
+	{
+		return false;
+	}
+	
+	if (the_memsys->cur_row_ < 0)
+	{
+		return false;
+	}
+	
+	the_bank = &the_memsys->bank_[the_memsys->cur_row_];
+
+	// user is not allowed to write to first 64K of RAM, or to f/manager extended memory
+	for (i = 0; i <= (uint8_t)OVERLAY_MEMSYSTEM; i++)
+	{
+		if (the_bank->bank_num_ == i)
+		{
+			return false;
+		}
+	}
+	
+	// user is not allowed to write to f/manager strings RAM either
+	if (the_bank->bank_num_ == STRING_STORAGE_VALUE)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 	
 // select or unselect 1 file by row id, and change cur_row_ accordingly
 bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active)

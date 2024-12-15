@@ -77,35 +77,39 @@
 75	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
 76	48	A match to '%s' was found at %06lX in Bank $%02X
 77	26	No match to '%s' was found
-78	3	 d 
-79	3	PRG
-80	3	REL
-81	3	SEQ
-82	3	 d 
-83	3	oth
-84	3	bas
-85	3	exe
-86	3	fnt
-87	3	mus
-88	3	img
-89	14	Fatal error %u
-90	21	Unable to delete file
-91	26	Unable to delete directory
-92	40	We don't need no stinkin' error messages
-93	75	No connected devices were detected. f/manager will probably die of boredom.
-94	16	The disk is full
-95	21	A disk error occurred
-96	33	No disk detected in disk drive %u
-97	31	Error: Could not open file '%s'
-98	31	Error: Could not list directory
-99	39	Error: You cannot copy a bank to itself
-100	19	Out of memory error
-101	46	https://github.com/WartyMN/F256jr-FileManager/
-102	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-103	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-104	42	Compact pexec loader for flash by dwsJason
-105	36	F256 SuperBASIC %c2023 Paul Robson. 
-106	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
-107	6	F256JR
-108	5	F256K
-109	18	<unknown hardware>
+78	3	dsk
+79	3	 d 
+80	4	link
+81	3	PRG
+82	3	USR
+83	3	REL
+84	3	SEQ
+85	3	par
+86	3	oth
+87	3	bas
+88	3	exe
+89	3	fnt
+90	3	mus
+91	3	img
+92	14	Fatal error %u
+93	21	Unable to delete file
+94	26	Unable to delete directory
+95	40	We don't need no stinkin' error messages
+96	75	No connected devices were detected. f/manager will probably die of boredom.
+97	16	The disk is full
+98	21	A disk error occurred
+99	33	No disk detected in disk drive %u
+100	31	Error: Could not open file '%s'
+101	31	Error: Could not list directory
+102	39	Error: You cannot copy a bank to itself
+103	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+104	19	Out of memory error
+105	46	https://github.com/WartyMN/F256jr-FileManager/
+106	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+107	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+108	42	Compact pexec loader for flash by dwsJason
+109	36	F256 SuperBASIC %c2023 Paul Robson. 
+110	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+111	6	F256JR
+112	5	F256K
+113	18	<unknown hardware>

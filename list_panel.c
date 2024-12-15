@@ -896,6 +896,13 @@ bool Panel_Refresh(WB2KViewPanel* the_panel)
 bool Panel_FillCurrentBank(WB2KViewPanel* the_panel)
 {
 	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+
+	// check if user would be writing over f/manager RAM
+	if (MemSys_BankIsWriteable(the_panel->memory_system_) == false)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ATTEMPT_TO_OVERWRITE_FM_RAM));
+		return false;
+	}
 	
 	return (MemSys_FillCurrentBank(the_panel->memory_system_));
 }						
@@ -905,6 +912,13 @@ bool Panel_FillCurrentBank(WB2KViewPanel* the_panel)
 bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel)
 {
 	App_LoadOverlay(OVERLAY_MEMSYSTEM);
+
+	// check if user would be writing over f/manager RAM
+	if (MemSys_BankIsWriteable(the_panel->memory_system_) == false)
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_ATTEMPT_TO_OVERWRITE_FM_RAM));
+		return false;
+	}
 	
 	return (MemSys_ClearCurrentBank(the_panel->memory_system_));
 }						
@@ -1221,6 +1235,8 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == false)
 	{
 		// copy memory bank to memory bank
+		
+		// prevent user from copying from same bank to same bank
 		if (src_bank_num == dst_bank_num)
 		{
 			// can't copy to/from same memory bank!
@@ -1228,6 +1244,14 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 			return false;
 		}
 		
+		// check if user would be writing over f/manager RAM
+		if (MemSys_BankIsWriteable(the_other_panel->memory_system_) == false)
+		{
+			Buffer_NewMessage(General_GetString(ID_STR_ERROR_ATTEMPT_TO_OVERWRITE_FM_RAM));
+			return false;
+		}
+				
+		// ok, safe to proceed
 		for (i = 0; i < PAGES_PER_BANK; i++)
 		{
 			App_EMDataCopy(the_buffer, src_bank_num, i, PARAM_COPY_FROM_EM);
