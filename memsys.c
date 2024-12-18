@@ -643,7 +643,7 @@ bool MemSys_BankIsWriteable(FMMemorySystem* the_memsys)
 
 	
 // select or unselect 1 file by row id, and change cur_row_ accordingly
-bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active)
+FMBankObject* MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active)
 {
 	FMBankObject*		the_bank;
 	FMBankObject*		the_prev_selected_bank;
@@ -652,7 +652,7 @@ bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, 
 	
 	if (the_bank == NULL)
 	{
-		return false;
+		return NULL;
 	}
 
 	if (do_selection)
@@ -706,7 +706,7 @@ bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, 
 		}
 	}
 
-	return true;
+	return the_bank;
 }	
 
 

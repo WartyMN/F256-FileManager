@@ -56,11 +56,24 @@
 #define PROCESS_FOLDER_FILE_BEFORE_CHILDREN	true	// for Folder_ProcessContents()
 #define PROCESS_FOLDER_FILE_AFTER_CHILDREN	false	// for Folder_ProcessContents()
 
+#define MARK_AS_SELECTED			true	// for Folder_SetFileSelectionByRow()
+#define MARK_AS_UNSELECTED			false	// for Folder_SetFileSelectionByRow()
+
 #define FOLDER_MAX_TRIES_AT_FOLDER_CREATION		128		// arbitrary, for use with Folder_CreateNewFolder; stop at "unnamed folder 128"
 
-#define _CBM_T_REG      0x10U   /* Bit set for regular files */
-#define _CBM_T_HEADER   0x05U   /* Disk header / title */
+#define _CBM_T_DEL      0x00U	// deleted file
+#define _CBM_T_CBM      0x01U   /* 1581 sub-partition */
 #define _CBM_T_DIR      0x02U   /* IDE64 and CMD sub-directory */
+#define _CBM_T_LNK      0x03U   /* IDE64 soft-link */
+#define _CBM_T_OTHER    0x04U   /* File-type not recognized */
+#define _CBM_T_HEADER   0x05U   /* Disk header / title */
+#define _CBM_T_REG      0x10U   /* Bit set for regular files */
+#define _CBM_T_SEQ      0x10U
+#define _CBM_T_PRG      0x11U
+#define _CBM_T_USR      0x12U
+#define _CBM_T_REL      0x13U
+#define _CBM_T_VRP      0x14U   /* Vorpal fast-loadable format */
+
 #define FNX_FILETYPE_FONT	200	// any 2k file ending in .fnt
 #define FNX_FILETYPE_EXE	201	// any .pgz, etc executable
 #define FNX_FILETYPE_BASIC	202	// a .bas file that f/manager will try to pass to SuperBASIC
@@ -248,7 +261,7 @@ int Folder_MoveSelectedFiles(WB2KFolderObject* the_folder, WB2KFolderObject* the
 int Folder_MoveSelectedFilesToFolderFile(WB2KFolderObject* the_folder, WB2KFileObject* the_target_folder_file);
 
 // select or unselect 1 file by row id, and change cur_row_ accordingly
-bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row, bool do_selection, uint8_t y_offset);
+WB2KFileObject* Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row, bool do_selection, uint8_t y_offset);
 
 // populate the folder's List by iterating through the DOS List objects and treating each as a folder/file
 bool Folder_PopulateVolumeList(WB2KFolderObject* the_folder);

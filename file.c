@@ -88,17 +88,30 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 {
 	switch (cbm_filetype_id)
 	{
-// 		case _CBM_T_HEADER:
-// 			return General_GetString(ID_STR_FILETYPE_DIR);
-// 		
 // 		case _CBM_T_SEQ:
+// 			// don't let this go through as SEQ: this is how microkernel sees ALL commodore files apparently
 // 			return General_GetString(ID_STR_FILETYPE_SEQ);
 // 		
 // 		case _CBM_T_PRG:
 // 			return General_GetString(ID_STR_FILETYPE_PRG);
+// 			
+// 		case _CBM_T_USR:
+// 			return General_GetString(ID_STR_FILETYPE_USR);
 // 		
 // 		case _CBM_T_REL:
 // 			return General_GetString(ID_STR_FILETYPE_REL);
+
+		case _CBM_T_CBM:
+			return General_GetString(ID_STR_FILETYPE_SUBDIR);
+
+		case _CBM_T_DIR:
+			return General_GetString(ID_STR_FILETYPE_DIR);
+		
+		case _CBM_T_LNK:
+			return General_GetString(ID_STR_FILETYPE_LINK);
+
+		case _CBM_T_HEADER:
+			return General_GetString(ID_STR_FILETYPE_HEADER);		
 
 		case FNX_FILETYPE_BASIC:	
 			// any file ending in .bas
@@ -119,12 +132,10 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 		case FNX_FILETYPE_MUSIC:
 			// any .mod etc music file that modo can play
 			return General_GetString(ID_STR_FILETYPE_MUSIC);
-// 		
-//		case _CBM_T_DEL:
-		case _CBM_T_DIR:
-			return General_GetString(ID_STR_FILETYPE_DIR);
 		
 		default:
+			sprintf(global_string_buff1, "Unrecognized file type: %u", cbm_filetype_id);
+			Buffer_NewMessage(global_string_buff1);
 			return General_GetString(ID_STR_FILETYPE_OTHER);
 	}
 // #define _CBM_T_REG      0x10U   /* Bit set for regular files */
@@ -1060,7 +1071,8 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 		
 		if (as_selected == true)
 		{
-			Text_InvertBox(x1, y, x2, y);
+			Text_SetXY(x1,y);
+			Text_Invert(UI_PANEL_INNER_WIDTH);
 			
 			// show full path of file in the special status line under the file panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);

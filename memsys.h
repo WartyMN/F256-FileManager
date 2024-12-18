@@ -145,7 +145,7 @@ bool MemSys_CopyBank(FMMemorySystem* the_memsys, FMBankObject* the_bank, FMMemor
 void MemSys_PopulateBanks(FMMemorySystem* the_memsys);
 
 // select or unselect 1 bank by row id, and change cur_row_ accordingly
-bool MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active);
+FMBankObject* MemSys_SetBankSelectionByRow(FMMemorySystem* the_memsys, uint16_t the_row, bool do_selection, uint8_t y_offset, bool as_active);
 
 // runs (executes) the program in the current bank, if the bank is a KUP bank
 // returns false if the bank is not a KUP

@@ -385,63 +385,63 @@ bool Text_FillMemoryBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height, boo
 // }
 
 
-//! scrolls the text and attribute memory up ONE row.
-//!   e.g, row 0 is lost. row 1 becomes row 0, row 49 becomes row 48, row 49 is cleared.
-//! @param	y1 - the first row to scroll up
-//! @param	y2 - the last row to scroll up
-//! @return	Returns false on any error/invalid input.
-bool Text_ScrollTextAndAttrRowsUp(uint8_t y1, uint8_t y2)
-{
-	uint8_t*		vram_to_loc;
-	uint8_t*		vram_from_loc;
-	int16_t			initial_offset;
-	uint8_t			num_rows;
-	uint8_t			i;
-
-	// LOGIC: 
-	//   On F256-classic, the write locs are same for char and attr memory, difference is IO page 2 or 3
-	//   On F256-extended, the write locs are different for char and attr memory, as E loads use flat memory map
-
-	// adjust the x, y, x2, y2, so that we are never trying to copy out of the physical screen box
-	if (y1 < 1)
-	{
-		y1 = 1;	// can't scroll row 0 anywhere useful.
-	}
-	else if (y1 > SCREEN_LAST_ROW)
-	{
-		y1 = SCREEN_LAST_ROW;
-	}
-	if (y2 < y1)
-	{
-		y2 = y1; // ok to scroll 1 row, so this is compromise for bad data.
-	}
-	else if (y2 > SCREEN_LAST_ROW)
-	{
-		y2 = SCREEN_LAST_ROW;
-	}
-		
-	// get initial read/write locs
-	initial_offset = (SCREEN_NUM_COLS * y1);
-	num_rows = y2 - y1 + 1;
-
-	vram_from_loc = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
-	vram_to_loc = vram_from_loc - SCREEN_NUM_COLS;
-	
-	for (i = 0; i < num_rows; i++)
-	{
-		Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-		memcpy(vram_to_loc, vram_from_loc, SCREEN_NUM_COLS);
-		Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-		memcpy(vram_to_loc, vram_from_loc, SCREEN_NUM_COLS);
-		
-		vram_to_loc = vram_from_loc;
-		vram_from_loc += SCREEN_NUM_COLS;
-	}
-		
-	Sys_RestoreIOPage();
-
-	return true;
-}
+// //! scrolls the text and attribute memory up ONE row.
+// //!   e.g, row 0 is lost. row 1 becomes row 0, row 49 becomes row 48, row 49 is cleared.
+// //! @param	y1 - the first row to scroll up
+// //! @param	y2 - the last row to scroll up
+// //! @return	Returns false on any error/invalid input.
+// bool Text_ScrollTextAndAttrRowsUp(uint8_t y1, uint8_t y2)
+// {
+// 	uint8_t*		vram_to_loc;
+// 	uint8_t*		vram_from_loc;
+// 	int16_t			initial_offset;
+// 	uint8_t			num_rows;
+// 	uint8_t			i;
+// 
+// 	// LOGIC: 
+// 	//   On F256-classic, the write locs are same for char and attr memory, difference is IO page 2 or 3
+// 	//   On F256-extended, the write locs are different for char and attr memory, as E loads use flat memory map
+// 
+// 	// adjust the x, y, x2, y2, so that we are never trying to copy out of the physical screen box
+// 	if (y1 < 1)
+// 	{
+// 		y1 = 1;	// can't scroll row 0 anywhere useful.
+// 	}
+// 	else if (y1 > SCREEN_LAST_ROW)
+// 	{
+// 		y1 = SCREEN_LAST_ROW;
+// 	}
+// 	if (y2 < y1)
+// 	{
+// 		y2 = y1; // ok to scroll 1 row, so this is compromise for bad data.
+// 	}
+// 	else if (y2 > SCREEN_LAST_ROW)
+// 	{
+// 		y2 = SCREEN_LAST_ROW;
+// 	}
+// 		
+// 	// get initial read/write locs
+// 	initial_offset = (SCREEN_NUM_COLS * y1);
+// 	num_rows = y2 - y1 + 1;
+// 
+// 	vram_from_loc = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
+// 	vram_to_loc = vram_from_loc - SCREEN_NUM_COLS;
+// 	
+// 	for (i = 0; i < num_rows; i++)
+// 	{
+// 		Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
+// 		memcpy(vram_to_loc, vram_from_loc, SCREEN_NUM_COLS);
+// 		Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
+// 		memcpy(vram_to_loc, vram_from_loc, SCREEN_NUM_COLS);
+// 		
+// 		vram_to_loc = vram_from_loc;
+// 		vram_from_loc += SCREEN_NUM_COLS;
+// 	}
+// 		
+// 	Sys_RestoreIOPage();
+// 
+// 	return true;
+// }
 
 
 // //! scrolls the text and attribute memory down ONE row.

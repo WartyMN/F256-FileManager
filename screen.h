@@ -145,6 +145,10 @@
 
 #define UI_FULL_PATH_LINE_Y				(UI_VIEW_PANEL_BODY_Y2 + 1)	// row, not in any boxes, under file panels, above comms panel, for showing full path of a file.
 
+#define UI_VIEW_PANEL_SCROLL_CNT		(UI_PANEL_INNER_HEIGHT-2)	// number of rows to scroll
+#define UI_VIEW_PANEL_SCROLL_UP_START	(UI_VIEW_PANEL_BODY_Y1 + 3)	// y start pos when scrolling up
+#define UI_VIEW_PANEL_SCROLL_DN_START	(UI_VIEW_PANEL_BODY_Y1 + UI_PANEL_INNER_HEIGHT)	// y start pos when scrolling down
+
 #define UI_COPY_PROGRESS_Y				(UI_MIDDLE_AREA_FILE_CMD_Y)
 #define UI_COPY_PROGRESS_LEFTMOST		(UI_MIDDLE_AREA_START_X + 3)
 #define UI_COPY_PROGRESS_RIGHTMOST		(UI_COPY_PROGRESS_LEFTMOST + 5)

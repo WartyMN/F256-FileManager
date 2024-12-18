@@ -90,14 +90,22 @@ extern uint8_t				temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD:
 extern uint8_t				temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
 extern uint8_t				zp_bank_num;
-extern uint8_t	zp_search_loc_byte;
-extern uint8_t	zp_search_loc_page;
-extern uint8_t	zp_search_loc_bank;
+extern uint16_t				zp_len;
+extern uint8_t				zp_x_cnt;
+extern uint8_t				zp_y_cnt;
+extern uint8_t				zp_search_loc_byte;
+extern uint8_t				zp_search_loc_page;
+extern uint8_t				zp_search_loc_bank;
 
+#pragma zpsym ("zp_bank_num");
+#pragma zpsym ("zp_len");
+#pragma zpsym ("zp_x_cnt");
+#pragma zpsym ("zp_y_cnt");
 #pragma zpsym ("zp_search_loc_byte");
 #pragma zpsym ("zp_search_loc_page");
 #pragma zpsym ("zp_search_loc_bank");
-#pragma zpsym ("zp_bank_num");
+
+
 
 extern struct call_args args; // in gadget's version of f256 lib, this is allocated and initialized with &args in crt0. 
 
@@ -1396,8 +1404,11 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 	//   if do_selection is TRUE, then the goal is to mark the file at that row as selected
 	//   if do_selection is FALSE, then the goal is to mark the file at that row as unselected.
 
-	uint8_t		content_top = the_panel->content_top_;
-	bool		success;
+	bool				scroll_needed = false;
+	bool				success;
+	uint8_t				content_top = the_panel->content_top_;
+	WB2KFileObject*		the_file;
+	FMBankObject*		the_bank;
 	
 	if (the_panel == NULL)
 	{
@@ -1408,12 +1419,14 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 	if (the_panel->for_disk_ == true)
 	{
 		App_LoadOverlay(OVERLAY_DISKSYS);
-		success = Folder_SetFileSelectionByRow(the_panel->root_folder_, the_row, do_selection, the_panel->y_);
+		the_file = Folder_SetFileSelectionByRow(the_panel->root_folder_, the_row, do_selection, the_panel->y_);
+		success = (the_file != NULL);
 	}
 	else
 	{
 		App_LoadOverlay(OVERLAY_MEMSYSTEM);
-		success = MemSys_SetBankSelectionByRow(the_panel->memory_system_, the_row, do_selection, the_panel->y_, the_panel->active_);
+		the_bank = MemSys_SetBankSelectionByRow(the_panel->memory_system_, the_row, do_selection, the_panel->y_, the_panel->active_);	
+		success = (the_bank != NULL);
 	}
 	
 	// is the newly selected file visible? If not, scroll to make it visible
@@ -1423,15 +1436,34 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 		{
 			// row is off the bottom of the screen. 
 			// to make it visible, increase content_top and reflow and re-render panel
+			scroll_needed = true;
 			++the_panel->content_top_;
-			Panel_ReflowContent(the_panel);
-			Panel_RenderContents(the_panel);
+			Text_SetXY(the_panel->x_, UI_VIEW_PANEL_SCROLL_UP_START);
+			zp_y_cnt = UI_VIEW_PANEL_SCROLL_CNT;
+			Text_ScrollTextUp(UI_PANEL_INNER_WIDTH);
+
 		}
 		else if (the_row < content_top)
 		{
+			scroll_needed = true;
 			--the_panel->content_top_;
+			Text_SetXY(the_panel->x_, UI_VIEW_PANEL_SCROLL_DN_START);
+			zp_y_cnt = UI_VIEW_PANEL_SCROLL_CNT;
+			Text_ScrollTextDown(UI_PANEL_INNER_WIDTH);
+		}
+
+		if (scroll_needed == true)
+		{
 			Panel_ReflowContent(the_panel);
-			Panel_RenderContents(the_panel);
+	
+			if (the_panel->for_disk_ == true)
+			{
+				File_Render(the_file, File_IsSelected(the_file), the_panel->y_, the_panel->active_);
+			}
+			else
+			{
+				Bank_Render(the_bank, Bank_IsSelected(the_bank), the_panel->y_, the_panel->active_);
+			}
 		}
 	}
 	

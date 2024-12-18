@@ -446,7 +446,7 @@ void Bank_Render(FMBankObject* the_bank, bool as_selected, int8_t y_offset, bool
 		if (as_selected == true)
 		{
 			Text_SetXY(x1, y);
-			Text_Invert(UI_PANEL_INNER_WIDTH - 2);		
+			Text_Invert(UI_PANEL_INNER_WIDTH);		
 				
 			// show description of the bank in the special status line under the bank panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);

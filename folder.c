@@ -2093,7 +2093,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 
 
 // select or unselect 1 file by row id, and change cur_row_ accordingly
-bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row, bool do_selection, uint8_t y_offset)
+WB2KFileObject* Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row, bool do_selection, uint8_t y_offset)
 {
 	WB2KFileObject*		the_file;
 	WB2KFileObject*		the_prev_selected_file;
@@ -2102,7 +2102,7 @@ bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row
 	
 	if (the_file == NULL)
 	{
-		return false;
+		return NULL;
 	}
 
 
@@ -2157,7 +2157,7 @@ bool Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint16_t the_row
 		}
 	}
 
-	return true;
+	return the_file;
 }	
 
 

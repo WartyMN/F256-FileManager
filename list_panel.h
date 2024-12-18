@@ -38,10 +38,6 @@
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
-// macro values for the Panel_CheckForMouseSelection function parameters
-#define DO_NOT_MARK_AS_SELECTED		0
-#define MARK_AS_SELECTED			1
-
 #define PANEL_LIST_MAX_ROWS			144	// hack... most files we can display. 8bit note: this is IEC max files/dir. FAT32 can do 255 with longnames on
 
 #define PARAM_VIEW_AS_HEX			0	// parameter for Panel_ViewCurrentFile

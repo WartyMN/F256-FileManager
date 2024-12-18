@@ -208,6 +208,20 @@ bool Text_ShiftTextAndAttrRight(uint8_t* working_buffer, uint8_t x, uint8_t y, u
 //! @return	Returns false on any error/invalid input.
 bool Text_ShiftTextAndAttrLeft(uint8_t x, uint8_t y, uint8_t shift_count, uint8_t backfill_char, uint8_t backfill_fore_color, uint8_t backfill_back_color);
 
+//! scrolls all or part of text rows up ONE row.
+//!   row 0 content is lost. row 1 becomes row 0, row 24 becomes row 23, row 24 is cleared.
+//!   call Text_SetXY() first to establish the starting x,y
+//!   set _zp_y_cnt to the number of rows from starting y to include in the scroll
+//! @param	num_cols - the number of characters from starting x to include in the scroll
+void __fastcall__ Text_ScrollTextUp(uint8_t num_cols);
+
+//! scrolls all or part of text rows down ONE row.
+//!   e.g, row 24 is lost. row 23 becomes row 24, row 1 becomes row 0
+//!   call Text_SetXY() first to establish the starting x,y
+//!   set _zp_y_cnt to the number of rows from starting y to include in the scroll
+//! @param	num_cols - the number of characters from starting x to include in the scroll
+void __fastcall__ Text_ScrollTextDown(uint8_t num_cols);
+
 //! scrolls the text and attribute memory up ONE row.
 //!   e.g, row 0 is lost. row 1 becomes row 0, row 49 becomes row 48, row 49 is cleared.
 //! @param	y1 - the first row to scroll up

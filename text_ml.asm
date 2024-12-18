@@ -30,8 +30,8 @@
 ;	.export _Text_ScrollTextRowsDown
 ;	.export _Text_ScrollTextRowsUp
 	.export _Text_SetMemLocForXY
-;	.export _Text_ScrollTextUp
-;	.export _Text_ScrollTextDown
+	.export _Text_ScrollTextUp
+	.export _Text_ScrollTextDown
 	.export _Text_DrawByteAsHexChars
 	
 ;	.export _text_memory_iterate
@@ -500,6 +500,209 @@ calc_done:
 
 .endproc
 
+
+
+
+; ---------------------------------------------------------------
+; void __near__ Text_ScrollTextUp (uint8_t num_cols)
+; ---------------------------------------------------------------
+;//! scrolls a horizontal portion of the text memory up ONE row.
+;//!   e.g, row 0 is lost. row 1 becomes row 0, row 24 becomes row 23.
+;//!   call Text_SetXY() first to establish the starting x,y
+;//!   set _zp_y_cnt to the number of rows from starting y to include in the scroll
+;//! @param	num_cols - the number of characters from starting x to include in the scroll
+
+
+.segment	"CODE"
+
+.proc	_Text_ScrollTextUp: near
+
+.segment	"CODE"
+
+	; requires that zp_x, zp_y, zp_vram_ptr, and zp_y_cnt have all been set prior to calling
+
+	; LOGIC:
+	; _zp_from_ptr will be the row below
+	; _zp_to_ptr will be the row above
+	; both are VRAM locs, so indirection bank will be set to 15 and left there
+	; after one row's worth is copied, adjust subtract 80 from zp_ptr and loop back
+	
+	; common checks - same for scroll up or down	
+	; validate inputs
+	sta _zp_x_cnt	; save num cols parameter
+	cmp #$00		; check that at least 1 char is being scrolled
+	beq @error
+	cmp #(SCREEN_NUM_COLS+1)	; check that # cols is not greater than # of total cols on screen
+	bcs @error
+	
+	lda _zp_y_cnt
+	cmp #$00		; check that text is being scrolled at least 1 row
+	beq @error
+	cmp #SCREEN_NUM_ROWS	; check that # rows is not greater than # of total cols on screen - 1
+	bcs @error
+	
+	lda _zp_x
+	cmp #(SCREEN_LAST_COL+1)	; check that starting x is not past the last col
+	beq @error
+	
+	lda _zp_y
+	cmp #$00		; check that starting y is not first row: we are scrolling up, and so starting at 0 makes no sense
+	beq @error
+	cmp #(SCREEN_LAST_ROW+1)	; check that starting y is not past the last row
+	beq @error
+
+	ldy #$00		; set up for indirect indexing
+	lda #VICKY_IO_PAGE_CHAR_MEM
+	sta MMU_IO_CTRL
+	
+	; set up _zp_from_ptr and _zp_to_ptr from zp_vram_ptr
+	lda _zp_vram_ptr+1
+	sta _zp_from_ptr+1
+	sta _zp_to_ptr+1
+	lda _zp_vram_ptr
+	sta _zp_from_ptr
+	sta _zp_to_ptr
+	; set _zp_to_ptr one row above _zp_from_ptr
+	sec
+	sbc #SCREEN_NUM_COLS
+	sta _zp_to_ptr
+	bcs @loop
+	dec _zp_to_ptr+1
+	
+@loop:
+	lda (_zp_from_ptr),y
+	sta (_zp_to_ptr),y
+	iny
+	cpy _zp_x_cnt
+	bne @loop
+
+@row_done:
+	dec _zp_y_cnt
+	lda _zp_y_cnt
+	cmp #$00
+	beq @done
+
+	ldy #$00	; reset Y to start again at zp_vram_ptr and zp_ptr
+
+	; add one row from both to and from
+	; for to ptr, can just use from ptr loc as it is already what we need to write to
+	lda _zp_from_ptr+1
+	sta _zp_to_ptr+1
+	lda _zp_from_ptr
+	sta _zp_to_ptr
+
+@add_one_row:
+	clc
+	adc #SCREEN_NUM_COLS
+	sta _zp_from_ptr
+	lda _zp_from_ptr+1
+	adc #$00
+	sta _zp_from_ptr+1
+	jmp @loop
+	
+@error:
+@done:
+	rts
+
+.endproc
+
+
+
+
+; ---------------------------------------------------------------
+; void __near__ Text_ScrollTextDown (uint8_t num_cols)
+; ---------------------------------------------------------------
+;//! scrolls a horizontal portion of the text memory down ONE row.
+;//!   e.g, row 24 is lost. row 23 becomes row 24, row 1 becomes row 0
+;//!   call Text_SetXY() first to establish the starting x,y
+;//!   set _zp_y_cnt to the number of rows from starting y to include in the scroll
+;//! @param	num_cols - the number of characters from starting x to include in the scroll
+
+.segment	"CODE"
+
+.proc	_Text_ScrollTextDown: near
+
+.segment	"CODE"
+
+	; requires that zp_x, zp_y, zp_vram_ptr, and zp_y_cnt have all been set prior to calling
+
+	; LOGIC:
+	; _zp_from_ptr will be the row above
+	; _zp_to_ptr will be the row below
+	; both are VRAM locs, so indirection bank will be set to 15 and left there
+	; after one row's worth is copied, adjust subtract 80 from zp_ptr and loop back
+	
+	; common checks - same for scroll up or down	
+	; validate inputs
+	sta _zp_x_cnt	; save num cols parameter
+	cmp #$00		; check that at least 1 char is being scrolled
+	beq @error
+	cmp #(SCREEN_NUM_COLS+1)	; check that # cols is not greater than # of total cols on screen
+	bcs @error
+	
+	lda _zp_y_cnt
+	cmp #$00		; check that text is being scrolled at least 1 row
+	beq @error
+	cmp #SCREEN_NUM_ROWS	; check that # rows is not greater than # of total cols on screen - 1
+	bcs @error
+	
+	lda _zp_x
+	cmp #(SCREEN_LAST_COL+1)	; check that starting x is not past the last col
+	beq @error
+	
+	lda _zp_y
+	cmp #SCREEN_LAST_ROW		; check that starting y is not the last row: we are scrolling down, and so starting at 24 (or higher) makes no sense
+	bcs @error
+	
+	ldy #$00		; set up for indirect indexing
+	lda #VICKY_IO_PAGE_CHAR_MEM
+	sta MMU_IO_CTRL
+	
+	; set up _zp_from_ptr and _zp_to_ptr from zp_vram_ptr
+	lda _zp_vram_ptr+1
+	sta _zp_from_ptr+1
+	sta _zp_to_ptr+1
+	lda _zp_vram_ptr
+	sta _zp_from_ptr
+	sta _zp_to_ptr
+	; set _zp_from_ptr one row above _zp_to_ptr
+@subtract_one_row:
+	sec
+	sbc #SCREEN_NUM_COLS
+	sta _zp_from_ptr
+	bcs @loop
+	dec _zp_from_ptr+1
+	
+@loop:
+	lda (_zp_from_ptr),y
+	sta (_zp_to_ptr),y
+	iny
+	cpy _zp_x_cnt
+	bne @loop
+
+@row_done:
+	dec _zp_y_cnt
+	lda _zp_y_cnt
+	cmp #$00
+	beq @done
+
+	ldy #$00	; reset Y to start again at zp_vram_ptr and zp_ptr
+
+	; subtract one row from both to and from
+	; for to ptr, can just use from ptr loc as it is already what we need to write to
+	lda _zp_from_ptr+1
+	sta _zp_to_ptr+1
+	lda _zp_from_ptr
+	sta _zp_to_ptr
+
+	jmp @subtract_one_row
+	
+@error:
+@done:
+	cli				; allow interrupts again
+	rts
+
+.endproc
 
 
 
