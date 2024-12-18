@@ -51,6 +51,10 @@
 #define	CH_LINE_BREAK	10
 #define	CH_LINE_RETURN	13
 
+#define HEX_DISPLAY_NUM_CHARS_PER_ROW		16	// we can fit 16 chars across, and have space for hex addr and text view
+#define HEX_DISPLAY_NUM_ROWS				59	// we use one row for title/instructions
+#define HEX_DISPLAY_MAX_CHARS_PER_SCREEN	(HEX_DISPLAY_NUM_CHARS_PER_ROW * HEX_DISPLAY_NUM_ROWS)
+#
 
 /*****************************************************************************/
 /*                           File-scope Variables                            */
@@ -484,6 +488,7 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 
 	uint8_t		user_input;
 	uint8_t		rows_displayed_this_chunk;
+	uint8_t		n;
 	uint8_t		i = 0;
 	uint8_t		y = 0;
 	uint32_t	loc_in_file = 0x0000;	// will track the location within the file, so we can show to users on left side. 
@@ -527,18 +532,38 @@ void EM_DisplayAsHex(uint8_t em_bank_num, uint8_t num_pages, char* the_name)
 			}
 			
 			// address display at left
-			sprintf(global_string_buff1, "%06lX: ", loc_in_file);
-			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+			Text_SetXY(1,y);
+			Text_SetChar('$');
+			Text_DrawByteAsHexChars( (uint8_t) ((loc_in_file >> 16 ) & 0xff));
+			Text_DrawByteAsHexChars( (uint8_t) ((loc_in_file >> 8 ) & 0xff));
+			Text_DrawByteAsHexChars( (uint8_t) (loc_in_file & 0xff));
+			Text_SetXY(11,y);
+// 			sprintf(global_string_buff1, "%06lX: ", loc_in_file);
+// 			Text_DrawStringAtXY(0, y, global_string_buff1, FILE_CONTENTS_ACCENT_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
 		
 			// main hex display in middle
-			sprintf(global_string_buff1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
-				buffer_curr_loc[0], buffer_curr_loc[1], buffer_curr_loc[2], buffer_curr_loc[3], buffer_curr_loc[4], buffer_curr_loc[5], buffer_curr_loc[6], buffer_curr_loc[7], 
-				buffer_curr_loc[8], buffer_curr_loc[9], buffer_curr_loc[10], buffer_curr_loc[11], buffer_curr_loc[12], buffer_curr_loc[13], buffer_curr_loc[14], buffer_curr_loc[15]);
-			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff1, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
-
+			for (n=0; n < HEX_DISPLAY_NUM_CHARS_PER_ROW; n++)
+			{
+				Text_DrawByteAsHexChars(buffer_curr_loc[n]);
+				Text_SetChar(CH_SPACE);
+			}
+			
 			// 'text' display at right
-			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
-			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)buffer_curr_loc, MEM_DUMP_BYTES_PER_ROW);
+			Text_SetChar(CH_SPACE);
+			Text_SetChar(CH_SPACE);
+			
+			for (n=0; n < HEX_DISPLAY_NUM_CHARS_PER_ROW; n++)
+			{
+				Text_SetChar(buffer_curr_loc[n]);
+			}
+// 			sprintf(global_string_buff1, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x  ", 
+// 				buffer_curr_loc[0], buffer_curr_loc[1], buffer_curr_loc[2], buffer_curr_loc[3], buffer_curr_loc[4], buffer_curr_loc[5], buffer_curr_loc[6], buffer_curr_loc[7], 
+// 				buffer_curr_loc[8], buffer_curr_loc[9], buffer_curr_loc[10], buffer_curr_loc[11], buffer_curr_loc[12], buffer_curr_loc[13], buffer_curr_loc[14], buffer_curr_loc[15]);
+// 			Text_DrawStringAtXY(MEM_DUMP_START_X_FOR_HEX, y, global_string_buff1, FILE_CONTENTS_FOREGROUND_COLOR, FILE_CONTENTS_BACKGROUND_COLOR);
+
+// 			// 'text' display at right
+// 			// render chars with char draw function to avoid problem of 0s getting treated as nulls in sprintf
+// 			Text_DrawCharsAtXY(MEM_DUMP_START_X_FOR_CHAR, y, (uint8_t*)buffer_curr_loc, MEM_DUMP_BYTES_PER_ROW);
 		
 			loc_in_file += MEM_DUMP_BYTES_PER_ROW;
 			buffer_curr_loc += MEM_DUMP_BYTES_PER_ROW;

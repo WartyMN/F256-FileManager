@@ -39,6 +39,10 @@
 /*                               Definitions                                 */
 /*****************************************************************************/
 
+// hide __fastcall_ from everything but CC65 (to squash some warnings in LSP/BBEdit)
+#ifndef __CC65__
+	#define __fastcall__ 
+#endif
 
 
 /*****************************************************************************/
@@ -51,9 +55,6 @@
 /*                          File-scoped Variables                            */
 /*****************************************************************************/
 
-static uint8_t		text_x;
-static uint8_t		text_y;
-static uint8_t*		text_char_addr;
 
 /*****************************************************************************/
 /*                             Global Variables                              */
@@ -61,10 +62,29 @@ static uint8_t*		text_char_addr;
 
 extern System*			global_system;
 
+extern uint8_t*		zp_ptr;
+extern uint8_t*		zp_vram_ptr;
+extern uint16_t		zp_len;
+extern uint8_t		zp_x;
+extern uint8_t		zp_y;
+extern uint8_t		zp_char;
+
+#pragma zpsym ("zp_ptr");
+#pragma zpsym ("zp_vram_ptr");
+#pragma zpsym ("zp_len");
+#pragma zpsym ("zp_x");
+#pragma zpsym ("zp_y");
+#pragma zpsym ("zp_char");
+
 
 /*****************************************************************************/
 /*                       Private Function Prototypes                         */
 /*****************************************************************************/
+
+// (in text_ml.asm)
+//! Calculate the VRAM location of the specified coordinate, update VICKY cursor pos
+//!  Set zp_x, zp_y before calling
+void __fastcall__ Text_SetMemLocForXY(void);
 
 //! Validate the coordinates are within the bounds of the specified screen. 
 //! @param	x - the horizontal position to validate. Must be between 0 and the screen's text_cols_vis_ - 1
@@ -162,11 +182,11 @@ bool Text_FillMemoryBoxBoth(uint8_t x, uint8_t y, uint8_t width, uint8_t height,
 	for (; y <= max_row; y++)
 	{
 		Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-		memset(text_char_addr, the_attribute_value, width);
+		memset(zp_vram_ptr, the_attribute_value, width);
 		Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-		memset(text_char_addr, the_char, width);
+		memset(zp_vram_ptr, the_char, width);
 
-		text_char_addr += SCREEN_NUM_COLS;
+		zp_vram_ptr += SCREEN_NUM_COLS;
 	}
 
 	Sys_RestoreIOPage();
@@ -211,8 +231,8 @@ bool Text_FillMemoryBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height, boo
 	
 	for (; y <= max_row; y++)
 	{
-		memset(text_char_addr, the_fill, width);
-		text_char_addr += SCREEN_NUM_COLS;
+		memset(zp_vram_ptr, the_fill, width);
+		zp_vram_ptr += SCREEN_NUM_COLS;
 	}
 		
 	Sys_RestoreIOPage();
@@ -601,7 +621,7 @@ bool Text_CopyMemBoxLinearBuffer(uint8_t* the_buffer, uint8_t x1, uint8_t y1, ui
 	}
 
 	// set up initial loc
-	orig_vram_loc = text_char_addr;
+	orig_vram_loc = zp_vram_ptr;
 	Text_SetXY(x1,y1);
 
 	// LOGIC: 
@@ -628,21 +648,21 @@ bool Text_CopyMemBoxLinearBuffer(uint8_t* the_buffer, uint8_t x1, uint8_t y1, ui
 	{
 		if (to_screen)
 		{
-			memcpy(text_char_addr, the_buffer_loc, the_write_len);
+			memcpy(zp_vram_ptr, the_buffer_loc, the_write_len);
 		}
 		else
 		{
-			memcpy(the_buffer_loc, text_char_addr, the_write_len);
+			memcpy(the_buffer_loc, zp_vram_ptr, the_write_len);
 		}
 
 		the_buffer_loc += the_write_len;
-		text_char_addr += SCREEN_NUM_COLS;
+		zp_vram_ptr += SCREEN_NUM_COLS;
 	}
 		
 	Sys_RestoreIOPage();
 
 	// restore screen addr
-	text_char_addr = orig_vram_loc;
+	zp_vram_ptr = orig_vram_loc;
 
 	return true;
 }
@@ -820,55 +840,55 @@ bool Text_FillBoxAttrOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_
 }
 
 
-//! Invert the colors of a rectangular block.
-//! As this requires sampling each character cell, it is no faster (per cell) to do for entire screen as opposed to a subset box
-//! @param	x1 - the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y1 - the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	x2 - the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y2 - the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @return	Returns false on any error/invalid input.
-bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
-{
-	uint8_t			the_attribute_value;
-	uint8_t			the_inversed_value;
-	uint8_t			the_col;
-	uint8_t			skip_len;
-	uint8_t			back_nibble;
-	uint8_t			fore_nibble;
-	uint8_t*		the_write_loc;
-	
-	// get initial read/write loc
-	Text_SetXY(x1,y1);
-	the_write_loc = text_char_addr;
-	
-	// amount of cells to skip past once we have written the specified line len
-	skip_len = SCREEN_NUM_COLS - (x2 - x1) - 1;
-
-	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-	
-	for (; y1 <= y2; y1++)
-	{
-		for (the_col = x1; the_col <= x2; the_col++)
-		{
-			the_attribute_value = R8(the_write_loc);
-			
-			// LOGIC: text mode only supports 16 colors. lower 4 bits are back, upper 4 bits are foreground
-			back_nibble = ((the_attribute_value & 0xF0) >> 4);
-			fore_nibble = ((the_attribute_value & 0x0F) << 4);
-			the_inversed_value = (fore_nibble | back_nibble);
-			
-			*the_write_loc++ = the_inversed_value;
-		}
-
-		the_write_loc += skip_len;
-	}
-		
-	Sys_RestoreIOPage();
-	
-	// note: for this function, we will not update the next write VRAM address to the point after the lower right corner.
-
-	return true;
-}
+// //! Invert the colors of a rectangular block.
+// //! As this requires sampling each character cell, it is no faster (per cell) to do for entire screen as opposed to a subset box
+// //! @param	x1 - the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y1 - the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	x2 - the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y2 - the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @return	Returns false on any error/invalid input.
+// bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
+// {
+// 	uint8_t			the_attribute_value;
+// 	uint8_t			the_inversed_value;
+// 	uint8_t			the_col;
+// 	uint8_t			skip_len;
+// 	uint8_t			back_nibble;
+// 	uint8_t			fore_nibble;
+// 	uint8_t*		the_write_loc;
+// 	
+// 	// get initial read/write loc
+// 	Text_SetXY(x1,y1);
+// 	the_write_loc = zp_vram_ptr;
+// 	
+// 	// amount of cells to skip past once we have written the specified line len
+// 	skip_len = SCREEN_NUM_COLS - (x2 - x1) - 1;
+// 
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
+// 	
+// 	for (; y1 <= y2; y1++)
+// 	{
+// 		for (the_col = x1; the_col <= x2; the_col++)
+// 		{
+// 			the_attribute_value = R8(the_write_loc);
+// 			
+// 			// LOGIC: text mode only supports 16 colors. lower 4 bits are back, upper 4 bits are foreground
+// 			back_nibble = ((the_attribute_value & 0xF0) >> 4);
+// 			fore_nibble = ((the_attribute_value & 0x0F) << 4);
+// 			the_inversed_value = (fore_nibble | back_nibble);
+// 			
+// 			*the_write_loc++ = the_inversed_value;
+// 		}
+// 
+// 		the_write_loc += skip_len;
+// 	}
+// 		
+// 	Sys_RestoreIOPage();
+// 	
+// 	// note: for this function, we will not update the next write VRAM address to the point after the lower right corner.
+// 
+// 	return true;
+// }
 
 
 
@@ -882,27 +902,31 @@ bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
 //! @param	y - the vertical position, between 0 and the screen's text_rows_vis_ - 1
 void Text_SetXY(uint8_t x, uint8_t y)
 {
-	uint16_t	initial_offset;
-	
-	// LOGIC:
-	//   For plotting the VRAM, VICKY uses the full width, regardless of borders. 
-	//   So even if only 72 are showing, the screen is arranged from 0-71 for row 1, then 80-151 for row 2, etc. 
-	//   For F256K/JR non-flat memory loads, char ram and attr ram are at same address, and only difference is which I/O bank is being used
-	//   For F256K/JR/K2 with flat memory loads, char and ram are at different addresses
-	//   the file-scoped current x/y are always set when this function is called, regardless if for attr or char
-	//   the file-scoped current memory address is also always set, but only ever points to the char memory, not attr memory. 
-	
-	initial_offset = (SCREEN_NUM_COLS * y) + x;
-	
-	// save the new current address, x, y position, and also tell VICKY where the cursor should be
-	text_char_addr = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
-	text_x = x;
-	text_y = y;
+// 	uint16_t	initial_offset;
+// 	
+// 	// LOGIC:
+// 	//   For plotting the VRAM, VICKY uses the full width, regardless of borders. 
+// 	//   So even if only 72 are showing, the screen is arranged from 0-71 for row 1, then 80-151 for row 2, etc. 
+// 	//   For F256K/JR non-flat memory loads, char ram and attr ram are at same address, and only difference is which I/O bank is being used
+// 	//   For F256K/JR/K2 with flat memory loads, char and ram are at different addresses
+// 	//   the file-scoped current x/y are always set when this function is called, regardless if for attr or char
+// 	//   the file-scoped current memory address is also always set, but only ever points to the char memory, not attr memory. 
+// 	
+// 	initial_offset = (SCREEN_NUM_COLS * y) + x;
+// 	
+// 	// save the new current address, x, y position, and also tell VICKY where the cursor should be
+// 	zp_vram_ptr = (uint8_t*)SCREEN_TEXT_MEMORY_LOC + initial_offset;
+// 	zp_x = x;
+// 	zp_y = y;
+// 
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 	R8(VICKY_TEXT_X_POS) = zp_x;
+// 	R8(VICKY_TEXT_Y_POS) = zp_y;
+// 	Sys_RestoreIOPage();
 
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	R8(VICKY_TEXT_X_POS) = text_x;
-	R8(VICKY_TEXT_Y_POS) = text_y;
-	Sys_RestoreIOPage();
+	zp_x = x;
+	zp_y = y;
+	Text_SetMemLocForXY();
 }
 
 
@@ -910,7 +934,7 @@ void Text_SetXY(uint8_t x, uint8_t y)
 //! @return	the horizontal position, between 0 and the screen's text_cols_vis_ - 1
 uint8_t Text_GetX(void)
 {
-	return text_x;
+	return zp_x;
 }
 
 
@@ -918,13 +942,13 @@ uint8_t Text_GetX(void)
 //! @return	the vertical position, between 0 and the screen's text_rows_vis_ - 1
 uint8_t Text_GetY(void)
 {
-	return text_y;
+	return zp_y;
 }
 
 
 // **** Set char/attr functions *****
 
-// NOTE: all functions from here lower that pass an x/y will update the text_x/text_y parameters.
+// NOTE: all functions from here lower that pass an x/y will update the zp_x/zp_y parameters.
 
 //! Set a char at a specified x, y coord
 //! @param	x - the horizontal position, between 0 and the screen's text_cols_vis_ - 1
@@ -998,8 +1022,8 @@ bool Text_SetCharAndAttrAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t the
 	*the_write_loc = the_char;
 	Sys_RestoreIOPage();
 
-	text_x = x;
-	text_y = y;
+	zp_x = x;
+	zp_y = y;
 	
 	return true;
 }
@@ -1024,45 +1048,44 @@ bool Text_SetCharAndColorAtXY(uint8_t x, uint8_t y, uint8_t the_char, uint8_t fo
 }
 
 
-// copy n-bytes into display memory, at the X/Y position specified
-bool Text_DrawCharsAtXY(uint8_t x, uint8_t y, uint8_t* the_buffer, uint16_t the_len)
+//! Copy n-bytes into display memory, at the X/Y position specified
+void Text_DrawCharsAtXY(uint8_t x, uint8_t y, uint8_t* the_buffer, uint16_t the_len)
 {
 	Text_SetXY(x, y);
-	Text_DrawChars(the_buffer, the_len);
-
-	return true;
+	zp_ptr = the_buffer;
+	Text_DrawChars(the_len);
 }
 
 
-//! Set a char at the current X/Y position, and advance cursor position by 1
-//! @param	the_char - the character to be used
-//! @return	Returns false on any error/invalid input.
-bool Text_SetChar(uint8_t the_char)
-{
-	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	*text_char_addr = the_char;
-	Sys_RestoreIOPage();
-
-	text_char_addr++;
-	text_x++;
-	
-	// bounds check. would be nicer to JSR to this but that's expensive in C, so just copying this everywhere...
-	
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-
-	if (text_x > SCREEN_LAST_COL && text_y < SCREEN_LAST_ROW)
-	{
-		text_x = 0;
-		text_y++;
-		R8(VICKY_TEXT_Y_POS) = text_y;
-	}
-	
-	R8(VICKY_TEXT_X_POS) = text_x;
-
-	Sys_RestoreIOPage();
-		
-	return true;
-}
+// //! Set a char at the current X/Y position, and advance cursor position by 1
+// //! @param	the_char - the character to be used
+// //! @return	Returns false on any error/invalid input.
+// bool Text_SetCharC(uint8_t the_char)
+// {
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
+// 	*zp_vram_ptr = the_char;
+// 	Sys_RestoreIOPage();
+// 
+// 	zp_vram_ptr++;
+// 	zp_x++;
+// 	
+// 	// bounds check. would be nicer to JSR to this but that's expensive in C, so just copying this everywhere...
+// 	
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 
+// 	if (zp_x > SCREEN_LAST_COL && zp_y < SCREEN_LAST_ROW)
+// 	{
+// 		zp_x = 0;
+// 		zp_y++;
+// 		R8(VICKY_TEXT_Y_POS) = zp_y;
+// 	}
+// 	
+// 	R8(VICKY_TEXT_X_POS) = zp_x;
+// 
+// 	Sys_RestoreIOPage();
+// 		
+// 	return true;
+// }
 
 
 //! Set the attribute value at the current X/Y position, and advance cursor position by 1
@@ -1071,23 +1094,23 @@ bool Text_SetChar(uint8_t the_char)
 bool Text_SetAttr(uint8_t the_attribute_value)
 {
 	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-	*text_char_addr = the_attribute_value;
+	*zp_vram_ptr = the_attribute_value;
 	Sys_RestoreIOPage();
 
-	text_char_addr++;
-	text_x++;
+	zp_vram_ptr++;
+	zp_x++;
 	
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
 
 	// bounds check. would be nicer to JSR to this but that's expensive in C, so just copying this everywhere...
-	if (text_x > SCREEN_LAST_COL && text_y < SCREEN_LAST_ROW)
+	if (zp_x > SCREEN_LAST_COL && zp_y < SCREEN_LAST_ROW)
 	{
-		text_x = 0;
-		text_y++;
-		R8(VICKY_TEXT_Y_POS) = text_y;
+		zp_x = 0;
+		zp_y++;
+		R8(VICKY_TEXT_Y_POS) = zp_y;
 	}
 	
-	R8(VICKY_TEXT_X_POS) = text_x;
+	R8(VICKY_TEXT_X_POS) = zp_x;
 
 	Sys_RestoreIOPage();
 	
@@ -1125,28 +1148,28 @@ bool Text_SetCharAndColor(uint8_t the_char, uint8_t fore_color, uint8_t back_col
 	the_attribute_value = ((fore_color << 4) | back_color);
 
 	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-	*text_char_addr = the_attribute_value;
+	*zp_vram_ptr = the_attribute_value;
 	Sys_RestoreIOPage();
 
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	*text_char_addr = the_char;
+	*zp_vram_ptr = the_char;
 	Sys_RestoreIOPage();
 
-	text_char_addr++;
-	text_x++;
+	zp_vram_ptr++;
+	zp_x++;
 	
 	// bounds check. would be nicer to JSR to this but that's expensive in C, so just copying this everywhere...
 	
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
 
-	if (text_x > SCREEN_LAST_COL && text_y < SCREEN_LAST_ROW)
+	if (zp_x > SCREEN_LAST_COL && zp_y < SCREEN_LAST_ROW)
 	{
-		text_x = 0;
-		text_y++;
-		R8(VICKY_TEXT_Y_POS) = text_y;
+		zp_x = 0;
+		zp_y++;
+		R8(VICKY_TEXT_Y_POS) = zp_y;
 	}
 	
-	R8(VICKY_TEXT_X_POS) = text_x;
+	R8(VICKY_TEXT_X_POS) = zp_x;
 
 	Sys_RestoreIOPage();
 	
@@ -1154,25 +1177,25 @@ bool Text_SetCharAndColor(uint8_t the_char, uint8_t fore_color, uint8_t back_col
 }
 
 
-// copy n-bytes into display memory, at the current X/Y position
-bool Text_DrawChars(uint8_t* the_buffer, uint16_t the_len)
-{
-	// draw the string
-	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	memcpy(text_char_addr, the_buffer, the_len);
-	Sys_RestoreIOPage();
-
-	text_y = text_y + (uint8_t)(the_len / SCREEN_NUM_COLS);
-	text_x = text_x + (uint8_t)(the_len - ((the_len / SCREEN_NUM_COLS) * SCREEN_NUM_COLS));
-	text_char_addr += the_len;
-	
-	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
-	R8(VICKY_TEXT_X_POS) = text_x;
-	R8(VICKY_TEXT_Y_POS) = text_y;
-	Sys_RestoreIOPage();
-
-	return true;
-}
+// // copy n-bytes into display memory, at the current X/Y position
+// bool Text_DrawCharsOLD(uint8_t* the_buffer, uint16_t the_len)
+// {
+// 	// draw the string
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
+// 	memcpy(zp_vram_ptr, the_buffer, the_len);
+// 	Sys_RestoreIOPage();
+// 
+// 	zp_y = zp_y + (uint8_t)(the_len / SCREEN_NUM_COLS);
+// 	zp_x = zp_x + (uint8_t)(the_len - ((the_len / SCREEN_NUM_COLS) * SCREEN_NUM_COLS));
+// 	zp_vram_ptr += the_len;
+// 	
+// 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
+// 	R8(VICKY_TEXT_X_POS) = zp_x;
+// 	R8(VICKY_TEXT_Y_POS) = zp_y;
+// 	Sys_RestoreIOPage();
+// 
+// 	return true;
+// }
 
 
 
@@ -1219,7 +1242,7 @@ bool Text_UpdateFontData(char* new_font_data, bool for_primary_font)
 uint8_t Text_GetChar(void)
 {
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *text_char_addr;
+	return *zp_vram_ptr;
 	Sys_RestoreIOPage();
 }
 
@@ -1233,7 +1256,7 @@ uint8_t Text_GetChar(void)
 uint8_t Text_GetPrevChar(void)
 {
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *(text_char_addr - 1);
+	return *(zp_vram_ptr - 1);
 	Sys_RestoreIOPage();
 }
 
@@ -1247,7 +1270,7 @@ uint8_t Text_GetPrevChar(void)
 uint8_t Text_GetNextChar(void)
 {
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *(text_char_addr + 1);
+	return *(zp_vram_ptr + 1);
 	Sys_RestoreIOPage();
 }
 
@@ -1269,13 +1292,13 @@ uint8_t Text_GetCharAtXY(uint8_t x, uint8_t y)
 	// LOGIC:
 	//   stash previous x, y so we can restore it afterwards. we don't want GET functions to change current x,y info.
 	
-	tempx = text_x;
-	tempy = text_y;
+	tempx = zp_x;
+	tempy = zp_y;
 	
 	Text_SetXY(x, y);
 
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	the_char = *text_char_addr;
+	the_char = *zp_vram_ptr;
 	Sys_RestoreIOPage();
 
 	Text_SetXY(tempx, tempy);
@@ -1402,20 +1425,20 @@ void Text_DrawBoxCoordsFancy(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uin
 	Text_SetCharAndColorAtXY(x1, y2, SC_LLCORNER, fore_color, back_color);		
 
 	// move cursor one past bottom,right corner of box
-	text_x++;
+	zp_x++;
 	
 	// bounds check. would be nicer to JSR to this but that's expensive in C, so just copying this everywhere...
 	
 	Sys_SwapIOPage(VICKY_IO_PAGE_REGISTERS);
 
-	if (text_x > SCREEN_LAST_COL && text_y < SCREEN_LAST_ROW)
+	if (zp_x > SCREEN_LAST_COL && zp_y < SCREEN_LAST_ROW)
 	{
-		text_x = 0;
-		text_y++;
-		R8(VICKY_TEXT_Y_POS) = text_y;
+		zp_x = 0;
+		zp_y++;
+		R8(VICKY_TEXT_Y_POS) = zp_y;
 	}
 	
-	R8(VICKY_TEXT_X_POS) = text_x;
+	R8(VICKY_TEXT_X_POS) = zp_x;
 
 	Sys_RestoreIOPage();
 }
@@ -1463,9 +1486,9 @@ bool Text_DrawString(char* the_string, uint8_t fore_color, uint8_t back_color)
 	the_len = (uint8_t)strlen(the_string); // can't be wider than the screen anyway
 	max_col = SCREEN_NUM_COLS - 1;
 	
-	if (text_x + the_len > max_col)
+	if (zp_x + the_len > max_col)
 	{
-		the_len = (max_col - text_x) + 1;
+		the_len = (max_col - zp_x) + 1;
 	}
 	
 	//DEBUG_OUT(("%s %d: draw_len=%i, max_col=%i, x=%i", __func__, __LINE__, draw_len, max_col, x));
@@ -1476,16 +1499,16 @@ bool Text_DrawString(char* the_string, uint8_t fore_color, uint8_t back_color)
 	
 	// draw the string
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	memcpy(text_char_addr, the_string, the_len);
+	memcpy(zp_vram_ptr, the_string, the_len);
 	Sys_RestoreIOPage();
 	
 	// draw the attributes
 	Sys_SwapIOPage(VICKY_IO_PAGE_ATTR_MEM);
-	memset(text_char_addr, the_attribute_value, the_len);
+	memset(zp_vram_ptr, the_attribute_value, the_len);
 	Sys_RestoreIOPage();
 
 	// set x,y to end of string+1
-	Text_SetXY(text_x + (the_len - ((the_len / SCREEN_NUM_COLS) * SCREEN_NUM_COLS)), text_y + (the_len / SCREEN_NUM_COLS));
+	Text_SetXY(zp_x + (the_len - ((the_len / SCREEN_NUM_COLS) * SCREEN_NUM_COLS)), zp_y + (the_len / SCREEN_NUM_COLS));
 	
 	return true;
 }

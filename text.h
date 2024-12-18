@@ -299,14 +299,20 @@ bool Text_FillBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t the_ch
 //! @return	Returns false on any error/invalid input.
 bool Text_FillBoxAttrOnly(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fore_color, uint8_t back_color);
 
-//! Invert the colors of a rectangular block.
-//! As this requires sampling each character cell, it is no faster (per cell) to do for entire screen as opposed to a subset box
-//! @param	x1 - the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y1 - the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @param	x2 - the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
-//! @param	y2 - the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
-//! @return	Returns false on any error/invalid input.
-bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+// //! Invert the colors of a rectangular block.
+// //! As this requires sampling each character cell, it is no faster (per cell) to do for entire screen as opposed to a subset box
+// //! @param	x1 - the leftmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y1 - the uppermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @param	x2 - the rightmost horizontal position, between 0 and the screen's text_cols_vis_ - 1
+// //! @param	y2 - the lowermost vertical position, between 0 and the screen's text_rows_vis_ - 1
+// //! @return	Returns false on any error/invalid input.
+// bool Text_InvertBox(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+
+//! Invert the colors of a linear run of text starting at the current x,y position
+//!  call Text_SetXY() prior to calling
+//! this function leaves x, y, and vram ptr at the initial position, not the final position
+//! @param	the_length - the number of character positions that should be inverted, starting from the current x,y position.
+void __fastcall__ Text_Invert(int the_length);
 
 
 
@@ -412,10 +418,21 @@ bool Text_SetColor(uint8_t fore_color, uint8_t back_color);
 bool Text_SetCharAndColor(uint8_t the_char, uint8_t fore_color, uint8_t back_color);
 
 // copy n-bytes into display memory, at the X/Y position specified
-bool Text_DrawCharsAtXY(uint8_t x, uint8_t y, uint8_t* the_buffer, uint16_t the_len);
+void Text_DrawCharsAtXY(uint8_t x, uint8_t y, uint8_t* the_buffer, uint16_t the_len);
 
-// copy n-bytes into display memory, at the current X/Y position
-bool Text_DrawChars(uint8_t* the_buffer, uint16_t the_len);
+// // copy n-bytes into display memory, at the current X/Y position
+// bool Text_DrawCharsOLD(uint8_t* the_buffer, uint16_t the_len);
+
+//! Copy n-bytes into display memory, at the current X/Y position
+//! call Text_SetXY() prior to calling
+//! set zp_ptr to the buffer address prior to calling
+//! @param	the_length - the number of characters to be drawn
+void __fastcall__ Text_DrawChars(int the_length);
+
+//! draws the byte passed as 2 hex characters, at the current X,y pos
+//!   call Text_SetXY() first to establish the starting x,y
+//! @param	the_byte - the 8-bit number to be converted to hex and written to screen as 2 hex chars
+void __fastcall__ Text_DrawByteAsHexChars (uint8_t the_byte);
 
 
 // **** Get char/attr functions *****

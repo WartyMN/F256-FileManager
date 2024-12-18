@@ -107,12 +107,13 @@ ca65 -t $CC65TGT kernel.s -o kernel.o
 # name 'header'
 #ca65 -t $CC65TGT ../name.s -o name.o
 ca65 -t $CC65TGT ../memory.asm -o memory.o
+ca65 -t $CC65TGT ../text_ml.asm -o text_ml.o
 
 
 echo "\n**************************\nLD65 link start...\n**************************\n"
 
 # link files into an executable
-ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o bank.o comm_buffer.o debug.o file.o folder.o general.o keyboard.o list.o list_panel.o memory.o memsys.o overlay_em.o overlay_startup.o screen.o sys.o text.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
+ld65 -C $CONFIG_DIR/$OVERLAY_CONFIG -o fmanager.rom kernel.o app.o bank.o comm_buffer.o debug.o file.o folder.o general.o keyboard.o list.o list_panel.o memory.o memsys.o overlay_em.o overlay_startup.o screen.o sys.o text.o text_ml.o $CC65LIB -m fmanager_$CC65TGT.map -Ln labels.lbl
 # $PROJECT/cc65/lib/common.lib
 
 #noTE: 2024-02-12: removed name.o as it was incompatible with the lichking-style memory map I want to use to get more memory

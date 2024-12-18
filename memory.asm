@@ -30,9 +30,6 @@
 	.exportzp	_zp_to_addr
 	.exportzp	_zp_from_addr
 	.exportzp	_zp_copy_len
-;	.exportzp	_zp_x
-;	.exportzp	_zp_y
-;	.exportzp	_zp_screen_id
 	.exportzp	_zp_phys_addr_lo
 	.exportzp	_zp_phys_addr_med
 	.exportzp	_zp_phys_addr_hi
@@ -43,6 +40,7 @@
 	.exportzp	_zp_search_loc_bank
 	.exportzp	_zp_temp_1
 	.exportzp	_zp_other_byte
+	.exportzp	_zp_old_io_page
 
 	.exportzp	_global_string_buffer
 	.exportzp	_global_string_buffer2
@@ -66,9 +64,9 @@ DMA_COUNT = $DF0C		; Number of bytes to fill or copy
 
 
 
-.segment "ZEROPAGE_LK" : zeropage
+.segment "ZEROPAGE" : zeropage
 
-; -- ZErOPAGE_LK starts at $10
+; -- ZEROPAGE starts at $10
 
 _zp_bank_slot:			.res 1	; $10
 _zp_bank_num:			.res 1
@@ -87,9 +85,6 @@ _zp_search_loc_bank:	.res 1
 _zp_temp_1:				.res 1
 _zp_other_byte:			.res 1
 _zp_old_io_page:		.res 1	;-- $26
-;_zp_x:					.res 1
-;_zp_y:					.res 1
-;_zp_screen_id:			.res 1
 
 _global_string_buffer:			.res 2;
 _global_string_buffer2:			.res 2;

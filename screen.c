@@ -164,7 +164,8 @@ void Screen_DrawUI(void)
 	Text_CopyMemBoxLinearBuffer((uint8_t*)&screen_titlebar, 0, 0, 79, 2, PARAM_COPY_TO_SCREEN, PARAM_FOR_TEXT_CHAR);
 	Text_FillBoxAttrOnly(0, 0, 79, 0, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
 	Text_FillBoxAttrOnly(0, 2, 79, 2, APP_ACCENT_COLOR, APP_BACKGROUND_COLOR);
-	Text_InvertBox(48, 1, 54, 1);	// right-hand side vertical bars need to be inversed to grow from thin to fat
+	Text_SetXY(48,1);
+	Text_Invert(6);	// right-hand side vertical bars need to be inversed to grow from thin to fat
 
 
 	// draw panels
