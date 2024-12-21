@@ -98,7 +98,7 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 	FILE*		the_target_handle;
 	uint8_t*	the_buffer = (uint8_t*)STORAGE_FILE_BUFFER_1;
 	int16_t		bytes_read = 0;
-	int16_t		total_bytes_read = 0;
+	int32_t		total_bytes_read = 0;
 	uint32_t	percent_read = 0;
 	bool		keep_going = true;
 	
@@ -155,7 +155,7 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 			}
 
 			fwrite(the_buffer, 1, bytes_read, the_target_handle);
-			total_bytes_read += bytes_read;
+			total_bytes_read += (uint32_t)bytes_read;
 			
 			percent_read = (uint32_t)total_bytes_read;	// REALLY don't want to do math with signed ints
 			percent_read = (percent_read * 100) / (uint32_t)expected_bytes;
@@ -891,6 +891,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	uint8_t				meatloaf_slash_cnt = 0;			// used to parse the INFO file row and tell if we're on root or not.
 	uint8_t				i;
 	uint8_t				filename_len;
+	uint32_t			calc_file_size;
 	char*				this_file_name;
 	struct DIR*			dir;
 	struct dirent*		dirent;
@@ -1211,7 +1212,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 					}
 					else
 					{
-						this_file = File_New(this_file_name, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
+						calc_file_size = (uint32_t)the_block_size * (uint32_t)dirent->d_blocks;
+						this_file = File_New(this_file_name, PARAM_FILE_IS_NOT_FOLDER, calc_file_size, _CBM_T_REG, file_cnt, &this_datetime);
 			
 						if (this_file == NULL)
 						{
