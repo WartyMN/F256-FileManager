@@ -789,7 +789,14 @@ char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* star
 	
 	// adjust dialog width temporarily, if necessary and possible
 	orig_dialog_width = global_dlg.width_;
-	temp_dialog_width = General_Strnlen(starter_string,  max_len) + 2; // +2 is for box draw chars
+	temp_dialog_width = General_Strnlen(starter_string,  max_len);
+	// account for situation where no starter string, but there is a length limit. 
+	if (temp_dialog_width < max_len)
+	{
+		temp_dialog_width = max_len;
+	}
+	
+	temp_dialog_width += 2; // +2 is for box draw chars
 	
 	DEBUG_OUT(("%s %d: orig_dialog_width=%u, temp width=%u, max_len=%u, starter='%s'", __func__ , __LINE__, orig_dialog_width, temp_dialog_width, max_len, starter_string));
 	
@@ -803,7 +810,7 @@ char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* star
 		temp_dialog_width -= 2;
 	}
 	
-	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, temp_dialog_width, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
+	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, max_len, DIALOG_ACCENT_COLOR, DIALOG_FOREGROUND_COLOR, DIALOG_BACKGROUND_COLOR);
 
 	// restore normal dialog width
 	global_dlg.width_ = orig_dialog_width;

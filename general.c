@@ -61,9 +61,6 @@
 
 char*					global_string[NUM_STRINGS];
 
-extern char*			global_string_buff1;
-extern char*			global_string_buff2;
-
 
 extern uint8_t			zp_bank_num;
 #pragma zpsym ("zp_bank_num");

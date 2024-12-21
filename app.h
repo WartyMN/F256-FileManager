@@ -197,6 +197,7 @@
 #define ACTION_SORT_BY_SIZE			'S'
 #define ACTION_SORT_BY_TYPE			'T'
 #define ACTION_REFRESH_PANEL		'R'
+#define ACTION_LOAD_MEATLOAF_URL	'M'	// put up text window, let user type in a URL, then pass that as load command.
 
 // device actions
 #define ACTION_SWITCH_TO_SD			'0'
@@ -254,6 +255,8 @@
 #define ERROR_PANEL_INIT_MEMSYS_WAS_NULL								130
 #define ERROR_DESTROY_ALL_MEMSYS_WAS_NULL								131
 #define ERROR_COULD_NOT_CREATE_OR_RESET_MEMSYS_OBJ						132
+#define ERROR_COULD_NOT_INIT_SYSTEM										133
+#define ERROR_WEIRD_CANNOT_EXPLAIN										134
 
 #define ERROR_DEFINE_ME													255
 

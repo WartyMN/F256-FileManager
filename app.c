@@ -115,7 +115,11 @@ char					global_dlg_body_msg[70];	// arbitrary
 char					global_dlg_button[3][10];	// arbitrary
 
 char*					global_string_buff1 = (char*)STORAGE_STRING_BUFFER_1;
-char*					global_string_buff2 = (char*)STORAGE_STRING_BUFFER_2;
+char*					global_string_buff2 = (char*)STORAGE_STRING_BUFFER_2;	// HBD: this is used for EM copy with 256 width, but only holds 204 bytes. it overwrites the ONCE code and startup code slightly. 
+// char					global_string_buff2_buffer[256];
+// char*					global_string_buff2 = global_string_buff2_buffer;
+// char					global_string_buff1_buffer[256];
+// char*					global_string_buff1 = global_string_buff1_buffer;
 
 char					global_temp_path_1_buffer[FILE_MAX_PATHNAME_SIZE];
 char					global_temp_path_2_buffer[FILE_MAX_PATHNAME_SIZE] = "";
@@ -338,7 +342,7 @@ uint8_t App_MainLoop(void)
 	WB2KViewPanel*		the_panel;
 	
 	// main loop
-	while (! exit_main_loop)
+	while (exit_main_loop == false)
 	{
 		// turn off cursor - seems to turn itself off when kernal detects cursor position has changed. 
 		Sys_EnableTextModeCursor(false);
@@ -385,6 +389,8 @@ uint8_t App_MainLoop(void)
 			// returns the key pressed if it matched an enabled menu item, or if wasn't a known (to Screen) input. This lets App still allow for cursor keys, etc, which aren't represented by menu items
 
 			//DEBUG_OUT(("%s %d: user_input=%u", __func__ , __LINE__, user_input));
+			//sprintf(global_string_buff1, "%s %d: user_input=%u", __func__ , __LINE__, user_input);
+			//Buffer_NewMessage(global_string_buff1);
 			
 			// first switch: for file menu only, and skip if file menu is inactive
 			//   slightly inefficient in that it has to go through them all twice, but this is not a performance bottleneck
@@ -522,19 +528,28 @@ uint8_t App_MainLoop(void)
 						Panel_Refresh(the_panel);			
 					}
 					break;
+
+// 				case ACTION_LOAD_MEATLOAF_URL:
+// 					success = Panel_OpenMeatloafURL(the_panel);
+// 						
+// 					break;
 					
 				case ACTION_NEW_FOLDER:
 					success = Panel_MakeDir(the_panel);
 					break;
 
 				case ACTION_SET_TIME:
-					General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_SET_CLOCK_TITLE), COMM_BUFFER_MAX_STRING_LEN);
-					General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_SET_CLOCK_BODY), APP_DIALOG_WIDTH);
-					global_string_buff2[0] = 0;	// clear whatever string had been in this buffer before
+					App_LoadOverlay(OVERLAY_SCREEN);	
+					General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_SET_CLOCK_TITLE), APP_DIALOG_WIDTH);
+					*global_string_buff2 = 0;	// don't provide a default value, show empty string
+					global_string_buff2 = Screen_GetStringFromUser(
+						global_string_buff1, 
+						General_GetString(ID_STR_DLG_SET_CLOCK_BODY), 
+						global_string_buff2, 
+						14);	// //YY-MM-DD HH-MM = 14
+					App_LoadOverlay(OVERLAY_DISKSYS);
 					
-					success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, 14, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR); //YY-MM-DD HH-MM = 14
-					
-					if (success)
+					if (global_string_buff2 != NULL)
 					{
 						// user entered a date/time string, now try to parse and save it.
 						success = Sys_UpdateRTC(global_string_buff2);
@@ -889,7 +904,7 @@ int main(void)
 	
 	if (Sys_InitSystem() == false)
 	{
-		App_Exit(0);
+		App_Exit(ERROR_COULD_NOT_INIT_SYSTEM);
 	}
 	
 	Sys_SetBorderSize(0, 0); // want all 80 cols and 60 rows!
@@ -925,7 +940,7 @@ int main(void)
 	App_MainLoop();
 	
 	// restore screen, etc.
-	App_Exit(ERROR_NO_ERROR);
+	App_Exit(ERROR_WEIRD_CANNOT_EXPLAIN);	// ERROR_NO_ERROR
 	
 	return 0;
 }
