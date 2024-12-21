@@ -749,13 +749,13 @@ bool Kernal_RunMod(char* the_path)
 
 	*(uint8_t*)(0x0200) = '-';
 	*(uint8_t*)(0x0201) = 0;
-	General_Strlcpy((char*)0x0202, "modo.pgz", 9);
+	General_Strlcpy((char*)0x0202, "_apps/modo.pgz", 15);
 	
     // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
     the_path += 2;	// get past 0:, 1:, 2:, etc.     
 	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
 
-	General_Strlcpy((char*)0x020b, the_path, path_len);
+	General_Strlcpy((char*)0x0211, the_path, path_len);
 	
 	args.common.ext = (char*)0x0280;
 	args.common.extlen = 8;
@@ -765,8 +765,8 @@ bool Kernal_RunMod(char* the_path)
 	*(uint8_t*)0x0281 = 0x02;	// first arg is at $0200
 	*(uint8_t*)0x0282 = 0x02;
 	*(uint8_t*)0x0283 = 0x02;	// second arg is at $0202
-	*(uint8_t*)0x0284 = 0x0b;
-	*(uint8_t*)0x0285 = 0x02;	// third arg (path to song file) is at $020b
+	*(uint8_t*)0x0284 = 0x11;
+	*(uint8_t*)0x0285 = 0x02;	// third arg (path to song file) is at $0211
 	*(uint8_t*)0x0286 = 0x00;	// terminator
 	
 	stream = CALL(RunNamed);

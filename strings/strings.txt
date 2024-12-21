@@ -78,8 +78,8 @@
 76	14	%u files found
 77	27	Available memory: %zu bytes
 78	11	Hit any key
-79	68	** Hex view of '%s' -- Hit SPACE for more; Esc (Run/Stop) to stop **
-80	69	** Text view of '%s' -- Hit SPACE for more; Esc (Run/Stop) to stop **
+79	58	** Hex view of '%s' -- SPACE for more; Run/Stop to exit **
+80	59	** Text view of '%s' -- SPACE for more; Run/Stop to exit **
 81	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
 82	48	A match to '%s' was found at %06lX in Bank $%02X
 83	26	No match to '%s' was found
