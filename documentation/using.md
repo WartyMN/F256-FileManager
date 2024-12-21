@@ -60,7 +60,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to sort by file name, file size, or file type](#i-want-to-sort-by-file-name-file-size-or-file-type)
 
 
-### Working with Files
+### Managing Files
 - [I want to see what's on my SD Card or floppy disk](#i-want-to-see-whats-on-my-sd-card-or-floppy-disk)
 - [I want to copy a file from one place in my SD card to another place](#i-want-to-copy-a-file-from-one-place-in-my-sd-card-to-another-place)
 - [I want to copy a file from disk to another disk](#i-want-to-copy-a-file-from-disk-to-another-disk)
@@ -74,8 +74,9 @@ How you start up the f/manager depends on how you installed it in the first plac
 ### Working with Memory
 - documentation coming soon...
 
-### Running other applications
+### Loading files and other applications
 - documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
+- [I want to load a music .mod file](#i-want-load-a-mod-file]
 
 ### Doing other Stuff
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
@@ -122,6 +123,15 @@ f/manager is a classic two-pane file manager. It will let you copy from either t
 Easy-peasy, lemon-squeezy. Use the '0','1', and/or '2' keys to get the source and destination disks showing in the left and right panes. It doesn't matter which is at left or right. Once you have that set up, make sure the source disk pane is active (bright green). Use `<TAB>` or left/right cursor keys if necessary. Now hit the 'c' button. The Copy menu item shows a series of arrows ('<<<<' or '>>>>') to help you understand which way it will copy when you hit 'c'. That's it. The progress bar will let you know when the copy is complete. File copy is pretty fast on an SD card, but if  you were copy a large file, say "fm.pgZ" from the SD card to a floppy in a 1541 drive, well, that would give you an idea of what computing was like in the 1980s. 
 
 
+
+#### I want to load a music .mod file
+
+Navigate to the file you want to load. It doesn't matter what device or folder it is in. Load it by hitting ENTER or 'l'. f/manager will ask pexec to load the ModoJR music player, and give it the path to the .mod file you selected. 
+
+_Hint: You must have ModoJR or another file capable of playing .mod files and also aware of Foenix parameter passing conventions installed at 0:\_apps/modo.pgz_
+
+
+
 #### I want to set the system clock
 
 Did you notice that yellow clock at the top right of your f/manager screen? If you have never set your clock before, it's probably showing the wrong time. Or maybe a bit of code ran wild and overwrote VICKY registers. Let's get your clock set again. Type 'C'. A dialog will open. 
@@ -146,6 +156,11 @@ Hit 'a' to see some information about f/manager, including the version number.
 Hit 'd' from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
 
 
+#### I want to quit this app
+
+Hit 'q' from the main screen to quit the f/manager. The computer will get a soft reset, and whatever you have first in flash memory will start up again. If your configuration defaults to SuperBASIC on startup, for example, you will see the SuperBASIC screen.
+
+_Hint: If your configuration defaults to starting up with f/manager, quitting won't achieve much, I'm afraid. _
 
 
 [Top](using.md)
