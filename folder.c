@@ -1136,13 +1136,15 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 			{
 				//sprintf(global_string_buff1, "%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name);
 				//Buffer_NewMessage(global_string_buff1);
+
+				this_file_name = dirent->d_name;
 	
-				if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
+				if (this_file_name[0] == '0' && this_file_name[1] == ':')
 				{
 					// this is the internal SD card. give a more user-friendly name
 					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
 				}
-				else if (dirent->d_name[0] == NO_DISK_PRESENT_FILE_NAME || dirent->d_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
+				else if (this_file_name[0] == NO_DISK_PRESENT_FILE_NAME || this_file_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
 				{
 					sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_NO_DISK), the_folder->device_number_);
 					Buffer_NewMessage(global_string_buff1);
@@ -1151,22 +1153,28 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				}
 				else
 				{
-					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
+					// check for presence of "MEATLOAF" in the file name, and if found, set this folder to meatloaf mode.
+					
+					if ( this_file_name[0] == ' ' && this_file_name[1] == ' ')
+					{
+						this_file_name += 2;	// skip past the 2 spaces in "  MEATLOAF" sub dirs. annoying!
+						
+						if (General_Strncasecmp(this_file_name, General_GetString(ID_STR_LBL_MEATLOAF_DIR_NAME), 8) == 0)
+						{
+							the_folder->is_meatloaf_ = true;
+							General_Strlcpy(this_file_name + 8, General_GetString(ID_STR_LBL_MEATLOAF_LOCAL_MODIFIER), 9);
+						}
+					}
+					else if (General_Strncasecmp(this_file_name, General_GetString(ID_STR_LBL_MEATLOAF_DIR_NAME), 8) == 0)
+					{
+						the_folder->is_meatloaf_ = true;
+					}
+	
+					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(this_file_name, FILE_MAX_FILENAME_SIZE);
 				}
 				
 				the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
 				
-				// check for presence of "MEATLOAF" in the file name, and if found, set this folder to meatloaf mode.
-				this_file_name = dirent->d_name;
-				if ( this_file_name[0] == ' ' && this_file_name[1] == ' ')
-				{
-					this_file_name += 2;	// skip past the 2 spaces in "  MEATLOAF" sub dirs. annoying!
-				}
-				
-				if (General_Strncasecmp(this_file_name, General_GetString(ID_STR_LBL_MEATLOAF_DIR_NAME), 8) == 0)
-				{
-					the_folder->is_meatloaf_ = true;
-				}
 				
 				//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name));
 			}
