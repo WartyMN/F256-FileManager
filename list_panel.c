@@ -1290,7 +1290,11 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	
 	Panel_Refresh(the_other_panel);
 	// refresh this panel too, in case both panels are pointing at same folder and user really just did a duplicate operation
-	Panel_Refresh(the_panel);
+	// only do this though if they are same panel, because it makes selected file lose focus.
+	if (the_other_panel == the_panel)
+	{
+		Panel_Refresh(the_panel);
+	}
 	
 	return success;
 }
