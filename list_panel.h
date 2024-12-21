@@ -210,6 +210,8 @@ bool Panel_ClearCurrentBank(WB2KViewPanel* the_panel);
 // initiate a memory search at the start of the currently selected bank
 bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel);
 
+// ask user for a Meatloaf URL they want to open as a directory
+bool Panel_OpenMeatloafURL(WB2KViewPanel* the_panel);
 
 // TEMPORARY DEBUG FUNCTIONS
 

@@ -1015,10 +1015,29 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		
 		if (the_file->file_type_ == _CBM_T_DIR)
 		{
-			if ( (the_panel->root_folder_ = Folder_NewOrReset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1)) == NULL )
+			if (the_panel->root_folder_->is_meatloaf_ == false)
 			{
-				LOG_ERR(("%s %d: could not reset the panel's root folder", __func__ , __LINE__));
-				App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+				// normal "go up" behavior pretty straightforward: just feed it the path.
+				if ( (the_panel->root_folder_ = Folder_NewOrReset(the_panel->root_folder_, the_panel->device_number_, global_temp_path_1)) == NULL )
+				{
+					LOG_ERR(("%s %d: could not reset the panel's root folder", __func__ , __LINE__));
+					App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+				}
+			}
+			else
+			{
+				// meatloaf go up is different: to go "up", it will accept "_" (<- on C-64), or "..", but you have to "load" it as if loading a file. 
+				//   This is the mechanism MEATLOAF appears to key off of. Nothing will be loaded, it will "fail" from f/m point of view, but meatloaf will have changed dirs
+				//   for a regular file, just pass the filename, and "load" it. 
+				//   for anything, it needs the "1:" or "2:" prefix, or microkernel will not do it. 
+				// then force f/manager to refresh
+				
+				// try to change directory by "loading" the file. 
+				sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, the_file->file_name_);
+				success = File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
+				
+				//sprintf(global_string_buff1, "Trying to change meatloaf dirs with '%s'...", global_temp_path_1);
+				//Buffer_NewMessage(global_string_buff1);
 			}
 	
 			Panel_Refresh(the_panel);
@@ -1779,6 +1798,9 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 		// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
 		App_LoadOverlay(OVERLAY_SCREEN);
 		Screen_UpdateSortIcons(the_panel->x_, the_panel->sort_compare_function_);
+		
+		// set or unset the visual indicator for Meatloaf mode
+		Screen_UpdateMeatloafIcon(the_panel->x_, the_panel->root_folder_->is_meatloaf_);
 	}
 	else
 	{
@@ -1787,6 +1809,11 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 		Panel_ReflowContent(the_panel);
 		Panel_RenderContents(the_panel);
 		
+		// always unset the visual indicator for Meatloaf mode in case it had been set. never true for memory
+		App_LoadOverlay(OVERLAY_SCREEN);
+		Screen_UpdateMeatloafIcon(the_panel->x_, false);
+		
+		App_LoadOverlay(OVERLAY_MEMSYSTEM);
 		MemSys_SetBankSelectionByRow(the_panel->memory_system_, 0, PARAM_MARK_SELECTED, the_panel->y_, the_panel->active_);
 	}
 }
@@ -1854,6 +1881,70 @@ bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel)
 	
 	return true;
 }
+
+
+// ask user for a Meatloaf URL they want to open as a directory
+bool Panel_OpenMeatloafURL(WB2KViewPanel* the_panel)
+{
+	bool				success;
+	char*				the_name;
+	
+	if (the_panel->for_disk_ == false)
+	{
+		return false;
+	}
+
+	if (the_panel->root_folder_->is_meatloaf_ == false)
+	{
+		return false;
+	}
+
+	// LOGIC:
+	//   putting this in list panel doesn't accomplish much,
+	//   but cc65 was acting weird when thsi was in MainLoop, maybe that switch got too big for it or something. dunno. 
+	//   more stable with this in a different place. 
+	
+// 	General_Strlcpy((char*)&global_dlg_title, General_GetString(ID_STR_DLG_MEATLOAF_URL_TITLE), COMM_BUFFER_MAX_STRING_LEN);
+// 	General_Strlcpy((char*)&global_dlg_body_msg, General_GetString(ID_STR_DLG_MEATLOAF_URL_BODY), APP_DIALOG_WIDTH);
+	General_Strlcpy((char*)global_string_buff2, General_GetString(ID_STR_DLG_MEATLOAF_DEFAULT_URL), FILE_MAX_FILENAME_SIZE);	// pre-set the foenix app store
+	
+// 	success = Text_DisplayTextEntryDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, global_string_buff2, FILE_MAX_FILENAME_SIZE, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR);
+
+
+	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_MEATLOAF_URL_TITLE), APP_DIALOG_WIDTH);
+		
+	App_LoadOverlay(OVERLAY_SCREEN);	
+	the_name = Screen_GetStringFromUser(
+		global_string_buff1, 
+		General_GetString(ID_STR_DLG_MEATLOAF_URL_BODY), 
+		global_string_buff2, 
+		FILE_MAX_FILENAME_SIZE);
+	App_LoadOverlay(OVERLAY_DISKSYS);
+	
+	if (the_name == NULL)
+	{
+		return false;
+	}
+
+	// user entered a URL, now try to "load" it. It will be in global_string_buff2
+	sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, global_string_buff2);
+	App_LoadOverlay(OVERLAY_DISKSYS);
+	File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
+	Panel_Refresh(the_panel);
+
+
+// 	if (success == true)
+// 	{
+// 		// user entered a URL, now try to "load" it.							
+// 		sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, global_string_buff2);
+// 		App_LoadOverlay(OVERLAY_DISKSYS);
+// 		File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
+// 		Panel_Refresh(the_panel);
+// 	}
+	
+	return success;
+}
+
 
 
 // // Re-select the current file.

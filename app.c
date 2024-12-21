@@ -529,10 +529,10 @@ uint8_t App_MainLoop(void)
 					}
 					break;
 
-// 				case ACTION_LOAD_MEATLOAF_URL:
-// 					success = Panel_OpenMeatloafURL(the_panel);
-// 						
-// 					break;
+				case ACTION_LOAD_MEATLOAF_URL:
+					success = Panel_OpenMeatloafURL(the_panel);
+						
+					break;
 					
 				case ACTION_NEW_FOLDER:
 					success = Panel_MakeDir(the_panel);
