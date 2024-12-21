@@ -40,12 +40,13 @@ How you start up the f/manager depends on how you installed it in the first plac
 ### Working with Devices
 - [I want to work with a different device](#i-want-to-work-with-a-different-device)
 - [I want to compare the contents of 2 devices](#i-want-to-compare-the-contents-of-2-devices)
-- [I want to format a disk or SD card](#i-want-to-format-a-disk-or-sd-card)
+- [I want to format a floppy disk](#i-want-to-format-a-disk)
+- [I want to format an SD card](#i-want-to-format-an-sd-card)
 - [I swapped floppies and want to see the listing for the new floppy](#i-swapped-floppies-and-want-to-see-the-listing-for-the-new-floppy)
 - [I want to use my Meatloaf device](#i-want-to-use-my-meatloaf-device)
 
 ### Working with Meatloaf
-- [I want to access the Foenix app store](#i-want-to-access-the-foenix-app-store)
+- [I want to access the Foenix Meatloaf share](#i-want-to-access-the-foenix-meatloaf-share)
 - [I want to access a Meatloaf directory by specifying the URL](#i-want-to-access-a-meatloaf-directory-by-specifying-the-url)
 - [I want to load a Meatloaf file by specifying the URL](#i-want-to-load-a-meatloaf-file-by-specifying-the-url)
 - [I want to load a file from the internet that I sent to Meatloaf](#i-want-to-load-a-file-from-the-internet-that-i-sent-to-meatloaf)
@@ -76,7 +77,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 
 ### Loading files and other applications
 - documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
-- [I want to load a music .mod file](#i-want-load-a-mod-file]
+- [I want to load a music .mod file](#i-want-load-a-mod-file)
 
 ### Doing other Stuff
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
@@ -98,17 +99,40 @@ The F256 MicroKernel supports the SD card (Device 0), one or two IEC devices, as
 
 f/manager also supports working with the F256's RAM and Flash memory via the view panels. Select RAM with 8, and Flash with 9.
 
-_Hint: Menu operations start from the current panel, which is the one that is not dimmed out. You can toggle back and forth between the left and right panels by hitting TAB (or select with the Right or Left cursor key)._
-
-_Hint: when working with floppy drives on the F256, you'll want to have turned on the disk drive before powering on the Foenix, so that the MicroKernel can find it. You'll also want to insert the disk before scanning the directory with f/manager._
-
+_Hint: Menu operations start from the current panel, which is the one that is not dimmed out. You can toggle back and forth between the left and right panels by hitting `<TAB>` (or select with the Right or Left cursor key)._
 
 
 #### I want to compare the contents of 2 devices
 
-The two-pane approach of the f/manager makes it easy. Hit Left cursor to select the left-hand panel if it is not already active. Use 0, 1, or 2 to select the first device you want to work with. The directory display will refresh. Hit TAB or Right cursor to select the right-hand panel. Use the number keys again to select the second device. The directory display will refresh. You are now seeing the listing for the first device on the left, and for the second device on the right. 
+The two-pane approach of the f/manager makes it easy. Hit Left cursor to select the left-hand panel if it is not already active. Use 0, 1, or 2 to select the first device you want to work with. The directory display will refresh. Hit `<TAB>` or Right cursor to select the right-hand panel. Use the number keys again to select the second device. The directory display will refresh. You are now seeing the listing for the first device on the left, and for the second device on the right. 
 
 _Warning: Do not load the same IEC device on both panels unless you are prepared for unpredicable behavior. Very definitely do not expect to be able to load up one panel with a parent directory from an IEC device such as a 1581 or Meatloaf, and then the other panel with it again, but diving into a subdirectory. The IEC devices do not support paths in the same way the SD card does. The device only ever has ONE active directory.
+
+#### I want to format a floppy disk
+
+Before you can store programs on a new disk, you must first format the disk. To format a disk is to modify it so that the data on it is organized in the way your disk drive understands. When you format a disk, the drive will divide the disk into sections called tracks and sectors. You will give it a name, and a 2-letter unique ID code. A "directory", or table of contents, will be prepared. When you save a program to disk, the directory will be updated with the name of the program. 
+
+_Note: While you can format a non-blank disk and use it, be aware that all data on it will be permanently lost when you do so. Typically, users only format a disk once, when using it the first time._
+
+To format a floppy disk, have it in the drive, and make sure that you are on the panel that is pointing at the device representing the floppy (not the SD card!). Hit the '"' (straight double quote) key, and confirm that you want to format the disk. 
+
+#### I want to format an SD card
+
+To format the SD card, confirm you that the active panel is pointing to device 0, the SD card. Hit the '"' (straight double quote) key, and confirm that you want to format the SD card. 
+
+#### I swapped floppies and want to see the listing for the new floppy
+
+If you have made a change to the disk whose contents are being shown in the panel (by swapping in a new disk, for example), hit Shift-R to refresh the listing. 
+
+#### I want to use my Meatloaf device
+
+Well, what's stopping you? Plug it into the F256 and start it up. It will be recognized as Device 0 (if set to drive 8), or Device 1 (if set to Drive 9). The F256 MicroKernel does not currently recognize more than 2 IEC devices, so if you have it set to 10 or 11, it will not be seen. 
+
+When the f/manager detects a Meatloaf device, an "M" character will be shown to the right of the disk title. This signifies that the f/manager is in "Meatloaf mode", and it will apply special handling. See the Meatloaf section below for more information.
+
+
+
+
 
 #### I want to see what's on my SD Card or floppy disk
 

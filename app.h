@@ -173,7 +173,7 @@
 
 // file and memory bank actions
 #define ACTION_SELECT				CH_ENTER // numpad key
-#define ACTION_DELETE				CH_DEL
+#define ACTION_DELETE				CH_BKSP
 #define ACTION_DELETE_ALT			'x'
 #define ACTION_COPY					'c'
 #define ACTION_DUPLICATE			'p'
@@ -205,7 +205,7 @@
 #define ACTION_SWITCH_TO_FLOPPY_2	'2'
 #define ACTION_SWITCH_TO_RAM		'8'
 #define ACTION_SWITCH_TO_FLASH		'9'
-#define ACTION_FORMAT_DISK			'`'
+#define ACTION_FORMAT_DISK			CH_DQUOTE
 
 // app actions
 #define ACTION_SET_TIME				'C' // c for set CLOCK
