@@ -856,7 +856,7 @@ bool Screen_ShowUserTwoButtonDialog(char* dialog_title, uint8_t dialog_body_stri
 					
 	global_dlg.num_buttons_ = 2;
 
-	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, APP_ACCENT_COLOR, APP_FOREGROUND_COLOR, APP_BACKGROUND_COLOR, COLOR_RED, COLOR_GREEN);
+	return Text_DisplayDialog(&global_dlg, (char*)&temp_screen_buffer_char, (char*)&temp_screen_buffer_attr, DIALOG_ACCENT_COLOR, DIALOG_FOREGROUND_COLOR, DIALOG_BACKGROUND_COLOR, COLOR_RED, COLOR_GREEN);
 }
 
 
