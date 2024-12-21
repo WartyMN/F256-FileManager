@@ -78,8 +78,8 @@
 76	14	%u files found
 77	27	Available memory: %zu bytes
 78	11	Hit any key
-79	57	** Hex view of '%s' -- Hit SPACE for more; Esc to stop **
-80	58	** Text view of '%s' -- Hit SPACE for more; Esc to stop **
+79	68	** Hex view of '%s' -- Hit SPACE for more; Esc (Run/Stop) to stop **
+80	69	** Text view of '%s' -- Hit SPACE for more; Esc (Run/Stop) to stop **
 81	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
 82	48	A match to '%s' was found at %06lX in Bank $%02X
 83	26	No match to '%s' was found
@@ -98,21 +98,21 @@
 96	26	Unable to delete directory
 97	40	We don't need no stinkin' error messages
 98	75	No connected devices were detected. f/manager will probably die of boredom.
-98	16	The disk is full
-98	21	A disk error occurred
-98	33	No disk detected in disk drive %u
-98	60	Error: I did not like that file. I will not show that file. 
-98	31	Error: Could not open file '%s'
-98	31	Error: Could not list directory
-98	39	Error: You cannot copy a bank to itself
-98	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-98	19	Out of memory error
-98	46	https://github.com/WartyMN/F256jr-FileManager/
-98	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-98	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-98	42	Compact pexec loader for flash by dwsJason
-98	36	F256 SuperBASIC %c2023 Paul Robson. 
-98	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
-98	6	F256JR
-98	5	F256K
-98	18	<unknown hardware>
+99	16	The disk is full
+100	21	A disk error occurred
+101	33	No disk detected in disk drive %u
+102	60	Error: I did not like that file. I will not show that file. 
+103	31	Error: Could not open file '%s'
+104	31	Error: Could not list directory
+105	39	Error: You cannot copy a bank to itself
+106	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+107	19	Out of memory error
+108	46	https://github.com/WartyMN/F256jr-FileManager/
+109	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+110	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+111	42	Compact pexec loader for flash by dwsJason
+112	36	F256 SuperBASIC %c2023 Paul Robson. 
+113	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+114	6	F256JR
+115	5	F256K
+116	18	<unknown hardware>
