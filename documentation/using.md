@@ -83,11 +83,12 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
 - [I want to get back to SuperBASIC](#i-want-to-get-back-to-superbasic)
 - [I want to see who made this crappy tool](#i-want-to-see-who-made-this-crappy-tool)
-- [Enough of this namby-pamby UI; I want to type DOS commands!](#enough-of-this-namby-pamby-ui;-i-want-to-type-dos-commands!)
+- [Enough of this namby-pamby UI; I want to type DOS commands](#enough-of-this-namby-pamby-ui;-i-want-to-type-dos-commands)
 - [I want to quit this app](#i-want-to-quit-this-app)
 
 
 
+### Working with Devices
 
 #### I want to work with a different device
 
@@ -133,6 +134,52 @@ When the f/manager detects a Meatloaf device, an "M" character will be shown to 
 
 
 
+### Working with Meatloaf
+
+#### I want to access the Foenix Meatloaf share
+
+#### I want to access a Meatloaf directory by specifying the URL
+
+#### I want to load a Meatloaf file by specifying the URL
+
+#### I want to load a file from the internet that I sent to Meatloaf
+
+#### I want to copy a file from Meatloaf to my Foenix
+
+#### I want to copy a file from my Foenix to my Meatloaf
+
+#### I want to delete a file from a Meatloaf repository
+
+
+
+### Working with Directories
+
+#### I want to create a new folder
+
+Hit 'm' to create a new folder (mkdir).
+
+#### I want to delete a folder
+
+Select the folder you want to delete, and hit 'x' or `<DELETE>`... is how it should work, but due to an undocumented feature in the MicroKernel, it is not currently possible to delete folders.
+
+#### I want to copy a folder and its contents
+
+f/manage does not support a "copy folder" function, but you can do it fairly easily, thanks to the 2-pane approach. Load the directory with the source in one pane, and the directory that you want to copy to in the other pane. Use 'm' to create a new folder in the destination directory. Select the new folder and hit `<ENTER>` to navigate into it. Tab back to the source panel, and enter the folder with the files to copy. Select each file in turn, using 'c' to copy to the other pane. 
+
+
+#### I want to sort by file name, file size, or file type
+
+By default, f/manager sorts directories by file name. You can rotate between the different sort types with the following keys:
+- shift-t: sort by file type
+- shift-s: sort by file size
+- shift-n: sort by file name
+
+A small arrow symbol is shown next to the header for the column that controls the sort.
+
+
+
+
+### Managing Files
 
 #### I want to see what's on my SD Card or floppy disk
 
@@ -146,7 +193,38 @@ f/manager is a classic two-pane file manager. It will let you copy from either t
 
 Easy-peasy, lemon-squeezy. Use the '0','1', and/or '2' keys to get the source and destination disks showing in the left and right panes. It doesn't matter which is at left or right. Once you have that set up, make sure the source disk pane is active (bright green). Use `<TAB>` or left/right cursor keys if necessary. Now hit the 'c' button. The Copy menu item shows a series of arrows ('<<<<' or '>>>>') to help you understand which way it will copy when you hit 'c'. That's it. The progress bar will let you know when the copy is complete. File copy is pretty fast on an SD card, but if  you were copy a large file, say "fm.pgZ" from the SD card to a floppy in a 1541 drive, well, that would give you an idea of what computing was like in the 1980s. 
 
+#### I want to delete a file
 
+Select the file you want to delete, and use `<DELETE>` or `x`, then confirm you want to delete the file. 
+
+#### I want to rename a file
+
+Select the file you want to rename, hit `r`, then type in the new name for the file.
+
+#### I want to view the contents of a file as text
+
+Select the file you want to view, and hit `t`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Embedded line breaks are respected, and word wrapping will be used when necessary. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the text viewer and return to the main screen. 
+
+!Text View Example(view_text.png)
+
+#### I want to view the contents of a file as hex data
+
+Select the file you want to view, and hit `h`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Each byte in the file will be displayed first in hex, then as raw character data to the right. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the hex viewer and return to the main screen. 
+
+!Hex View Example(view_hex.png)
+
+#### I want to load a SuperBASIC program
+
+Select the BASIC program file you want to load, and hit `<ENTER>` or `<l>`. f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
+
+
+### Working with Memory
+
+- documentation coming soon...
+
+### Loading files and other applications
+
+- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 
 #### I want to load a music .mod file
 
@@ -155,6 +233,8 @@ Navigate to the file you want to load. It doesn't matter what device or folder i
 _Hint: You must have ModoJR or another file capable of playing .mod files and also aware of Foenix parameter passing conventions installed at 0:\_apps/modo.pgz_
 
 
+
+### Doing other Stuff
 
 #### I want to set the system clock
 
@@ -175,7 +255,7 @@ Hit 'b' from the main screen to switch to SuperBASIC. This assumes, of course, t
 Hit 'a' to see some information about f/manager, including the version number.
 
 
-#### Enough of this namby-pamby UI; I want to type DOS commands!
+#### Enough of this namby-pamby UI; I want to type DOS commands
 
 Hit 'd' from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
 
