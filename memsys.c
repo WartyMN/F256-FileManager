@@ -214,23 +214,23 @@ int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys)
 }
 
 
-// returns the currently selected bank or NULL if no bank selected
-FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys)
-{
-	if (the_memsys == NULL)
-	{
-		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
-		//App_Exit(ERROR_MEMSYS_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
-		return NULL;
-	}
-	
-	if (the_memsys->cur_row_ < 0)
-	{
-		return NULL;
-	}
-	
-	return &the_memsys->bank_[the_memsys->cur_row_];
-}
+// // returns the currently selected bank or NULL if no bank selected
+// FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys)
+// {
+// 	if (the_memsys == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
+// 		//App_Exit(ERROR_MEMSYS_GET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
+// 		return NULL;
+// 	}
+// 	
+// 	if (the_memsys->cur_row_ < 0)
+// 	{
+// 		return NULL;
+// 	}
+// 	
+// 	return &the_memsys->bank_[the_memsys->cur_row_];
+// }
 
 
 // returns the currently selected bank's bank_num or 255 if no bank selected

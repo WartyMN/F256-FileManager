@@ -930,6 +930,8 @@ void Text_SetXY(uint8_t x, uint8_t y)
 }
 
 
+#if defined DO_NOT_HIDE_ME_BRO
+
 //! Return the current cursor location's X coordinate
 //! @return	the horizontal position, between 0 and the screen's text_cols_vis_ - 1
 uint8_t Text_GetX(void)
@@ -937,6 +939,10 @@ uint8_t Text_GetX(void)
 	return zp_x;
 }
 
+#endif
+
+
+#if defined DO_NOT_HIDE_ME_BRO
 
 //! Return the current cursor location's Y coordinate
 //! @return	the vertical position, between 0 and the screen's text_rows_vis_ - 1
@@ -944,6 +950,8 @@ uint8_t Text_GetY(void)
 {
 	return zp_y;
 }
+
+#endif
 
 
 // **** Set char/attr functions *****
@@ -964,6 +972,8 @@ bool Text_SetCharAtXY(uint8_t x, uint8_t y, uint8_t the_char)
 }
 
 
+#if defined DO_NOT_HIDE_ME_BRO
+
 //! Set the attribute value at a specified x, y coord
 //! @param	x - the horizontal position, between 0 and the screen's text_cols_vis_ - 1
 //! @param	y - the vertical position, between 0 and the screen's text_rows_vis_ - 1
@@ -976,6 +986,8 @@ bool Text_SetAttrAtXY(uint8_t x, uint8_t y, uint8_t the_attribute_value)
 		
 	return true;
 }
+
+#endif
 
 
 //! Set the attribute value at a specified x, y coord based on the foreground and background colors passed
@@ -1118,6 +1130,8 @@ bool Text_SetAttr(uint8_t the_attribute_value)
 }
 
 
+#if defined DO_NOT_HIDE_ME_BRO
+
 //! Set the attribute value at the current X/Y position based on the foreground and background colors passed, and advance cursor position by 1
 //! @param	fore_color - Index to the desired foreground color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
 //! @param	back_color - Index to the desired background color (0-15). The predefined macro constants may be used (COLOR_DK_RED, etc.), but be aware that the colors are not fixed, and may not correspond to the names if the LUT in RAM has been modified.
@@ -1132,6 +1146,8 @@ bool Text_SetColor(uint8_t fore_color, uint8_t back_color)
 
 	return Text_SetAttr(the_attribute_value);
 }
+
+#endif
 
 
 //! Draw a char at the current X/Y position, also setting the color attributes, and advance cursor position by 1
@@ -1241,9 +1257,13 @@ bool Text_UpdateFontData(char* new_font_data, bool for_primary_font)
 //! @return	Returns the character code at the current screen location
 uint8_t Text_GetChar(void)
 {
+	uint8_t		the_value;
+	
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *zp_vram_ptr;
+	the_value = *zp_vram_ptr;
 	Sys_RestoreIOPage();
+	
+	return the_value;
 }
 
 #endif
@@ -1255,9 +1275,13 @@ uint8_t Text_GetChar(void)
 //! @return	Returns the character code at the char preceeding the current screen location
 uint8_t Text_GetPrevChar(void)
 {
+	uint8_t		the_value;
+	
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *(zp_vram_ptr - 1);
+	the_value = *(zp_vram_ptr - 1);
 	Sys_RestoreIOPage();
+	
+	return the_value;
 }
 
 #endif
@@ -1269,9 +1293,13 @@ uint8_t Text_GetPrevChar(void)
 //! @return	Returns the character code at the char following the current screen location
 uint8_t Text_GetNextChar(void)
 {
+	uint8_t		the_value;
+	
 	Sys_SwapIOPage(VICKY_IO_PAGE_CHAR_MEM);
-	return *(zp_vram_ptr + 1);
+	the_value =  *(zp_vram_ptr + 1);
 	Sys_RestoreIOPage();
+	
+	return the_value;
 }
 
 #endif

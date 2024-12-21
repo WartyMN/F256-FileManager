@@ -109,8 +109,8 @@ void MemSys_SetCurrentRow(FMMemorySystem* the_memsys, int16_t the_row_number);
 // returns the row num (-1, or 0-n) of the currently selected bank
 int16_t MemSys_GetCurrentRow(FMMemorySystem* the_memsys);
 
-// returns the currently selected bank or NULL if no bank selected
-FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys);
+// // returns the currently selected bank or NULL if no bank selected
+// FMBankObject* MemSys_GetCurrentBank(FMMemorySystem* the_memsys);
 
 // returns the currently selected bank's bank_num or 255 if no bank selected
 uint8_t MemSys_GetCurrentBankNum(FMMemorySystem* the_memsys);
