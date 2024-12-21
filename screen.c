@@ -359,9 +359,11 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 	bool	for_disk = the_enabling_info->for_disk_;
 	bool	for_flash = the_enabling_info->for_flash_;
 	bool	is_kup = the_enabling_info->is_kup_;
+	bool	is_meatloaf = the_enabling_info->is_meatloaf_;
 	uint8_t	the_file_type = the_enabling_info->file_type_;
 	bool	other_panel_for_disk = the_enabling_info->other_panel_for_disk_;
 	bool	other_panel_for_flash = the_enabling_info->other_panel_for_flash_;
+	bool	other_panel_is_meatloaf = the_enabling_info->other_panel_is_meatloaf_;
 	
 // LOGIC:
 //       - Pass it some info on the currently selected item and panel:
@@ -551,39 +553,76 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 
 		//     - Only active when a file system is selected:
 		//         - New Folder, Format Disk, copy file, duplicate file, rename file, delete file, sort by name/data/size/type
+		//         But NEVER active if for MEATLOAF:
+		//				- New Folder, Format Disk, duplicate file, rename file, delete file
 		//     - Only active when a file is selected, and other panel has RAM showing
 		//         - Load 8192 byte bank from disk
 		//     - Activated when file system and known file type:
 		//         - Select file/load file
 
-		if (uibutton[BUTTON_ID_DELETE].active_ != true)
+		if (is_meatloaf == true)
 		{
-			uibutton[BUTTON_ID_DELETE].active_ = true;
-			uibutton[BUTTON_ID_DELETE].changed_ = true;
+			if (uibutton[BUTTON_ID_DELETE].active_ != false)
+			{
+				uibutton[BUTTON_ID_DELETE].active_ = false;
+				uibutton[BUTTON_ID_DELETE].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_DUPLICATE].active_ != false)
+			{
+				uibutton[BUTTON_ID_DUPLICATE].active_ = false;
+				uibutton[BUTTON_ID_DUPLICATE].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_RENAME].active_ != false)
+			{
+				uibutton[BUTTON_ID_RENAME].active_ = false;
+				uibutton[BUTTON_ID_RENAME].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_FORMAT].active_ != false)
+			{
+				uibutton[BUTTON_ID_FORMAT].active_ = false;
+				uibutton[BUTTON_ID_FORMAT].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_MAKE_DIR].active_ != false)
+			{
+				uibutton[BUTTON_ID_MAKE_DIR].active_ = false;
+				uibutton[BUTTON_ID_MAKE_DIR].changed_ = true;
+			}
 		}
-
-		if (uibutton[BUTTON_ID_DUPLICATE].active_ != true)
+		else
 		{
-			uibutton[BUTTON_ID_DUPLICATE].active_ = true;
-			uibutton[BUTTON_ID_DUPLICATE].changed_ = true;
-		}
-
-		if (uibutton[BUTTON_ID_RENAME].active_ != true)
-		{
-			uibutton[BUTTON_ID_RENAME].active_ = true;
-			uibutton[BUTTON_ID_RENAME].changed_ = true;
-		}
-
-		if (uibutton[BUTTON_ID_FORMAT].active_ != true)
-		{
-			uibutton[BUTTON_ID_FORMAT].active_ = true;
-			uibutton[BUTTON_ID_FORMAT].changed_ = true;
-		}
-
-		if (uibutton[BUTTON_ID_MAKE_DIR].active_ != true)
-		{
-			uibutton[BUTTON_ID_MAKE_DIR].active_ = true;
-			uibutton[BUTTON_ID_MAKE_DIR].changed_ = true;
+			if (uibutton[BUTTON_ID_DELETE].active_ != true)
+			{
+				uibutton[BUTTON_ID_DELETE].active_ = true;
+				uibutton[BUTTON_ID_DELETE].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_DUPLICATE].active_ != true)
+			{
+				uibutton[BUTTON_ID_DUPLICATE].active_ = true;
+				uibutton[BUTTON_ID_DUPLICATE].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_RENAME].active_ != true)
+			{
+				uibutton[BUTTON_ID_RENAME].active_ = true;
+				uibutton[BUTTON_ID_RENAME].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_FORMAT].active_ != true)
+			{
+				uibutton[BUTTON_ID_FORMAT].active_ = true;
+				uibutton[BUTTON_ID_FORMAT].changed_ = true;
+			}
+	
+			if (uibutton[BUTTON_ID_MAKE_DIR].active_ != true)
+			{
+				uibutton[BUTTON_ID_MAKE_DIR].active_ = true;
+				uibutton[BUTTON_ID_MAKE_DIR].changed_ = true;
+			}
 		}
 
 		if (uibutton[BUTTON_ID_SORT_BY_TYPE].active_ != true)
@@ -622,6 +661,7 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		}
 
 		// for copy, the other panel can't be flash, but in all other combinations, it should be active.
+		//    unless other panel is meatloaf
 		if (other_panel_for_flash == true)
 		{
 			if (uibutton[BUTTON_ID_COPY].active_ != false)
@@ -632,10 +672,21 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 		}
 		else
 		{
-			if (uibutton[BUTTON_ID_COPY].active_ != true)
+			if (other_panel_is_meatloaf == true)
 			{
-				uibutton[BUTTON_ID_COPY].active_ = true;
-				uibutton[BUTTON_ID_COPY].changed_ = true;
+					if (uibutton[BUTTON_ID_COPY].active_ != false)
+				{
+					uibutton[BUTTON_ID_COPY].active_ = false;
+					uibutton[BUTTON_ID_COPY].changed_ = true;
+				}
+		}
+			else
+			{
+				if (uibutton[BUTTON_ID_COPY].active_ != true)
+				{
+					uibutton[BUTTON_ID_COPY].active_ = true;
+					uibutton[BUTTON_ID_COPY].changed_ = true;
+				}
 			}
 		}
 

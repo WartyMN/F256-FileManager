@@ -1358,6 +1358,10 @@ bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 			EM_DisplayAsText(bank_num, num_pages, the_name);
 		}
 	}
+	else
+	{
+		Buffer_NewMessage(General_GetString(ID_STR_ERROR_FAIL_VIEW_FILE));
+	}
 	
 	return success;
 }

@@ -199,6 +199,8 @@ typedef struct UI_Menu_Enabler_Info
 	bool		for_disk_;	
 	bool		for_flash_;
 	bool		is_kup_;
+	bool		is_meatloaf_;
+	bool		other_panel_is_meatloaf_;
 	bool		other_panel_for_disk_;	
 	bool		other_panel_for_flash_;
 } UI_Menu_Enabler_Info;

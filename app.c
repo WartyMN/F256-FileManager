@@ -362,19 +362,24 @@ uint8_t App_MainLoop(void)
 				app_menu_enabler.file_type_ = Folder_GetCurrentFileType(the_panel->root_folder_);
 				app_menu_enabler.for_flash_ = false;
 				app_menu_enabler.is_kup_ = false;
+				app_menu_enabler.is_meatloaf_ = the_panel->root_folder_->is_meatloaf_;
 			}
 			else
 			{
 				App_LoadOverlay(OVERLAY_MEMSYSTEM);
-				app_menu_enabler.is_kup_ = MemSys_GetCurrentRowKUPState(the_panel->memory_system_);
-				app_menu_enabler.for_flash_ = the_panel->memory_system_->is_flash_;
 				app_menu_enabler.file_type_ = 0;
+				app_menu_enabler.for_flash_ = the_panel->memory_system_->is_flash_;
+				app_menu_enabler.is_kup_ = MemSys_GetCurrentRowKUPState(the_panel->memory_system_);
+				app_menu_enabler.is_meatloaf_ = false;
 			}
 						
 			// ask Screen to establish which menu items should be available (this just keeps this code out of MAIN to maximize heap space)
 			app_menu_enabler.for_disk_ = the_panel->for_disk_;
 			app_menu_enabler.other_panel_for_disk_ = app_file_panel[(app_active_panel_id + 1) % 2].for_disk_;
 			app_menu_enabler.other_panel_for_flash_ = app_file_panel[(app_active_panel_id + 1) % 2].memory_system_->is_flash_;
+				// HBD: memory_system_ is null for disk sys. seems to be working ok, but that's random
+			app_menu_enabler.other_panel_is_meatloaf_ = app_file_panel[(app_active_panel_id + 1) % 2].root_folder_->is_meatloaf_;
+				// HBD: root_folder is null for memory sys. seems to be working ok, but that's random
 			App_LoadOverlay(OVERLAY_SCREEN);
 			Screen_UpdateMenuStates(&app_menu_enabler);
 			
