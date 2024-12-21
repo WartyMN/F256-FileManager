@@ -59,7 +59,6 @@ static uint8_t		temp_file_extension_buffer[FILE_MAX_EXTENSION_SIZE];	// 8 probab
 /*****************************************************************************/
 
 extern char*		global_string_buff1;
-extern char*		global_string_buff2;
 
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
@@ -134,8 +133,8 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 			return General_GetString(ID_STR_FILETYPE_MUSIC);
 		
 		default:
-			sprintf(global_string_buff1, "Unrecognized file type: %u", cbm_filetype_id);
-			Buffer_NewMessage(global_string_buff1);
+			//sprintf(global_string_buff1, "Unrecognized file type: %u", cbm_filetype_id);
+			//Buffer_NewMessage(global_string_buff1);
 			return General_GetString(ID_STR_FILETYPE_OTHER);
 	}
 // #define _CBM_T_REG      0x10U   /* Bit set for regular files */
@@ -234,6 +233,10 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_IMAGE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "url", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = _CBM_T_DIR;
 		}
 		else
 		{

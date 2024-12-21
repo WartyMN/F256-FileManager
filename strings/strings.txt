@@ -13,99 +13,105 @@
 11	15	Enter new name:
 12	23	Set Current Date & Time
 13	39	Enter date and time as 'YY-MM-DD HH:mm'
-14	16	Fill Memory Bank
-15	40	Enter a number or character to fill with
-16	29	Bank %02X filled with %u (%c)
-17	13	Search Memory
-18	31	Enter text, or hex bytes with #
-19	20	Create new directory
-20	25	Enter new directory name:
-21	7	  OTHER
-22	10	C Set time
-23	7	a About
-24	6	q Quit
-25	7	b BASIC
-26	5	d DOS
-27	10	  DEVICE  
-28	9	0 SD Card
-29	10	1 Floppy 1
-30	10	2 Floppy 2
-31	5	8 RAM
-32	7	9 Flash
-33	8	` Format
-34	9	(SD Card)
-35	9	DIRECTORY
-36	9	m New dir
-37	9	R Refresh
-38	7	T ~Type
-39	7	N ~Name
-40	7	S ~Size
-41	9	FILE/BANK
-42	10	c Copy<<<<
-43	10	c Copy>>>>
-44	8	x Delete
-45	10	p Duplicat
-46	8	r Rename
-47	10	t Txt View
-48	10	h Hex View
-49	6	l Load
-50	7	z Clear
-51	6	F Fill
-52	10	f Find Mem
-53	10	g    Again
-54	4	NAME
-55	4	DAYS
-56	4	TYPE
-57	4	SIZE
-58	4	BANK
-59	7	ADDRESS
-60	22	Scanning for drives...
-61	15	%u drives found
-62	13	Formatting...
-63	10	Copying...
-64	11	Deleting...
-65	20	Reading directory...
-66	17	File '%s' deleted
-67	25	File '%s' renamed to '%s'
-68	4	Done
-69	6	(More)
-70	14	%u files found
-71	27	Available memory: %zu bytes
-72	11	Hit any key
-73	57	** Hex view of '%s' -- Hit SPACE for more; Esc to stop **
-74	58	** Text view of '%s' -- Hit SPACE for more; Esc to stop **
-75	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
-76	48	A match to '%s' was found at %06lX in Bank $%02X
-77	26	No match to '%s' was found
-78	3	dsk
-79	3	 d 
-80	3	lnk
-81	3	par
-82	3	oth
-83	3	bas
-84	3	exe
-85	3	fnt
-86	3	mus
-87	3	img
-88	14	Fatal error %u
-89	21	Unable to delete file
-90	26	Unable to delete directory
-91	40	We don't need no stinkin' error messages
-92	75	No connected devices were detected. f/manager will probably die of boredom.
-93	16	The disk is full
-94	21	A disk error occurred
-95	33	No disk detected in disk drive %u
-96	31	Error: Could not open file '%s'
-97	31	Error: Could not list directory
-98	39	Error: You cannot copy a bank to itself
-99	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-100	19	Out of memory error
-101	46	https://github.com/WartyMN/F256jr-FileManager/
-102	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-103	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-104	42	Compact pexec loader for flash by dwsJason
-105	36	F256 SuperBASIC %c2023 Paul Robson. 
-106	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
-107	6	F256JR
-108	5	F256K
-109	18	<unknown hardware>
+14	24	Load Remote Meatloaf URL
+15	18	Enter Meatloaf URL
+16	9	ML:FOENIX
+17	16	Fill Memory Bank
+18	40	Enter a number or character to fill with
+19	29	Bank %02X filled with %u (%c)
+20	13	Search Memory
+21	31	Enter text, or hex bytes with #
+22	20	Create new directory
+23	25	Enter new directory name:
+24	7	  OTHER
+25	10	C Set time
+26	7	a About
+27	6	q Quit
+28	7	b BASIC
+29	5	d DOS
+30	10	  DEVICE  
+31	9	0 SD Card
+32	10	1 Floppy 1
+33	10	2 Floppy 2
+34	5	8 RAM
+35	7	9 Flash
+36	8	` Format
+37	9	(SD Card)
+38	9	DIRECTORY
+39	9	m New dir
+40	9	R Refresh
+41	8	M ML URL
+42	7	T ~Type
+43	7	N ~Name
+44	7	S ~Size
+45	9	FILE/BANK
+46	10	c Copy<<<<
+47	10	c Copy>>>>
+48	8	x Delete
+49	10	p Duplicat
+50	8	r Rename
+51	10	t Txt View
+52	10	h Hex View
+53	6	l Load
+54	7	z Clear
+55	6	F Fill
+56	10	f Find Mem
+57	10	g    Again
+58	4	NAME
+59	4	DAYS
+60	4	TYPE
+61	4	SIZE
+62	4	BANK
+63	7	ADDRESS
+64	8	MEATLOAF
+65	21	Meatloaf mode enabled
+66	22	Scanning for drives...
+67	15	%u drives found
+68	13	Formatting...
+69	10	Copying...
+70	11	Deleting...
+71	20	Reading directory...
+72	17	File '%s' deleted
+73	25	File '%s' renamed to '%s'
+74	4	Done
+75	6	(More)
+76	14	%u files found
+77	27	Available memory: %zu bytes
+78	11	Hit any key
+79	57	** Hex view of '%s' -- Hit SPACE for more; Esc to stop **
+80	58	** Text view of '%s' -- Hit SPACE for more; Esc to stop **
+81	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
+82	48	A match to '%s' was found at %06lX in Bank $%02X
+83	26	No match to '%s' was found
+84	3	dsk
+85	3	 d 
+86	3	lnk
+87	3	par
+88	3	oth
+89	3	bas
+90	3	exe
+91	3	fnt
+92	3	mus
+93	3	img
+94	14	Fatal error %u
+95	21	Unable to delete file
+96	26	Unable to delete directory
+97	40	We don't need no stinkin' error messages
+98	75	No connected devices were detected. f/manager will probably die of boredom.
+99	16	The disk is full
+100	21	A disk error occurred
+101	33	No disk detected in disk drive %u
+102	31	Error: Could not open file '%s'
+103	31	Error: Could not list directory
+104	39	Error: You cannot copy a bank to itself
+105	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+106	19	Out of memory error
+107	46	https://github.com/WartyMN/F256jr-FileManager/
+108	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+109	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+110	42	Compact pexec loader for flash by dwsJason
+111	36	F256 SuperBASIC %c2023 Paul Robson. 
+112	50	F256 f/manager %c2024 Micah Bly. Version %u.%u.%u.
+113	6	F256JR
+114	5	F256K
+115	18	<unknown hardware>

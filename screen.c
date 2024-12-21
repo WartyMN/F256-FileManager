@@ -751,6 +751,25 @@ void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function
 }
 
 
+// have screen function an icon for meatloaf mode, or clear it
+void Screen_UpdateMeatloafIcon(uint8_t the_panel_x, bool meatloaf_mode)
+{
+	// LOGIC:
+	//    we want to draw an icon representing "meatloaf" mode immediately to the right of the panel title tab
+	
+	Text_SetXY(the_panel_x + UI_LEFT_PANEL_TITLE_TAB_WIDTH, UI_VIEW_PANEL_TITLE_TAB_Y2);
+	
+	if (meatloaf_mode == true)
+	{
+		Text_SetChar(CH_UC_M);
+	}
+	else
+	{
+		Text_SetChar(CH_SPACE);
+	}
+}
+
+
 // display information about f/manager
 void Screen_ShowAppAboutInfo(void)
 {

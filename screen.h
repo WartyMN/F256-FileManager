@@ -235,6 +235,9 @@ void Screen_RenderMenu(bool sparse_render);
 // have screen function draw the sort triangle in the right place
 void Screen_UpdateSortIcons(uint8_t the_panel_x, void* the_sort_compare_function);
 
+// have screen function an icon for meatloaf mode, or clear it
+void Screen_UpdateMeatloafIcon(uint8_t the_panel_x, bool meatloaf_mode);
+
 // display information about f/manager
 void Screen_ShowAppAboutInfo(void);
 

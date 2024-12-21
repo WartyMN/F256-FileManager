@@ -120,6 +120,7 @@ typedef struct WB2KFolderObject
 // 	uint32_t			selected_bytes_;
 // 	uint16_t			total_blocks_;
 // 	uint16_t			selected_blocks_;
+	bool				is_meatloaf_;						// flag set if the folder is currently configured in meatloaf mode. 
 	uint8_t				device_number_;						// For CBM, 8-9-10-11. for fnx, 0-1-2
 	char*				file_path_;							// rather than having in file, where it gets stored a lot, will just have in folder. 
 } WB2KFolderObject;

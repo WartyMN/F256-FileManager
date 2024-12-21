@@ -60,7 +60,6 @@ extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
 extern char*		global_string_buff1;
-extern char*		global_string_buff2;
 
 
 /*****************************************************************************/
@@ -419,6 +418,7 @@ LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", 
 	the_folder->cur_row_ = 0;
 	the_folder->file_count_ = 0;
 	the_folder->device_number_ = the_device_number;
+	the_folder->is_meatloaf_ = false;
 	
 	
 	// set the folder filepath to match device+":"
@@ -526,7 +526,14 @@ void Folder_SetCurrentRow(WB2KFolderObject* the_folder, int16_t the_row_number)
 		App_Exit(ERROR_SET_CURR_ROW_FOLDER_WAS_NULL);	// crash early, crash often
 	}
 	
-	the_folder->cur_row_ = the_row_number;
+	if (the_folder->file_count_ < (the_row_number+1))
+	{
+		the_folder->cur_row_ = -1;
+	}
+	else
+	{
+		the_folder->cur_row_ = the_row_number;
+	}
 }
 
 
@@ -878,7 +885,12 @@ WB2KFileObject* Folder_FindFileByRow(WB2KFolderObject* the_folder, uint8_t the_r
 // populate the files in a folder by doing a directory command
 uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 {	
+	bool				skip_this_file;
 	bool				file_added;
+	uint8_t				meatloaf_info_file_cnt = 0;	// if in meatloaf mode, treat first 4 files as info-only files. convert last one to '..'
+	uint8_t				meatloaf_slash_cnt = 0;			// used to parse the INFO file row and tell if we're on root or not.
+	uint8_t				i;
+	uint8_t				filename_len;
 	char*				this_file_name;
 	struct DIR*			dir;
 	struct dirent*		dirent;
@@ -954,125 +966,301 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 		
 		//Buffer_NewMessage(global_string_buff1);
 
-
-        if (_DE_ISDIR(dirent->d_type))
-        {
-			this_file_name = dirent->d_name;
+		skip_this_file = false;
+		meatloaf_slash_cnt = 0;
+		
+		if (the_folder->is_meatloaf_ == true && meatloaf_info_file_cnt < 5)
+		{
+			// LOGIC:
+			//   meatloaf mode won't be detected until the first file, the label, is read in, so it won't get caught by this.
+			//   next, meatloaf will present 5 "files" of 0 bytes. 
+			//     these consist of:
+			//     [URL]
+			//     c64.meatloaf.cc (or whatever)
+			//     [PATH]
+			//     /DEMO/
+			//     ---------------------------
+			//   Believe all will be presented in all-caps, as far as Foenix is concerned. 
 			
-			if (this_file_name[0] == '.' && this_file_name[1] != '.')
-			{
-				// this is a dir starting with '.' probably macOS junk, OR
-				// this is a the current dir ".", and we still don't need to see it.
-
-			}
-			else
-			{				
-				//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
+			if (_DE_ISREG(dirent->d_type) == true || _DE_ISDIR(dirent->d_type)  == true)	// remember, microkernel doesn't check, it just assumes dir if block size is 0.
+        	{
+				//DEBUG_OUT(("%s %d: file '%s' believed to be meatloaf info line #%u", __func__ , __LINE__, dirent->d_name, meatloaf_info_file_cnt));
+				//sprintf(global_string_buff1, "file '%s' believed to be meatloaf info line #%u", dirent->d_name, meatloaf_info_file_cnt);
 				//Buffer_NewMessage(global_string_buff1);
-			
-				this_file = File_New(this_file_name, PARAM_FILE_IS_FOLDER, (dirent->d_blocks * FILE_BYTES_PER_BLOCK), _CBM_T_DIR, file_cnt, &this_datetime);
-	
-				if (this_file == NULL)
+				
+				if (meatloaf_info_file_cnt == 0)
 				{
-					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
-					//DEBUG_OUT(("%s %d: Could not allocate memory for file object '%s'", __func__ , __LINE__, this_file_name));
-					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
-					sprintf(global_string_buff1, "Could not allocate memory for file object '%s'", this_file_name);
+					if (General_Strncasecmp((char*)dirent->d_name, "[URL]", 5) == 0)
+					{
+						meatloaf_info_file_cnt = 1;
+						skip_this_file = true;
+					}
+					else
+					{
+						// when meatloaf displays contents on first load (what it knows internally vs some URL), it doesn't have the 5 info lines
+						// we need to let this file get processed
+					}					
+				}
+				else if (meatloaf_info_file_cnt == 1)
+				{
+					// if file cnt = 1, we're past the [URL] line. we don't know what this content will be, but need to skip it.
+					{
+						meatloaf_info_file_cnt = 2; 
+						skip_this_file = true;
+					}
+				}
+				else if (meatloaf_info_file_cnt == 2)
+				{
+					if (General_Strncasecmp((char*)dirent->d_name, "[PATH]", 6) == 0)
+					{
+						meatloaf_info_file_cnt = 3;
+						skip_this_file = true;
+					}
+					else if (General_Strncasecmp((char*)dirent->d_name, "------", 6) == 0)
+					{
+						// if no path, the path and line under it are skipped, and it goes directly to the ----- line.
+						meatloaf_info_file_cnt = 5;
+						skip_this_file = true;
+					}
+				}
+				else if (meatloaf_info_file_cnt == 3)
+				{
+					// if file cnt = 3, we're past the [PATH] line. we want to skip this line, but first test it, because it can tell us if we are at root or not
+					// if we're at root, we canNOT inject ".." because there will be no where to go. 
+					// in MEATLOAF, a root will look like "/MEATLOAF/" and a non-root might look like "/DEMO/APPS/". so, if 3 or more /s, we're saying it's not root.
+
+					//sprintf(global_string_buff1, "file '%s' believed to be meatloaf info line #%u", dirent->d_name, meatloaf_info_file_cnt);
+					//Buffer_NewMessage(global_string_buff1);
+					
+					this_file_name = dirent->d_name;
+					filename_len = strlen(this_file_name);
+					
+					for (i = 0; i < filename_len; i++)
+					{
+						if (this_file_name[i] == '/')
+						{
+							meatloaf_slash_cnt++;
+						}
+					}
+					
+					//sprintf(global_string_buff1, "file '%s', info line #%u, slash cnt=%u", dirent->d_name, meatloaf_info_file_cnt, meatloaf_slash_cnt);
+					//Buffer_NewMessage(global_string_buff1);
+				
+					// if this is NOT the top level / root dir, insert a fake file to represent the '..' parent directory folder.
+					if (meatloaf_slash_cnt > 1)
+					{
+						// insert a fake file to represent the '..' parent directory folder	
+						this_file = File_New("..", PARAM_FILE_IS_FOLDER, 0, _CBM_T_DIR, file_cnt, &this_datetime);
+				
+						if (this_file == NULL)
+						{
+							goto error;
+						}
+				
+						// Add this file to the list of files
+						file_added = Folder_AddNewFile(the_folder, this_file);
+						++file_cnt;						
+					}
+					
+					meatloaf_info_file_cnt = 4;
+					skip_this_file = true;
+				}
+				else if (meatloaf_info_file_cnt == 4)
+				{
+					// if file cnt = 4, we're past the line after [PATH], and looking at the '--------' line: need to skip it.
+					{
+						meatloaf_info_file_cnt = 5;
+						skip_this_file = true;
+					}
+				}
+			}
+// 			else
+// 			{
+// 				if (General_Strncasecmp((char*)dirent->d_name, "SD", 2) == 0)
+// 				{
+// 					// this isn't one of the info files we were checking, but we DO want to skip it. it's a 0 byte file telling you you have an SD card attached apparently. (to meatloaf)
+// 					skip_this_file = true;
+// 				}
+// // 				else
+// // 				{
+// // 					sprintf(global_string_buff1, "meatloaf mode info cnt=%u but file '%s' not regular??", meatloaf_info_file_cnt, dirent->d_name);
+// // 					Buffer_NewMessage(global_string_buff1);
+// // 				}
+// 			}
+		}
+	
+		if (skip_this_file == false)
+		{
+			if (_DE_ISDIR(dirent->d_type))
+			{
+				//sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR", dirent->d_name);
+				//Buffer_NewMessage(global_string_buff1);
+				
+				this_file_name = dirent->d_name;
+				
+				if (this_file_name[0] == '.' && this_file_name[1] != '.')
+				{
+					// this is a dir starting with '.' probably macOS junk, OR
+					// this is a the current dir ".", and we still don't need to see it.
+	
+				}
+				else
+				{				
+					//sprintf(global_string_buff1, "file '%s' detected as dir, setting path to '%s'", this_file_name, global_temp_path_2);
+					//Buffer_NewMessage(global_string_buff1);
+				
+					this_file = File_New(this_file_name, PARAM_FILE_IS_FOLDER, 0, _CBM_T_DIR, file_cnt, &this_datetime);
+		
+					if (this_file == NULL)
+					{
+						goto error;
+					}
+		
+					// Add this file to the list of files
+					file_added = Folder_AddNewFile(the_folder, this_file);
+		
+					// if this is first file in scan, preselect it
+					if (file_cnt == 0)
+					{
+						this_file->selected_ = true;
+					}
+			
+					++file_cnt;
+					
+					//sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
+					//Buffer_NewMessage(global_string_buff1);
+				}
+			}
+			else if (_DE_ISLBL(dirent->d_type))
+			{
+				//sprintf(global_string_buff1, "%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name);
+				//Buffer_NewMessage(global_string_buff1);
+	
+				if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
+				{
+					// this is the internal SD card. give a more user-friendly name
+					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
+				}
+				else if (dirent->d_name[0] == NO_DISK_PRESENT_FILE_NAME || dirent->d_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
+				{
+					sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_NO_DISK), the_folder->device_number_);
 					Buffer_NewMessage(global_string_buff1);
-					goto error;
+					the_error_code = ERROR_COULD_NOT_OPEN_DIR;
+					break;
 				}
-	
-				// Add this file to the list of files
-				file_added = Folder_AddNewFile(the_folder, this_file);
-	
-				// if this is first file in scan, preselect it
-				if (file_cnt == 0)
+				else
 				{
-					this_file->selected_ = true;
+					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
 				}
-		
-				++file_cnt;
 				
-	 			//sprintf(global_string_buff1, "file '%s' identified as folder by _DE_ISDIR, added=%u", dirent->d_name, file_added);
-	 			//Buffer_NewMessage(global_string_buff1);
-			}
-		}
-        else if (_DE_ISLBL(dirent->d_type))
-        {
-			if (dirent->d_name[0] == '0' && dirent->d_name[1] == ':')
-			{
-				// this is the internal SD card. give a more user-friendly name
-				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
-			}
-			else if (dirent->d_name[0] == NO_DISK_PRESENT_FILE_NAME || dirent->d_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
-			{
-				sprintf(global_string_buff1, General_GetString(ID_STR_ERROR_NO_DISK), the_folder->device_number_);
-				Buffer_NewMessage(global_string_buff1);
-				the_error_code = ERROR_COULD_NOT_OPEN_DIR;
-				break;
-			}
-			else
-			{
-				the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(dirent->d_name, FILE_MAX_FILENAME_SIZE);
-			}
-			
-			the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
-			
-			//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name));
-		}
-        else if (_DE_ISREG(dirent->d_type))
-        {
-			this_file_name = dirent->d_name;
-		
-			if (this_file_name[0] == '.')
-			{
-				// this is a file starting with '.'. probably macOS junk. don't need to see it.
-
-			}
-			else
-			{
-	
-// 				this_datetime.year = dirent->year;
-// 				this_datetime.month = dirent->month;
-// 				this_datetime.day = dirent->day;
-// 				this_datetime.hour = dirent->hour;
-// 				this_datetime.min = dirent->min;
-// 				this_datetime.sec = dirent->sec;
-
+				the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
 				
-				this_file = File_New(this_file_name, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
-	
-				if (this_file == NULL)
+				// check for presence of "MEATLOAF" in the file name, and if found, set this folder to meatloaf mode.
+				this_file_name = dirent->d_name;
+				if ( this_file_name[0] == ' ' && this_file_name[1] == ' ')
 				{
-					LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
-					the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
-					goto error;
+					this_file_name += 2;	// skip past the 2 spaces in "  MEATLOAF" sub dirs. annoying!
 				}
-	
-				// Add this file to the list of files
-				file_added = Folder_AddNewFile(the_folder, this_file);
-	
-				// if this is first file in scan, preselect it
-				if (file_cnt == 0)
-				{
-					this_file->selected_ = true;
-				}
-		
-				++file_cnt;
 				
+				if (General_Strncasecmp(this_file_name, General_GetString(ID_STR_LBL_MEATLOAF_DIR_NAME), 8) == 0)
+				{
+					the_folder->is_meatloaf_ = true;
+				}
+				
+				//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name));
+			}
+			else if (_DE_ISREG(dirent->d_type))
+			{
 				//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISREG", __func__ , __LINE__, dirent->d_name));
-				//sprintf(global_string_buff1, "file '%s' datetime=%u-%u-%u %u:%u:%u", dirent->d_name, this_datetime.year, this_datetime.month, this_datetime.day, this_datetime.hour, this_datetime.min, this_datetime.sec);
-				//Buffer_NewMessage(global_string_buff1);
-				//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
-				//Buffer_NewMessage(global_string_buff1);
-				//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
-				//Buffer_NewMessage(global_string_buff1);
+				
+				this_file_name = dirent->d_name;
+			
+				if (this_file_name[0] == '.')
+				{
+					// this is a file starting with '.'. probably macOS junk. don't need to see it.
+	
+				}
+				else
+				{
+		
+	// 				this_datetime.year = dirent->year;
+	// 				this_datetime.month = dirent->month;
+	// 				this_datetime.day = dirent->day;
+	// 				this_datetime.hour = dirent->hour;
+	// 				this_datetime.min = dirent->min;
+	// 				this_datetime.sec = dirent->sec;
+					
+					// LOGIC:
+					//   normally, anything with ISREG is a regular file, ie, not a directory
+					//   however, with MEATLOAF, the "files" can be "folder" (links). 
+					//   we are using assumption that any "file" with 1 or 0 blocks is actually a directory
+					
+					if (the_folder->is_meatloaf_ == true && the_block_size < 2)
+					{
+						// treat as directory. meatloaf will do the right thing when it is "loaded"
+						
+						//sprintf(global_string_buff1, "file '%s' detected as file but treating as meatloaf dir with path to '%s'", this_file_name, global_temp_path_2);
+						//Buffer_NewMessage(global_string_buff1);
+					
+						this_file = File_New(this_file_name, PARAM_FILE_IS_FOLDER, 0, _CBM_T_DIR, file_cnt, &this_datetime);
+			
+						if (this_file == NULL)
+						{
+							goto error;
+						}		
+					}
+					else
+					{
+						this_file = File_New(this_file_name, PARAM_FILE_IS_NOT_FOLDER, (dirent->d_blocks * the_block_size), _CBM_T_REG, file_cnt, &this_datetime);
+			
+						if (this_file == NULL)
+						{
+							goto error;
+						}
+					}
+					
+		
+					// Add this file to the list of files
+					file_added = Folder_AddNewFile(the_folder, this_file);
+		
+					// if this is first file in scan, preselect it
+					if (file_cnt == 0)
+					{
+						this_file->selected_ = true;
+					}
+			
+					++file_cnt;
+					
+					//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISREG", __func__ , __LINE__, dirent->d_name));
+					//sprintf(global_string_buff1, "file '%s' datetime=%u-%u-%u %u:%u:%u", dirent->d_name, this_datetime.year, this_datetime.month, this_datetime.day, this_datetime.hour, this_datetime.min, this_datetime.sec);
+					//Buffer_NewMessage(global_string_buff1);
+					//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
+					//Buffer_NewMessage(global_string_buff1);
+					//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+					//Buffer_NewMessage(global_string_buff1);
+				}
 			}
 		}
-
 	}
 
 	Kernel_CloseDir(dir);
+
+	// insert a fake file to represent the "take me home" choice in MEATLOAF
+	if (the_folder->is_meatloaf_ == true)
+	{
+		// insert a fake file to represent the '^' home directory folder	
+		this_file = File_New("^", PARAM_FILE_IS_FOLDER, 0, _CBM_T_DIR, file_cnt, &this_datetime);
+
+		if (this_file == NULL)
+		{
+			goto error;
+		}
+
+		// Add this file to the list of files
+		file_added = Folder_AddNewFile(the_folder, this_file);
+		++file_cnt;						
+	}
+
 
 	// set current row to first file, or -1
 	the_folder->cur_row_ = (file_cnt > 0 ? 0 : -1);
@@ -1086,8 +1274,11 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	Buffer_NewMessage(global_string_buff1);
 	
 	return (the_error_code);
-	
+
 error:
+	LOG_ERR(("%s %d: Could not allocate memory for file object", __func__ , __LINE__));
+	the_error_code = ERROR_COULD_NOT_CREATE_NEW_FILE_OBJECT;
+
 	if (dir)	Kernel_CloseDir(dir);
 	
 	return (the_error_code);
@@ -2109,15 +2300,11 @@ WB2KFileObject* Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint1
 	if (do_selection)
 	{
 		// is this already the currently selected file? do we need to unselect a different one? (only 1 allowed at a time)	
-		if (the_folder->cur_row_ == the_row)
-		{
-			// we re-selected the current file. 
-		}
-		else
+		if (the_folder->cur_row_ != the_row)
 		{
 			// something else was selected. find it, and mark it unselected. 
 			the_prev_selected_file = Folder_FindFileByRow(the_folder, the_folder->cur_row_);
-		
+
 			if (the_prev_selected_file == NULL)
 			{
 			}
