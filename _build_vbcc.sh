@@ -172,7 +172,7 @@ cd fm_install/flash
 split -d -b8192 ../../fm.bin fm.
 
 # make the last chunk be exactly 8k
-truncate -s 8K fm.06
+truncate -s 8K fm.07
 
 # zip it up
 cd ../../
