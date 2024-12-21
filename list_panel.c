@@ -655,7 +655,7 @@ bool Panel_Refresh(WB2KViewPanel* the_panel)
 			//sprintf(global_string_buff1, "pop err %u", the_error_code);
 			//Buffer_NewMessage(global_string_buff1);
 			
-			Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
+			//Panel_ClearDisplay(the_panel);	// clear out the list, visually at least
 			return false;
 		}
 	}
@@ -1142,7 +1142,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 	uint8_t				src_bank_num;
 	uint8_t				dst_bank_num;
 	uint32_t			percent_read;
-	bool				success;
+	bool				success = false;
 	FILE*				the_target_handle;
 	WB2KFileObject*		the_file;
 	char*				the_name;
@@ -1375,7 +1375,7 @@ bool Panel_SelectNextFile(WB2KViewPanel* the_panel)
 	
 	if (the_panel->for_disk_ == true)
 	{
-		App_LoadOverlay(OVERLAY_DISKSYS);	
+		App_LoadOverlay(OVERLAY_DISKSYS);
 		the_current_row = Folder_GetCurrentRow(the_panel->root_folder_);
 		the_item_count = Folder_GetCountFiles(the_panel->root_folder_);
 	}
@@ -1771,6 +1771,10 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 		{
 			Folder_SetCurrentRow(the_panel->root_folder_, the_current_file->row_);
 		}
+		else
+		{
+			Folder_SetCurrentRow(the_panel->root_folder_, 1);
+		}
 		
 		// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
 		App_LoadOverlay(OVERLAY_SCREEN);
@@ -1873,129 +1877,3 @@ bool Panel_SearchCurrentBank(WB2KViewPanel* the_panel)
 
 
 
-
-
-
-// TEMPORARY DEBUG FUNCTIONS
-
-// bool printdir (char *newdir)
-// {
-// return true;
-// }
-// 
-// void test_dir_stuff (void)
-// {
-// return;
-// }
-
-// // returns true for error, false for OK
-// bool printdir (char *newdir)
-// {
-//     char *olddir;
-//     char *curdir;
-//     DIR *dir;
-//     struct dirent *ent;
-//     char *subdirs = NULL;
-//     unsigned dirnum = 0;
-//     unsigned num;
-// 
-//     olddir = malloc (FILENAME_MAX);
-//     if (olddir == NULL) {
-//       perror ("cannot allocate memory");
-//       return true;
-//     }
-// 
-//     getcwd (olddir, FILENAME_MAX);
-//     if (chdir (newdir)) {
-// 
-//         /* If chdir() fails we just print the
-//         ** directory name - as done for files.
-//         */
-//         printf ("  Dir  %s\n", newdir);
-//         free (olddir);
-//         return false;
-//     }
-// 
-//     curdir = malloc (FILENAME_MAX);
-//     if (curdir == NULL) {
-//       perror ("cannot allocate memory");
-//       return true;
-//     }
-// 
-//     /* We call getcwd() in order to print the
-//     ** absolute pathname for a subdirectory.
-//     */
-//     getcwd (curdir, FILENAME_MAX);
-//     printf (" Dir %s:\n", curdir);
-//     free (curdir);
-// 
-//     /* Calling Kernel_OpenDir() always with "." avoids
-//     ** fiddling around with pathname separators.
-//     */
-//     dir = Kernel_OpenDir (".");
-//     while (ent = Kernel_ReadDir (dir)) {
-// 
-//         if (_DE_ISREG (ent->d_type)) {
-//             printf ("  File %s\n", ent->d_name);
-//             continue;
-//         }
-// 
-//         /* We defer handling of subdirectories until we're done with the
-//         ** current one as several targets don't support other disk i/o
-//         ** while reading a directory (see cc65 Kernel_ReadDir() doc for more).
-//         */
-//         if (_DE_ISDIR (ent->d_type)) {
-//             subdirs = realloc (subdirs, FILENAME_MAX * (dirnum + 1));
-//             strcpy (subdirs + FILENAME_MAX * dirnum++, ent->d_name);
-//         }
-//     }
-//     Kernel_CloseDir (dir);
-// 
-//     for (num = 0; num < dirnum; ++num) {
-//         if (printdir (subdirs + FILENAME_MAX * num))
-//             break;
-//     }
-//     free (subdirs);
-// 
-//     chdir (olddir);
-//     free (olddir);
-//     return false;
-// }
-// 
-// 
-// void test_dir_stuff (void)
-// {
-//     unsigned char device;
-//     char *devicedir;
-// 
-//     devicedir = malloc (FILENAME_MAX);
-//     if (devicedir == NULL) {
-//       perror ("cannot allocate memory");
-//       return;
-//     }
-// 
-//     /* Calling getfirstdevice()/getnextdevice() does _not_ turn on the motor
-//     ** of a drive-type device and does _not_ check for a disk in the drive.
-//     */
-//     device = getfirstdevice ();
-//     while (device != INVALID_DEVICE) {
-//         printf ("Device %d:\n", device);
-// 
-//         /* Calling getdevicedir() _does_ check for a (formatted) disk in a
-//         ** floppy-disk-type device and returns NULL if that check fails.
-//         */
-//         if (getdevicedir (device, devicedir, FILENAME_MAX)) {
-//             printdir (devicedir);
-//         } else {
-//             printf (" N/A\n");
-//         }
-// 
-//         device = getnextdevice (device);
-//     }
-// 
-//     if (doesclrscrafterexit ()) {
-//         Keyboard_GetChar ();
-//     }
-// 
-//     free (devicedir);
-// }

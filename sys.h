@@ -220,6 +220,8 @@ void Sys_SwitchFontSet(bool use_primary_font);
 // disable the I/O bank to allow RAM to be mapped into it
 // current MMU setting is saved to the 6502 stack
 void Sys_DisableIOBank(void);
+// #define Sys_DisableIOBank(); 	asm("pha"); asm("lda $01"); asm("sta %b", ZP_OLD_IO_PAGE); asm("lda #$04"); asm("sta $01"); asm("pla"); 
+// MB: experimented with replacing this function call with a macro, but it actually increased usage slightly. 
 
 // change the I/O page
 void Sys_SwapIOPage(uint8_t the_page_number);
