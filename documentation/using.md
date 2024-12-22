@@ -85,7 +85,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
 - [I want to get back to SuperBASIC](#i-want-to-get-back-to-superbasic)
 - [I want to see who made this crappy tool](#i-want-to-see-who-made-this-crappy-tool)
-- [Enough of this namby-pamby UI, I want to type DOS commands](#enough-of-this-namby-pamby-ui,-i-want-to-type-dos-commands)
+- [Enough of this silly UI, I want to type DOS commands](#enough-of-this-silly-ui,-i-want-to-type-dos-commands)
 - [I want to quit this app](#i-want-to-quit-this-app)
 
 
@@ -107,7 +107,7 @@ _Hint: Menu operations start from the current panel, which is the one that is no
 
 #### I want to compare the contents of 2 devices
 
-The two-pane approach of the f/manager makes it easy. Hit Left cursor to select the left-hand panel if it is not already active. Use 0, 1, or 2 to select the first device you want to work with. The directory display will refresh. Hit `<TAB>` or Right cursor to select the right-hand panel. Use the number keys again to select the second device. The directory display will refresh. You are now seeing the listing for the first device on the left, and for the second device on the right. 
+The two-pane approach of the f/manager makes it easy. Hit Left cursor to select the left-hand panel if it is not already active. Use `0`, `1`, or `2` to select the first device you want to work with. The directory display will refresh. Hit `<TAB>` or Right cursor to select the right-hand panel. Use the number keys again to select the second device. The directory display will refresh. You are now seeing the listing for the first device on the left, and for the second device on the right. 
 
 _Warning: Do not load the same IEC device on both panels unless you are prepared for unpredicable behavior. Very definitely do not expect to be able to load up one panel with a parent directory from an IEC device such as a 1581 or Meatloaf, and then the other panel with it again, but diving into a subdirectory. The IEC devices do not support paths in the same way the SD card does. The device only ever has ONE active directory._
 
@@ -309,7 +309,7 @@ Hit `B` from the main screen to switch to SuperBASIC. This assumes, of course, t
 Hit `A` to see some information about f/manager, including the version number.
 
 
-#### Enough of this namby-pamby UI, I want to type DOS commands
+#### Enough of this silly UI, I want to type DOS commands
 
 Hit `D` from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
 
