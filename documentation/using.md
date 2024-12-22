@@ -27,12 +27,12 @@
 How you start up the f/manager depends on how you installed it in the first place, and what you are currently doing on the Foenix:
 - If you installed it in flash, in the lowest position: turn on or reset your F256. f/manager will automatically start up. 
 - If you installed it in flash, but not in the lowest position:
-	- If you are in DOS, type "fm" and `<ENTER>`
-	- If you are in SuperBASIC, type "/fm" and `<ENTER>`
+	- If you are in DOS, type `fm` and `<ENTER>`
+	- If you are in SuperBASIC, type `/fm` and `<ENTER>`
 	- If you are in some other program, say 3 Hail Marys, reset the computer, and hope it comes up in f/manager, DOS, or SuperBASIC. 
 - If you did not install it on flash, and have it on disk:
-	- If you are in DOS, type "- fm" and `<ENTER>`
-	- If you are in SuperBASIC, type "/- fm" and `<ENTER>`
+	- If you are in DOS, type `- fm` and `<ENTER>`
+	- If you are in SuperBASIC, type `/- fm` and `<ENTER>`
 	- If you are in some other program, go outside, run around your house or apartment building 3 times _widdershins_ (very important), go back inside, reset the computer, and hope it comes up in f/manager, DOS, or SuperBASIC. 
 
 ## Getting Stuff Done with the f/manager
@@ -53,9 +53,10 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to copy a file from Meatloaf to my Foenix](#i-want-to-copy-a-file-from-meatloaf-to-my-foenix)
 - [I want to copy a file from my Foenix to my Meatloaf](#i-want-to-copy-a-file-from-my-foenix-to-my-meatloaf)
 - [I want to delete a file from a Meatloaf repository](#i-want-to-delete-a-file-from-a-meatloaf-repository)
-- [I want to go back to my local (home) directory](#i-want-to-go-back-to-my-local-(home)-directory)
+- [I want to go back to my local directory](#i-want-to-go-back-to-my-local-directory)
 
 ### Working with Directories
+- [I want to see what's on my SD Card or floppy disk](#i-want-to-see-whats-on-my-sd-card-or-floppy-disk)
 - [I want to create a new folder](#i-want-to-create-a-new-folder)
 - [I want to delete a folder](#i-want-to-delete-a-folder)
 - [I want to copy a folder and its contents](#i-want-to-copy-a-folder-and-its-contents)
@@ -63,7 +64,6 @@ How you start up the f/manager depends on how you installed it in the first plac
 
 
 ### Managing Files
-- [I want to see what's on my SD Card or floppy disk](#i-want-to-see-whats-on-my-sd-card-or-floppy-disk)
 - [I want to copy a file from one place in my SD card to another place](#i-want-to-copy-a-file-from-one-place-in-my-sd-card-to-another-place)
 - [I want to copy a file from disk to another disk](#i-want-to-copy-a-file-from-disk-to-another-disk)
 - [I want to delete a file](#i-want-to-delete-a-file)
@@ -109,7 +109,7 @@ _Hint: Menu operations start from the current panel, which is the one that is no
 
 The two-pane approach of the f/manager makes it easy. Hit Left cursor to select the left-hand panel if it is not already active. Use 0, 1, or 2 to select the first device you want to work with. The directory display will refresh. Hit `<TAB>` or Right cursor to select the right-hand panel. Use the number keys again to select the second device. The directory display will refresh. You are now seeing the listing for the first device on the left, and for the second device on the right. 
 
-_Warning: Do not load the same IEC device on both panels unless you are prepared for unpredicable behavior. Very definitely do not expect to be able to load up one panel with a parent directory from an IEC device such as a 1581 or Meatloaf, and then the other panel with it again, but diving into a subdirectory. The IEC devices do not support paths in the same way the SD card does. The device only ever has ONE active directory.
+_Warning: Do not load the same IEC device on both panels unless you are prepared for unpredicable behavior. Very definitely do not expect to be able to load up one panel with a parent directory from an IEC device such as a 1581 or Meatloaf, and then the other panel with it again, but diving into a subdirectory. The IEC devices do not support paths in the same way the SD card does. The device only ever has ONE active directory._
 
 #### I want to format a floppy disk
 
@@ -131,7 +131,7 @@ If you have made a change to the disk whose contents are being shown in the pane
 
 Well, what's stopping you? Plug it into the F256 and start it up. It will be recognized as Device 0 (if set to drive 8), or Device 1 (if set to Drive 9). The F256 MicroKernel does not currently recognize more than 2 IEC devices, so if you have it set to 10 or 11, it will not be seen. 
 
-When the f/manager detects a Meatloaf device, an "M" character will be shown to the right of the disk title. This signifies that the f/manager is in "Meatloaf mode", and it will apply special handling. See the Meatloaf section below for more information.
+When the f/manager detects a Meatloaf device, an `M` character will be shown to the right of the disk title. This signifies that the f/manager is in "Meatloaf mode", and it will apply special handling. See the Meatloaf section below for more information.
 
 ![Meatloaf Mode](meatloaf_mode.png)
 
@@ -151,7 +151,7 @@ _Note: This is a change directory action, not a load file action, so do not type
 
 #### I want to load a Meatloaf file by specifying the URL
 
-This action is not currently supported. Instead, use the shift-M command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
+This action is not currently supported. Instead, use the `SHIFT-M` command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
 
 #### I want to load a file from the internet that I sent to Meatloaf
 
@@ -169,7 +169,7 @@ This action is not currently supported, as Meatloaf remote directories are read-
 
 This action is not currently supported, as Meatloaf remote directories are read-only and cannot be modified.
 
-#### I want to go back to my local (home) directory
+#### I want to go back to my local directory
 
 In the current panel's directory listing, locate the file that shows as `^`. Hit `<ENTER>` (or `L`). Your local directory for your Meatloaf device will be reloaded.
 
@@ -179,6 +179,10 @@ In the current panel's directory listing, locate the file that shows as `^`. Hit
 ### Working with Directories
 
 ![Directory Menu](directory_menu.png)
+
+#### I want to see what's on my SD Card or floppy disk
+
+On startup, f/manager will scan your system to determine how many disk systems you have attached. Being a Foenix MicroKernel-based program, it can support device 0, the SD Card, as well as Devices 1 and 2, which are reserved for IEC devices such as floppy drives. As long as you have your SD card installed (and it is compatible), the left-hand panel will already be displaying the contents of it. If no SD card was installed, but you have 1 or floppy drives connected, f/manager will show you the contents of the floppies instead. If you have no SD card and no floppies installed, f/manager will instead show you a list of the memory banks in your computer. 
 
 #### I want to create a new folder
 
@@ -209,17 +213,13 @@ A small arrow symbol is shown next to the header for the column that controls th
 
 ![File/Memory Bank Menu](file-bank_menu.png)
 
-#### I want to see what's on my SD Card or floppy disk
-
-On startup, f/manager will scan your system to determine how many disk systems you have attached. Being a Foenix MicroKernel-based program, it can support device 0, the SD Card, as well as Devices 1 and 2, which are reserved for IEC devices such as floppy drives. As long as you have your SD card installed (and it is compatible), the left-hand panel will already be displaying the contents of it. If no SD card was installed, but you have 1 or floppy drives connected, f/manager will show you the contents of the floppies instead. If you have no SD card and no floppies installed, f/manager will instead show you a list of the memory banks in your computer. 
-
 #### I want to copy a file from one place in my SD card to another place
 
 f/manager is a classic two-pane file manager. It will let you copy from either the left pane or the right pane, provided the opposite pane is representing a write-capable device. You can copy from flash memory to disk, for example, but you cannot copy from disk or RAM to flash. Not without reconfiguring the main deflector dish, at least. You can select the same device in both panes. This is allowed and normal, and it is in fact the easiest way to copy a file from one directory to another. Let's take an example where we care copying a file from the SD card's root directory, to a subdirectory called "Games". With the left pane activated (the active pane is the bright green one, the inactive pane is the faded one), hit '0' to show the contents of the SD card's root directory, if it is not already showing. Hit the `<TAB>` key to switch focus to the right-hand pane. Do the same thing here: hit '0' to see the root folder of the SD card. Now use the up and down cursor keys to navigate to the folder you want to copy a file to ("Games" in our example). Enter the folder by hitting, you guessed it: `<ENTER>`. The pane will reload, showing the contents of the directory you selected. Now hit the left cursor key to make the left pane the active pane again. You could also have used `<TAB>` which toggles between left and right. Use the up and down cursor keys to highlight the file you want to copy. When you have it selected, hit 'c' to start the copy operation.  
 
 #### I want to copy a file from disk to another disk
 
-Easy-peasy, lemon-squeezy. Use the '0','1', and/or '2' keys to get the source and destination disks showing in the left and right panes. It doesn't matter which is at left or right. Once you have that set up, make sure the source disk pane is active (bright green). Use `<TAB>` or left/right cursor keys if necessary. Now hit the 'c' button. The Copy menu item shows a series of arrows ('<<<<' or '>>>>') to help you understand which way it will copy when you hit 'c'. That's it. The progress bar will let you know when the copy is complete. File copy is pretty fast on an SD card, but if  you were copy a large file, say "fm.pgZ" from the SD card to a floppy in a 1541 drive, well, that would give you an idea of what computing was like in the 1980s. 
+Easy-peasy, lemon-squeezy. Use the `0`,`1`, and/or `2` keys to get the source and destination disks showing in the left and right panes. It doesn't matter which is at left or right. Once you have that set up, make sure the source disk pane is active (bright green). Use `<TAB>` or left/right cursor keys if necessary. Now hit the `C` key. The `Copy` menu item shows a series of arrows (`<<<<` or `>>>>`) to help you understand which way it will copy when you hit `C`. That's it. The progress bar will let you know when the copy is complete. File copy is pretty fast on an SD card, but if  you were copy a large file, say "fm.pgZ" from the SD card to a floppy in a 1541 drive, well, that would give you an idea of what computing was like in the 1980s. 
 
 #### I want to delete a file
 
@@ -233,13 +233,13 @@ Select the file you want to rename, hit `R`, then type in the new name for the f
 
 Select the file you want to view, and hit `T`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Embedded line breaks are respected, and word wrapping will be used when necessary. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the text viewer and return to the main screen. 
 
-!Text View Example(view_text.png)
+![Text View Example](view_text.png)
 
 #### I want to view the contents of a file as hex data
 
 Select the file you want to view, and hit `H`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Each byte in the file will be displayed first in hex, then as raw character data to the right. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the hex viewer and return to the main screen. 
 
-!Hex View Example(view_hex.png)
+![Hex View Example](view_hex.png)
 
 #### I want to load a SuperBASIC program
 
@@ -284,26 +284,26 @@ Enter the date using the format shown. For example, to set it to April 1, 2024, 
 
 #### I want to get back to SuperBASIC
 
-Hit 'b' from the main screen to switch to SuperBASIC. This assumes, of course, that you have SuperBASIC loaded into flash memory (which all F256s do by default).
+Hit `B` from the main screen to switch to SuperBASIC. This assumes, of course, that you have SuperBASIC loaded into flash memory (which all F256s do by default).
 
 
 #### I want to see who made this crappy tool
 
-Hit 'a' to see some information about f/manager, including the version number.
+Hit `A` to see some information about f/manager, including the version number.
 
 
 #### Enough of this namby-pamby UI; I want to type DOS commands
 
-Hit 'd' from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
+Hit `D` from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
 
 
 #### I want to quit this app
 
-Hit 'q' from the main screen to quit the f/manager. The computer will get a soft reset, and whatever you have first in flash memory will start up again. If your configuration defaults to SuperBASIC on startup, for example, you will see the SuperBASIC screen.
+Hit `Q` from the main screen to quit the f/manager. The computer will get a soft reset, and whatever you have first in flash memory will start up again. If your configuration defaults to SuperBASIC on startup, for example, you will see the SuperBASIC screen.
 
 _Hint: If your configuration defaults to starting up with f/manager, quitting won't achieve much, I'm afraid. _
 
 
-[Top](using.md)
+[Top](#Features)
 
 [Back](_user_guide.md)
