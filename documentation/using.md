@@ -53,7 +53,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to copy a file from Meatloaf to my Foenix](#i-want-to-copy-a-file-from-meatloaf-to-my-foenix)
 - [I want to copy a file from my Foenix to my Meatloaf](#i-want-to-copy-a-file-from-my-foenix-to-my-meatloaf)
 - [I want to delete a file from a Meatloaf repository](#i-want-to-delete-a-file-from-a-meatloaf-repository)
-- [I want to go back to my local (home) directory](#i-want-to-go-back-to-my-local-\(home\)-directory)
+- [I want to go back to my local (home) directory](#i-want-to-go-back-to-my-local-(home)-directory)
 
 ### Working with Directories
 - [I want to create a new folder](#i-want-to-create-a-new-folder)
@@ -77,7 +77,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - documentation coming soon...
 
 ### Loading files and other applications
-- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
+- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 - [I want to load a music .mod file](#i-want-load-a-mod-file)
 - [I want to load a different font](#i-want-load-a-different-font)
 
@@ -98,7 +98,7 @@ On startup, f/manager will scan your system to determine how many disk systems y
 
 ![Device Menu](device_menu.png)
 
-The F256 MicroKernel supports the SD card (Device 0), one or two IEC devices, as Device 1 and Device 2. Device 1 is an analog to Drive 8 on a Commodore system. In additional to Commodore 1541s, 1571s, 1581s, FNX1591s, etc., you can also connect the IEC-compatible network Meatloaf device. To switch to a different device, hit the number key that corresponds to the device # you want to work with. For example, hit '1' to switch to the first IEC device, and '0' to switch back to the SD card.
+The F256 MicroKernel supports the SD card (Device 0), one or two IEC devices, as Device 1 and Device 2. Device 1 is an analog to Drive 8 on a Commodore system. In additional to Commodore 1541s, 1571s, 1581s, FNX1591s, etc., you can also connect the IEC-compatible network Meatloaf device. To switch to a different device, hit the number key that corresponds to the device # you want to work with. For example, hit `1` to switch to the first IEC device, and `0` to switch back to the SD card.
 
 f/manager also supports working with the F256's RAM and Flash memory via the view panels. Select RAM with 8, and Flash with 9.
 
@@ -113,15 +113,15 @@ _Warning: Do not load the same IEC device on both panels unless you are prepared
 
 #### I want to format a floppy disk
 
-Before you can store programs on a new disk, you must first format the disk. To format a disk is to modify it so that the data on it is organized in the way your disk drive understands. When you format a disk, the drive will divide the disk into sections called tracks and sectors. You will give it a name, and a 2-letter unique ID code. A "directory", or table of contents, will be prepared. When you save a program to disk, the directory will be updated with the name of the program. 
+Before you can store programs on a new disk, you must first format the disk. To format a disk is to modify it so that the data on it is organized in the way your disk drive understands. When you format a disk, the drive will divide the disk into sections called tracks and sectors. A "directory", or table of contents, will be prepared. When you save a program to disk, the directory will be updated with the name of the program. 
 
 _Note: While you can format a non-blank disk and use it, be aware that all data on it will be permanently lost when you do so. Typically, users only format a disk once, when using it the first time._
 
-To format a floppy disk, have it in the drive, and make sure that you are on the panel that is pointing at the device representing the floppy (not the SD card!). Hit the '"' (straight double quote) key, and confirm that you want to format the disk. 
+To format a floppy disk, have it in the drive, and make sure that you are on the panel that is pointing at the device representing the floppy (not the SD card!). Hit the `"` (straight double quote) key, and confirm that you want to format the disk. 
 
 #### I want to format an SD card
 
-To format the SD card, confirm you that the active panel is pointing to device 0, the SD card. Hit the '"' (straight double quote) key, and confirm that you want to format the SD card. 
+To format the SD card, confirm you that the active panel is pointing to device 0, the SD card. Hit the `"` (straight double quote) key, and confirm that you want to format the SD card. 
 
 #### I swapped floppies and want to see the listing for the new floppy
 
@@ -141,11 +141,11 @@ When the f/manager detects a Meatloaf device, an "M" character will be shown to 
 
 #### I want to access the Foenix Meatloaf share
 
-From a panel that is in Meatloaf mode, hit shift-M. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated, so all you need to do is hit `<ENTER>`. You will be taken to the curated Foenix share managed by EMWhite. From here, you can download apps, utilities, and other files known to work with the current configuration of the F256 (classic). 
+From a panel that is in Meatloaf mode, hit `SHIFT-M`. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated, so all you need to do is hit `<ENTER>`. You will be taken to the curated Foenix share managed by EMWhite. From here, you can download apps, utilities, and other files known to work with the current configuration of the F256 (classic). 
 
 #### I want to access a Meatloaf directory by specifying the URL
 
-From a panel that is in Meatloaf mode, hit shift-M. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated. Delete it and type in the URL that you want to access, then hit `<ENTER>`.
+From a panel that is in Meatloaf mode, hit `SHIFT-M`. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated. Delete it and type in the URL that you want to access, then hit `<ENTER>`.
 
 _Note: This is a change directory action, not a load file action, so do not type in the URL of a file. Use the URL to the parent folder of the file. After the directory is loaded, you can decide if you want to copy the file, run it, view it, etc._
 
@@ -155,11 +155,11 @@ This action is not currently supported. Instead, use the shift-M command and spe
 
 #### I want to load a file from the internet that I sent to Meatloaf
 
-This action is not currently supported. Instead, use the shift-M command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
+This action is not currently supported. Instead, use the `SHIFT-M` command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
 
 #### I want to copy a file from Meatloaf to my Foenix
 
-Open a Meatloaf directory containing the file you want to copy in one panel, and open the destination SD card or floppy in the second panel. Make sure the Meatloaf panel is the active panel (use `<TAB>` to switch panels if necessary). Hit `c` to start the copy procedure.
+Open a Meatloaf directory containing the file you want to copy in one panel, and open the destination SD card or floppy in the second panel. Make sure the Meatloaf panel is the active panel (use `<TAB>` to switch panels if necessary). Hit `C` to start the copy procedure.
 
 #### I want to copy a file from my Foenix to my Meatloaf
 
@@ -171,20 +171,22 @@ This action is not currently supported, as Meatloaf remote directories are read-
 
 #### I want to go back to my local (home) directory
 
-In the current panel's directory listing, locate the file that shows as `^`. Hit `<ENTER>`. Your local directory for your Meatloaf device will be reloaded.
+In the current panel's directory listing, locate the file that shows as `^`. Hit `<ENTER>` (or `L`). Your local directory for your Meatloaf device will be reloaded.
 
 
 
 
 ### Working with Directories
 
+![Directory Menu](directory_menu.png)
+
 #### I want to create a new folder
 
-Hit 'm' to create a new folder (mkdir).
+Hit `M` to create a new folder (mkdir).
 
 #### I want to delete a folder
 
-Select the folder you want to delete, and hit 'x' or `<DELETE>`... is how it should work, but due to an undocumented feature in the MicroKernel, it is not currently possible to delete folders.
+Select the folder you want to delete, and hit `X` or `<DELETE>`... is how it should work, but due to an undocumented feature in the MicroKernel, it is not currently possible to delete folders.
 
 #### I want to copy a folder and its contents
 
@@ -194,9 +196,9 @@ f/manage does not support a "copy folder" function, but you can do it fairly eas
 #### I want to sort by file name, file size, or file type
 
 By default, f/manager sorts directories by file name. You can rotate between the different sort types with the following keys:
-- shift-t: sort by file type
-- shift-s: sort by file size
-- shift-n: sort by file name
+- `SHIFT-T`: sort by file type
+- `SHIFT-S`: sort by file size
+- `SHIFT-N`: sort by file name
 
 A small arrow symbol is shown next to the header for the column that controls the sort.
 
@@ -219,27 +221,27 @@ Easy-peasy, lemon-squeezy. Use the '0','1', and/or '2' keys to get the source an
 
 #### I want to delete a file
 
-Select the file you want to delete, and use `<DELETE>` or `x`, then confirm you want to delete the file. 
+Select the file you want to delete, and use `<DELETE>` or `X`, then confirm you want to delete the file. 
 
 #### I want to rename a file
 
-Select the file you want to rename, hit `r`, then type in the new name for the file.
+Select the file you want to rename, hit `R`, then type in the new name for the file.
 
 #### I want to view the contents of a file as text
 
-Select the file you want to view, and hit `t`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Embedded line breaks are respected, and word wrapping will be used when necessary. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the text viewer and return to the main screen. 
+Select the file you want to view, and hit `T`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Embedded line breaks are respected, and word wrapping will be used when necessary. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the text viewer and return to the main screen. 
 
 !Text View Example(view_text.png)
 
 #### I want to view the contents of a file as hex data
 
-Select the file you want to view, and hit `h`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Each byte in the file will be displayed first in hex, then as raw character data to the right. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the hex viewer and return to the main screen. 
+Select the file you want to view, and hit `H`. The entire file will be loaded into extended memory, and then displayed one screen at a time. Each byte in the file will be displayed first in hex, then as raw character data to the right. Hit `<SPACE>` to display the next page, or `<RUN/STOP>` to exit the hex viewer and return to the main screen. 
 
 !Hex View Example(view_hex.png)
 
 #### I want to load a SuperBASIC program
 
-Select the BASIC program file you want to load, and hit `<ENTER>` or `<l>`. f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
+Select the BASIC program file you want to load, and hit `<ENTER>` (or `L`). f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
 
 
 
@@ -254,24 +256,24 @@ Select the BASIC program file you want to load, and hit `<ENTER>` or `<l>`. f/ma
 
 ### Loading files and other applications
 
-- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
+- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 
 #### I want to load a music .mod file
 
-Navigate to the file you want to load. It doesn't matter what device or folder it is in. Load it by hitting ENTER or 'l'. f/manager will ask pexec to load the ModoJR music player, and give it the path to the .mod file you selected. 
+Navigate to the file you want to load. It doesn't matter what device or folder it is in. Load it by hitting `<ENTER>` (or `L`). f/manager will ask pexec to load the ModoJR music player, and give it the path to the .mod file you selected. 
 
 _Hint: You must have ModoJR or another file capable of playing .mod files and also aware of Foenix parameter passing conventions installed at 0:\_apps/modo.pgz_
 
 #### I want to load a different font
 
-Navigate to the font file you want to load. For example, if you keep your fonts on the SD card at 0:_fonts/, navigate to that folder. Select the font you want to load, and hit `<ENTER>` or `<l>`. The font will be loaded into the secondary font bank and be displayed immediately. 
+Navigate to the font file you want to load. For example, if you keep your fonts on the SD card at 0:_fonts/, navigate to that folder. Select the font you want to load, and hit `<ENTER>` (or `L`). The font will be loaded into the secondary font bank and be displayed immediately. 
 
 
 ### Doing other Stuff
 
 #### I want to set the system clock
 
-Did you notice that yellow clock at the top right of your f/manager screen? If you have never set your clock before, it's probably showing the wrong time. Or maybe a bit of code ran wild and overwrote VICKY registers. Let's get your clock set again. Type 'C'. A dialog will open. 
+Did you notice that yellow clock at the top right of your f/manager screen? If you have never set your clock before, it's probably showing the wrong time. Or maybe a bit of code ran wild and overwrote VICKY registers. Let's get your clock set again. Type `C`. A dialog will open. 
 
 ![Setting the Clock](setting_clock.png)
 

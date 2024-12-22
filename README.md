@@ -6,6 +6,8 @@ f/manager is a dual-panel file and memory manager for the [Foenix F256jr and F25
 
 If you are a brand new F256 owner, congratulations on your purchase, and welcome to exciting world of retro-computing... without retrobrite!
 
+![Main Screen](main_screen.png)
+
 ### Features
 
 - View and sort the directory of your SD card, and up to 2 connected IEC devices (Commodore-format serial disk drives such as the 1541, 1571, 1581, FNX1591, or FNX1592). 
