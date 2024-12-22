@@ -70,13 +70,11 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to rename a file](#i-want-to-rename-a-file)
 - [I want to view the contents of a file as text](#i-want-to-view-the-contents-of-a-file-as-text)
 - [I want to view the contents of a file as hex data](#i-want-to-view-the-contents-of-a-file-as-hex-data)
-- more to come...
 
 ### Working with Memory
 - documentation coming soon...
 
 ### Loading files and other applications
-- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 - [I want to launch a Foenix program](#i-want-to-launch-a-foenix-program)
 - [I want to load a SuperBASIC program](#i-want-to-load-a-superbasic-program)
 - [I want to load a music .mod file](#i-want-load-a-mod-file)
@@ -87,7 +85,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
 - [I want to get back to SuperBASIC](#i-want-to-get-back-to-superbasic)
 - [I want to see who made this crappy tool](#i-want-to-see-who-made-this-crappy-tool)
-- [Enough of this namby-pamby UI; I want to type DOS commands](#enough-of-this-namby-pamby-ui;-i-want-to-type-dos-commands)
+- [Enough of this namby-pamby UI, I want to type DOS commands](#enough-of-this-namby-pamby-ui,-i-want-to-type-dos-commands)
 - [I want to quit this app](#i-want-to-quit-this-app)
 
 
@@ -102,7 +100,7 @@ On startup, f/manager will scan your system to determine how many disk systems y
 
 The F256 MicroKernel supports the SD card (Device 0), one or two IEC devices, as Device 1 and Device 2. Device 1 is an analog to Drive 8 on a Commodore system. In additional to Commodore 1541s, 1571s, 1581s, FNX1591s, etc., you can also connect the IEC-compatible network Meatloaf device. To switch to a different device, hit the number key that corresponds to the device # you want to work with. For example, hit `1` to switch to the first IEC device, and `0` to switch back to the SD card.
 
-f/manager also supports working with the F256's RAM and Flash memory via the view panels. Select RAM with 8, and Flash with 9.
+f/manager also supports working with the F256's RAM and Flash memory via the view panels. Select RAM with `8`, and Flash with `9`.
 
 _Hint: Menu operations start from the current panel, which is the one that is not dimmed out. You can toggle back and forth between the left and right panels by hitting `<TAB>` (or select with the Right or Left cursor key)._
 
@@ -255,8 +253,6 @@ Select the file you want to view, and hit `H`. The entire file will be loaded in
 
 ### Loading files and other applications
 
-- documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
-
 #### I want to launch a Foenix program
 
 Select the program you want to launch hit `<ENTER>` (or `L`). f/manager will ask pexec to launch the file. There is no way to return to f/manager after you are done in the other program, so reset your Foenix when done. 
@@ -313,7 +309,7 @@ Hit `B` from the main screen to switch to SuperBASIC. This assumes, of course, t
 Hit `A` to see some information about f/manager, including the version number.
 
 
-#### Enough of this namby-pamby UI; I want to type DOS commands
+#### Enough of this namby-pamby UI, I want to type DOS commands
 
 Hit `D` from the main screen to switch to DOS. This assumes, of course, that you have DOS loaded into flash memory (which all F256s do by default).
 
