@@ -207,6 +207,8 @@ A small arrow symbol is shown next to the header for the column that controls th
 
 ### Managing Files
 
+![File/Memory Bank Menu](file-bank_menu.png)
+
 #### I want to see what's on my SD Card or floppy disk
 
 On startup, f/manager will scan your system to determine how many disk systems you have attached. Being a Foenix MicroKernel-based program, it can support device 0, the SD Card, as well as Devices 1 and 2, which are reserved for IEC devices such as floppy drives. As long as you have your SD card installed (and it is compatible), the left-hand panel will already be displaying the contents of it. If no SD card was installed, but you have 1 or floppy drives connected, f/manager will show you the contents of the floppies instead. If you have no SD card and no floppies installed, f/manager will instead show you a list of the memory banks in your computer. 

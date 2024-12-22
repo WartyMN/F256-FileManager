@@ -6,7 +6,7 @@ f/manager is a dual-panel file and memory manager for the [Foenix F256jr and F25
 
 If you are a brand new F256 owner, congratulations on your purchase, and welcome to exciting world of retro-computing... without retrobrite!
 
-![Main Screen](main_screen.png)
+![Main Screen](documentation/main_screen.png)
 
 ### Features
 
