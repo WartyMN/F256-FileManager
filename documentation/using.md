@@ -70,7 +70,6 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to rename a file](#i-want-to-rename-a-file)
 - [I want to view the contents of a file as text](#i-want-to-view-the-contents-of-a-file-as-text)
 - [I want to view the contents of a file as hex data](#i-want-to-view-the-contents-of-a-file-as-hex-data)
-- [I want to load a SuperBASIC program](#i-want-to-load-a-superbasic-program)
 - more to come...
 
 ### Working with Memory
@@ -78,8 +77,11 @@ How you start up the f/manager depends on how you installed it in the first plac
 
 ### Loading files and other applications
 - documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
+- [I want to launch a Foenix program](#i-want-to-launch-a-foenix-program)
+- [I want to load a SuperBASIC program](#i-want-to-load-a-superbasic-program)
 - [I want to load a music .mod file](#i-want-load-a-mod-file)
 - [I want to load a different font](#i-want-load-a-different-font)
+- [I want to view a graphics file](#i-want-to-view-a-graphics-file)
 
 ### Doing other Stuff
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
@@ -241,11 +243,6 @@ Select the file you want to view, and hit `H`. The entire file will be loaded in
 
 ![Hex View Example](view_hex.png)
 
-#### I want to load a SuperBASIC program
-
-Select the BASIC program file you want to load, and hit `<ENTER>` (or `L`). f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
-
-
 
 
 ### Working with Memory
@@ -260,18 +257,42 @@ Select the BASIC program file you want to load, and hit `<ENTER>` (or `L`). f/ma
 
 - documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit `<ENTER>` (or `L`) to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 
+#### I want to launch a Foenix program
+
+Select the program you want to launch hit `<ENTER>` (or `L`). f/manager will ask pexec to launch the file. There is no way to return to f/manager after you are done in the other program, so reset your Foenix when done. 
+
+_Note: f/manager will only know if a file is a Foenix executable if the filename ends in `.pgz` or `.pgx`._
+
+
+#### I want to load a SuperBASIC program
+
+Select the BASIC program file you want to load, and hit `<ENTER>` (or `L`). f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
+
+_Note: f/manager will only know if a file is a BASIC program if the filename ends in `.bas` or `.BAS`._
+
 #### I want to load a music .mod file
 
 Navigate to the file you want to load. It doesn't matter what device or folder it is in. Load it by hitting `<ENTER>` (or `L`). f/manager will ask pexec to load the ModoJR music player, and give it the path to the .mod file you selected. 
 
 _Hint: You must have ModoJR or another file capable of playing .mod files and also aware of Foenix parameter passing conventions installed at 0:\_apps/modo.pgz_
 
+_Note: f/manager will only know if a file is a mod music file if the filename ends in `.mod` or `.MOD`._
+
 #### I want to load a different font
 
 Navigate to the font file you want to load. For example, if you keep your fonts on the SD card at 0:_fonts/, navigate to that folder. Select the font you want to load, and hit `<ENTER>` (or `L`). The font will be loaded into the secondary font bank and be displayed immediately. 
 
+#### I want to view a graphics file
+
+Navigate to the image you want to view. Load it by hitting `<ENTER>` (or `L`). f/manager will ask pexec to load and display the image. There is no way to return to f/manager after you are done viewing the image, so reset your Foenix when done. 
+
+_Note: f/manager will only know that a file is an image if the filename ends in `.256` or `.lbm`._
+
+
 
 ### Doing other Stuff
+
+![Other Menu](other_menu.png)
 
 #### I want to set the system clock
 
@@ -301,7 +322,7 @@ Hit `D` from the main screen to switch to DOS. This assumes, of course, that you
 
 Hit `Q` from the main screen to quit the f/manager. The computer will get a soft reset, and whatever you have first in flash memory will start up again. If your configuration defaults to SuperBASIC on startup, for example, you will see the SuperBASIC screen.
 
-_Hint: If your configuration defaults to starting up with f/manager, quitting won't achieve much, I'm afraid. _
+_Hint: If your configuration defaults to starting up with f/manager, quitting won't achieve much, I'm afraid._
 
 
 [Top](#Features)
