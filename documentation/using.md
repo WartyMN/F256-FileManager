@@ -40,7 +40,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 ### Working with Devices
 - [I want to work with a different device](#i-want-to-work-with-a-different-device)
 - [I want to compare the contents of 2 devices](#i-want-to-compare-the-contents-of-2-devices)
-- [I want to format a floppy disk](#i-want-to-format-a-disk)
+- [I want to format a floppy disk](#i-want-to-format-a-floppy-disk)
 - [I want to format an SD card](#i-want-to-format-an-sd-card)
 - [I swapped floppies and want to see the listing for the new floppy](#i-swapped-floppies-and-want-to-see-the-listing-for-the-new-floppy)
 - [I want to use my Meatloaf device](#i-want-to-use-my-meatloaf-device)
@@ -53,6 +53,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 - [I want to copy a file from Meatloaf to my Foenix](#i-want-to-copy-a-file-from-meatloaf-to-my-foenix)
 - [I want to copy a file from my Foenix to my Meatloaf](#i-want-to-copy-a-file-from-my-foenix-to-my-meatloaf)
 - [I want to delete a file from a Meatloaf repository](#i-want-to-delete-a-file-from-a-meatloaf-repository)
+- [I want to go back to my local (home) directory](#i-want-to-go-back-to-my-local-\(home\)-directory)
 
 ### Working with Directories
 - [I want to create a new folder](#i-want-to-create-a-new-folder)
@@ -78,6 +79,7 @@ How you start up the f/manager depends on how you installed it in the first plac
 ### Loading files and other applications
 - documentation coming soon... in the meantime, if you select a .pgz or .pgx application, you can just hit ENTER or "l" to load it. f/manager will turn over the file to pexec, and it will fire it up for you. 
 - [I want to load a music .mod file](#i-want-load-a-mod-file)
+- [I want to load a different font](#i-want-load-a-different-font)
 
 ### Doing other Stuff
 - [I want to set the system clock](#i-want-to-set-the-system-clock)
@@ -131,6 +133,7 @@ Well, what's stopping you? Plug it into the F256 and start it up. It will be rec
 
 When the f/manager detects a Meatloaf device, an "M" character will be shown to the right of the disk title. This signifies that the f/manager is in "Meatloaf mode", and it will apply special handling. See the Meatloaf section below for more information.
 
+![Meatloaf Mode](meatloaf_mode.png)
 
 
 
@@ -138,17 +141,38 @@ When the f/manager detects a Meatloaf device, an "M" character will be shown to 
 
 #### I want to access the Foenix Meatloaf share
 
+From a panel that is in Meatloaf mode, hit shift-M. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated, so all you need to do is hit `<ENTER>`. You will be taken to the curated Foenix share managed by EMWhite. From here, you can download apps, utilities, and other files known to work with the current configuration of the F256 (classic). 
+
 #### I want to access a Meatloaf directory by specifying the URL
+
+From a panel that is in Meatloaf mode, hit shift-M. A dialog box will open, asking which URL you want to go to. The address of the Foenix Meatloaf share will be prepopulated. Delete it and type in the URL that you want to access, then hit `<ENTER>`.
+
+_Note: This is a change directory action, not a load file action, so do not type in the URL of a file. Use the URL to the parent folder of the file. After the directory is loaded, you can decide if you want to copy the file, run it, view it, etc._
 
 #### I want to load a Meatloaf file by specifying the URL
 
+This action is not currently supported. Instead, use the shift-M command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
+
 #### I want to load a file from the internet that I sent to Meatloaf
+
+This action is not currently supported. Instead, use the shift-M command and specify the address of the parent directory, then select the file you want to work with and choose the appropriate action. 
 
 #### I want to copy a file from Meatloaf to my Foenix
 
+Open a Meatloaf directory containing the file you want to copy in one panel, and open the destination SD card or floppy in the second panel. Make sure the Meatloaf panel is the active panel (use `<TAB>` to switch panels if necessary). Hit `c` to start the copy procedure.
+
 #### I want to copy a file from my Foenix to my Meatloaf
 
+This action is not currently supported, as Meatloaf remote directories are read-only and cannot be modified.
+
 #### I want to delete a file from a Meatloaf repository
+
+This action is not currently supported, as Meatloaf remote directories are read-only and cannot be modified.
+
+#### I want to go back to my local (home) directory
+
+In the current panel's directory listing, locate the file that shows as `^`. Hit `<ENTER>`. Your local directory for your Meatloaf device will be reloaded.
+
 
 
 
@@ -218,9 +242,15 @@ Select the file you want to view, and hit `h`. The entire file will be loaded in
 Select the BASIC program file you want to load, and hit `<ENTER>` or `<l>`. f/manager will load it into extended memory at 0x28000, display a reminder to type `xgo` when you get to SuperBASIC, and wait for you to hit a key. It will then call up SuperBASIC from flash. At the SuperBASIC prompt, type the xgo command and hit `<ENTER>`. That tells SuperBASIC that it should load in the data it will find at 0x28000 as if it was a program, and do `RUN`.
 
 
+
+
 ### Working with Memory
 
 - documentation coming soon...
+
+
+
+
 
 ### Loading files and other applications
 
@@ -232,6 +262,9 @@ Navigate to the file you want to load. It doesn't matter what device or folder i
 
 _Hint: You must have ModoJR or another file capable of playing .mod files and also aware of Foenix parameter passing conventions installed at 0:\_apps/modo.pgz_
 
+#### I want to load a different font
+
+Navigate to the font file you want to load. For example, if you keep your fonts on the SD card at 0:_fonts/, navigate to that folder. Select the font you want to load, and hit `<ENTER>` or `<l>`. The font will be loaded into the secondary font bank and be displayed immediately. 
 
 
 ### Doing other Stuff
