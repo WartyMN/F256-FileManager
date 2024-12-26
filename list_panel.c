@@ -1056,6 +1056,10 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		{
 			success = Kernal_RunMod(global_temp_path_1);
 		}
+		else if (the_file->file_type_ == FNX_FILETYPE_TEXT)
+		{
+			success = Kernal_EditText(global_temp_path_1);
+		}
 		else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 		{
 			// until SuperBASIC will accept a file path, only thing we can do is load file into $28000, tell user to type "XGO" once basic loads, then switch to basic.

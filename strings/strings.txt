@@ -94,26 +94,27 @@
 92	3	fnt
 93	3	mus
 94	3	img
-95	14	Fatal error %u
-96	21	Unable to delete file
-97	26	Unable to delete directory
-98	40	We don't need no stinkin' error messages
-99	75	No connected devices were detected. f/manager will probably die of boredom.
-100	16	The disk is full
-101	21	A disk error occurred
-102	33	No disk detected in disk drive %u
-103	60	Error: I did not like that file. I will not show that file. 
-104	31	Error: Could not open file '%s'
-105	31	Error: Could not list directory
-106	39	Error: You cannot copy a bank to itself
-107	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-108	19	Out of memory error
-109	46	https://github.com/WartyMN/F256jr-FileManager/
-110	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-111	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-112	42	Compact pexec loader for flash by dwsJason
-113	36	F256 SuperBASIC %c2023 Paul Robson. 
-114	50	F256 f/manager %c2024 Micah Bly. Version %u.%ub%u.
-115	6	F256JR
-116	5	F256K
-117	18	<unknown hardware>
+95	3	txt
+96	14	Fatal error %u
+97	21	Unable to delete file
+98	26	Unable to delete directory
+99	40	We don't need no stinkin' error messages
+100	75	No connected devices were detected. f/manager will probably die of boredom.
+101	16	The disk is full
+102	21	A disk error occurred
+103	33	No disk detected in disk drive %u
+104	60	Error: I did not like that file. I will not show that file. 
+105	31	Error: Could not open file '%s'
+106	31	Error: Could not list directory
+107	39	Error: You cannot copy a bank to itself
+108	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+109	19	Out of memory error
+110	46	https://github.com/WartyMN/F256jr-FileManager/
+111	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+112	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+113	42	Compact pexec loader for flash by dwsJason
+114	36	F256 SuperBASIC %c2023 Paul Robson. 
+115	50	F256 f/manager %c2024 Micah Bly. Version %u.%ub%u.
+116	6	F256JR
+117	5	F256K
+118	18	<unknown hardware>

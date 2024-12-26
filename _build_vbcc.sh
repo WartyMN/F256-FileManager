@@ -5,7 +5,7 @@ PROJECT=$DEV/F256jr-FileManager
 CONFIG_DIR=$PROJECT/config_cc65
 
 # name that will be used in files
-VERSION_STRING="1.1b1"
+VERSION_STRING="1.1b3"
 
 # debug logging levels: 1=error, 2=warn, 3=info, 4=debug general, 5=allocations
 #DEBUG_DEF_1="-DLOG_LEVEL_1"

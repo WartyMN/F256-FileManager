@@ -30,6 +30,10 @@ void Kernal_RunNamed(char* kup_name, uint8_t name_len);
 // returns error on error, and never returns on success (because pexec took over)
 bool Kernal_RunMod(char* the_path);
 
+// calls moreorless and tells it to load the specified .txt file
+// returns error on error, and never returns on success (because pexec took over)
+bool Kernal_EditText(char* the_path);
+
 // deletes the file at the specified path
 // returns false in all error conditions
 bool __fastcall__ Kernel_DeleteFile(const char* name);

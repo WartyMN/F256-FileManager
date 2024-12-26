@@ -132,6 +132,10 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 			// any .mod etc music file that modo can play
 			return General_GetString(ID_STR_FILETYPE_MUSIC);
 		
+		case FNX_FILETYPE_TEXT:
+			// any .txt, .src, etc file that can be opened with a text editor
+			return General_GetString(ID_STR_FILETYPE_TEXT);
+		
 		default:
 			//sprintf(global_string_buff1, "Unrecognized file type: %u", cbm_filetype_id);
 			//Buffer_NewMessage(global_string_buff1);
@@ -233,6 +237,14 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_IMAGE;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "txt", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_TEXT;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "src", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_TEXT;
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "url", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
