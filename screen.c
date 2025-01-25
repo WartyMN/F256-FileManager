@@ -860,6 +860,7 @@ char* Screen_GetStringFromUser(char* dialog_title, char* dialog_body, char* star
 	// adjust dialog width temporarily, if necessary and possible
 	orig_dialog_width = global_dlg.width_;
 	temp_dialog_width = General_Strnlen(starter_string,  max_len);
+	
 	// account for situation where no starter string, but there is a length limit. 
 	if (temp_dialog_width < max_len)
 	{
@@ -922,7 +923,6 @@ uint8_t ScreenEvaluateUserStringForHexSeries(char** the_string)
 	uint8_t		the_len = 0;
 	char*		local_string = *the_string;
 	char		converted_storage[16];	// 32 chars is max search len, but 1 for #, takes 2 for each byte, but + for terminator
-	char*		converted = converted_storage;
 	
 	// LOGIC:
 	//   if the string is just normal text, we don't change it, we just return the len

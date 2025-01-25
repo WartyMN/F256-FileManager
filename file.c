@@ -136,6 +136,10 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 			// any .txt, .src, etc file that can be opened with a text editor
 			return General_GetString(ID_STR_FILETYPE_TEXT);
 		
+		case FNX_FILETYPE_MIDI:
+			// a midi file that can be opened with a midi player
+			return General_GetString(ID_STR_FILETYPE_MIDI);
+		
 		default:
 			//sprintf(global_string_buff1, "Unrecognized file type: %u", cbm_filetype_id);
 			//Buffer_NewMessage(global_string_buff1);
@@ -217,6 +221,10 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mod", FILE_MAX_EXTENSION_SIZE) == 0)
 		{
 			the_file->file_type_ = FNX_FILETYPE_MUSIC;
+		}
+		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mid", FILE_MAX_EXTENSION_SIZE) == 0)
+		{
+			the_file->file_type_ = FNX_FILETYPE_MIDI;
 		}
 		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
 		{

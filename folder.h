@@ -80,6 +80,7 @@
 #define FNX_FILETYPE_MUSIC	203	// a .mod file that f/manager will try to pass to modojr
 #define FNX_FILETYPE_IMAGE	204 // a .256 or .lbm image file.
 #define FNX_FILETYPE_TEXT	205 // a .txt or .src text file that can/will be opened in a text editor
+#define FNX_FILETYPE_MIDI	206 // a .mid file that f/manager will try to pass to midiplayer.pgz
 
 
 

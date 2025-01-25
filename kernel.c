@@ -41,6 +41,12 @@ char error;
 #define MAX_ROW 60
 #define MAX_COL 80
 
+// MB definitions
+#define MAX_PEXEC_APP_PATH_LEN	62	// for pexec loading only: based on 128 total chars, lose 3 for terminators, and 1 for '-' pexec
+#define MAX_PEXEC_FILE_PATH_LEN	62	// for pexec loading only: based on 128 total chars, lose 3 for terminators, and 1 for '-' pexec
+
+
+
 static char row = 0;
 static char col = 0;
 static char *line = (char*) 0xc000;
@@ -717,7 +723,7 @@ bool Kernal_MkDir(char* the_path, uint8_t drive_num)
 // In either case, event.directory.cookie will contain the above cookie.
 
 
-// runs a name program (a KUP, in other words)
+// runs a named program (a KUP, in other words)
 // pass the KUP name and length
 // returns error on error, and never returns on success (because SuperBASIC took over)
 void Kernal_RunNamed(char* kup_name, uint8_t name_len)
@@ -733,88 +739,50 @@ void Kernal_RunNamed(char* kup_name, uint8_t name_len)
 }
 
 
-// calls modojr and tells it to load the specified .mod file
+// calls pexec, passing the path to an app to load, and optionally, the path to a file for that app to load
 // returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunMod(char* the_path)
+bool Kernal_LoadApp(char* the_app_path, char* the_file_path)
 {
     char		stream;
     uint8_t		path_len;
 	
+	// LOGIC:
 	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
-	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for 'SuperBASIC', and one for the basic program SuperBASIC should load
-	// per dwsjason, these should be located at $200, with the pointers starting at $280. 
-	//  'arg0- to pexec should be "-", then arg1 should be the name of the pgz you want to run, includign the whole path. 
-	args.common.buf = (char*)0x0200; //"-";
+	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for the app (e.g, 'modojr.pgz', and optionally one for the file the called up app should load (e.g., 'mymodfile.mod')
+	// We have from $200 to $27f to use for the paths
+	//   Because we only have 128 chars for all 3 paths (126 after pexec), the max len of either path is 62 (NULL terminators eat a space)
+	// The pointers to the path components start at $280.
+	// we set arg0 to pexec ('-'), arg1 to the path of the app to load, and arg2, if passed, to the path of the file to load
+	
+	args.common.buf = (char*)0x0200;	// tell Kernel which buffer to work with
 	args.common.buflen = 2;
-
-	*(uint8_t*)(0x0200) = '-';
-	*(uint8_t*)(0x0201) = 0;
-	General_Strlcpy((char*)0x0202, "_apps/modo.pgz", 15);
+	args.common.ext = (char*)0x0280;	// tell Kernel where the arg pointers start and how many there are
+	args.common.extlen = 6;				// if no file for called app to load. will change if necessary.
 	
-    // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
-    the_path += 2;	// get past 0:, 1:, 2:, etc.     
-	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
-
-	General_Strlcpy((char*)0x0211, the_path, path_len);
 	
-	args.common.ext = (char*)0x0280;
-	args.common.extlen = 8;
-
-	// leave pointers for pexec so it knows where to find args
-	*(uint8_t*)0x0280 = 0x00;
-	*(uint8_t*)0x0281 = 0x02;	// first arg is at $0200
-	*(uint8_t*)0x0282 = 0x02;
-	*(uint8_t*)0x0283 = 0x02;	// second arg is at $0202
-	*(uint8_t*)0x0284 = 0x11;
-	*(uint8_t*)0x0285 = 0x02;	// third arg (path to song file) is at $0211
-	*(uint8_t*)0x0286 = 0x00;	// terminator
-	
-	stream = CALL(RunNamed);
-    
-    if (error) 
-    {
-        return false;
-    }
-    
-    return true; // just so cc65 is happy; but will not be hit in event of success as pexec will already be running.
-}
-
-
-// calls moreorless and tells it to load the specified .txt file
-// returns error on error, and never returns on success (because pexec took over)
-bool Kernal_EditText(char* the_path)
-{
-    char		stream;
-    uint8_t		path_len;
-	
-	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
-	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for 'SuperBASIC', and one for the basic program SuperBASIC should load
-	// per dwsjason, these should be located at $200, with the pointers starting at $280. 
-	//  'arg0- to pexec should be "-", then arg1 should be the name of the pgz you want to run, includign the whole path. 
-	args.common.buf = (char*)0x0200; //"-";
-	args.common.buflen = 2;
-
-	*(uint8_t*)(0x0200) = '-';
-	*(uint8_t*)(0x0201) = 0;
-	General_Strlcpy((char*)0x0202, "_apps/mless.pgz", 16);
-	
-    // as of 2024-02-15, pexec doesn't support device nums, it always loads from 0:
-    //the_path += 2;	// get past 0:, 1:, 2:, etc.     
-	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
-
-	General_Strlcpy((char*)0x0220, the_path, path_len);
-	
-	args.common.ext = (char*)0x0280;
-	args.common.extlen = 8;
-
-	// leave pointers for pexec so it knows where to find args
-	*(uint8_t*)0x0280 = 0x00;
+	//  arg0: pexec "-"
+	*(uint8_t*)0x0200 = '-';
+	*(uint8_t*)0x0201 = 0;
+	*(uint8_t*)0x0280 = 0x00;	// set pointer to arg0
 	*(uint8_t*)0x0281 = 0x02;	// first arg (pexec '-') is at $0200
-	*(uint8_t*)0x0282 = 0x02;
-	*(uint8_t*)0x0283 = 0x02;	// second arg (path to app to open) is at $0202
-	*(uint8_t*)0x0284 = 0x20;
-	*(uint8_t*)0x0285 = 0x02;	// third arg (path to file that app should open) is at $0220
-	*(uint8_t*)0x0286 = 0x00;	// terminator
+	
+	// arg1: path to file for pexec to load
+	path_len = General_Strnlen(the_app_path, MAX_PEXEC_APP_PATH_LEN) + 1;
+	General_Strlcpy((char*)0x0202, the_app_path, path_len);
+	*(uint8_t*)0x0282 = 0x02;	// set pointer to arg1
+	*(uint8_t*)0x0283 = 0x02;	// 2nd arg (the app path) is at $0202
+	*(uint8_t*)0x0284 = 0x00;	// terminator (will be overwritten if there is a file to load)
+	
+	// arg2: path to the file you want the called up app to load, if any
+	if (the_file_path != NULL)
+	{
+		path_len = General_Strnlen(the_file_path, MAX_PEXEC_FILE_PATH_LEN) + 1;
+		General_Strlcpy((char*)0x0242, the_file_path, path_len);
+		*(uint8_t*)0x0284 = 0x42;	// set pointer to arg2
+		*(uint8_t*)0x0285 = 0x02;	// 3rd arg (the file path) is at $0242
+		*(uint8_t*)0x0286 = 0x00;	// terminator
+		args.common.extlen = 8;		// let Kernel know we have 8 bytes / 4 pointers for it to look at.
+	}
 
 	stream = CALL(RunNamed);
     
@@ -826,58 +794,6 @@ bool Kernal_EditText(char* the_path)
     return true; // just so cc65 is happy; but will not be hit in event of success as pexec will already be running.
 }
 
-
-// calls Pexec and tells it to run the specified path. 
-// returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunExe(char* the_path)
-{
-    uint8_t		stream;
-    uint8_t		path_len;
-    int8_t		the_device_num;
-	
-	// kernel.args.buf needs to have name of named app to run, which in this case is '-' (pexec's real name)
-	// we also need to prep a different buffer with a series of pointers (2), one of which points to a string for '-', one for '- filetorun.pgz'
-	// per dwsjason, these should be located at $200, with the pointers starting at $280. 
-	//  'arg0- to pexec should be "-", then arg1 should be the name of the pgz you want to run, includign the whole path. 
-	args.common.buf = (char*)0x0200; //"-";
-	args.common.buflen = 2;
-	
-    // as of 2024-02-24, pexec now supports device nums, and if not found, will default to "0:"
-    //  this means that for SD card (0), we can leave it off, which keeps compatibility for people who haven't
-    //  updated to pexec v0.64 or newer. 
-    the_device_num = the_path[0] - CH_ZERO; // get to 0, 1, 2
-    
-    if (the_device_num < 1)
-    {
-		the_path += 2;	// skip past 0: to keep compatibility with pre-0.64 versions of pexec     
-    }
-	
-	path_len = General_Strnlen(the_path, FILE_MAX_PATHNAME_SIZE)+1;
-
-	// set first arg: the named app (pexec in this case)
-	*(uint8_t*)(0x0200) = '-';
-	*(uint8_t*)(0x0201) = 0;
-	// set second arg: the path
-	General_Strlcpy((char*)0x0202, the_path, path_len);
-	// leave pointers for pexec so it knows where to find args
-	*(uint8_t*)0x0280 = 0x00;
-	*(uint8_t*)0x0281 = 0x02;	// first arg is at $0200
-	*(uint8_t*)0x0282 = 0x02;
-	*(uint8_t*)0x0283 = 0x02;	// second arg is at $0202
-	*(uint8_t*)0x0284 = 0x00;	// terminator
-	
-	args.common.ext = (char*)0x0280;
-	args.common.extlen = 4;
-	
-	stream = CALL(RunNamed);
-    
-    if (error) 
-    {
-        return false;
-    }
-    
-    return true; // just so cc65 is happy; but will not be hit in event of success as pexec will already be running.
-}
 
 // Input
 // • kernel.args.buf points to a buffer containing the name of the program to run. 

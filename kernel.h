@@ -17,22 +17,14 @@ void kernel_init(void);
 // returns false on any error
 bool Kernal_MkDir(char* the_folder_path, uint8_t drive_num);
 
-// calls Pexec and tells it to run the specified path. 
-// returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunExe(char* the_path);
-
 // runs a name program (a KUP, in other words)
 // pass the KUP name and length
 // returns error on error, and never returns on success (because SuperBASIC took over)
 void Kernal_RunNamed(char* kup_name, uint8_t name_len);
 
-// calls modojr and tells it to load the specified .mod file
+// calls pexec, passing the path to an app to load, and optionally, the path to a file for that app to load
 // returns error on error, and never returns on success (because pexec took over)
-bool Kernal_RunMod(char* the_path);
-
-// calls moreorless and tells it to load the specified .txt file
-// returns error on error, and never returns on success (because pexec took over)
-bool Kernal_EditText(char* the_path);
+bool Kernal_LoadApp(char* the_app_path, char* the_file_path);
 
 // deletes the file at the specified path
 // returns false in all error conditions

@@ -1050,15 +1050,19 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		else if (the_file->file_type_ == FNX_FILETYPE_EXE || the_file->file_type_ == FNX_FILETYPE_IMAGE)
 		{
 			// this works because pexec can display images as well as log executables
-			success = Kernal_RunExe(global_temp_path_1);
+			success = Kernal_LoadApp(global_temp_path_1, NULL);
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
 		{
-			success = Kernal_RunMod(global_temp_path_1);
+			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_MOD_PLAYER), global_temp_path_1);
+		}
+		else if (the_file->file_type_ == FNX_FILETYPE_MIDI)
+		{
+			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_MIDI_PLAYER), global_temp_path_1);
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_TEXT)
 		{
-			success = Kernal_EditText(global_temp_path_1);
+			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_TEXT_EDITOR), global_temp_path_1);
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 		{

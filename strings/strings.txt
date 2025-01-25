@@ -84,37 +84,41 @@
 82	141	The program has been loaded into memory at $28000. From SuperBASIC, type 'xgo' to access your program. Press any key to switch to SuperBASIC.
 83	48	A match to '%s' was found at %06lX in Bank $%02X
 84	26	No match to '%s' was found
-85	3	dsk
-86	3	 d 
-87	3	lnk
-88	3	par
-89	3	oth
-90	3	bas
-91	3	exe
-92	3	fnt
-93	3	mus
-94	3	img
-95	3	txt
-96	14	Fatal error %u
-97	21	Unable to delete file
-98	26	Unable to delete directory
-99	40	We don't need no stinkin' error messages
-100	75	No connected devices were detected. f/manager will probably die of boredom.
-101	16	The disk is full
-102	21	A disk error occurred
-103	33	No disk detected in disk drive %u
-104	60	Error: I did not like that file. I will not show that file. 
-105	31	Error: Could not open file '%s'
-106	31	Error: Could not list directory
-107	39	Error: You cannot copy a bank to itself
-108	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-109	19	Out of memory error
-110	46	https://github.com/WartyMN/F256jr-FileManager/
-111	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-112	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-113	42	Compact pexec loader for flash by dwsJason
-114	36	F256 SuperBASIC %c2023 Paul Robson. 
-115	50	F256 f/manager %c2024 Micah Bly. Version %u.%ub%u.
-116	6	F256JR
-117	5	F256K
-118	18	<unknown hardware>
+85	18	_apps/textedit.pgz
+86	20	_apps/midiplayer.pgz
+87	19	_apps/modplayer.pgz
+88	3	dsk
+89	3	 d 
+90	3	lnk
+91	3	par
+92	3	oth
+93	3	bas
+94	3	exe
+95	3	fnt
+96	3	mus
+97	3	img
+98	3	txt
+99	3	mid
+100	14	Fatal error %u
+101	21	Unable to delete file
+102	26	Unable to delete directory
+103	40	We don't need no stinkin' error messages
+104	75	No connected devices were detected. f/manager will probably die of boredom.
+105	16	The disk is full
+106	21	A disk error occurred
+107	33	No disk detected in disk drive %u
+108	60	Error: I did not like that file. I will not show that file. 
+109	31	Error: Could not open file '%s'
+110	31	Error: Could not list directory
+111	39	Error: You cannot copy a bank to itself
+112	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+113	19	Out of memory error
+114	46	https://github.com/WartyMN/F256jr-FileManager/
+115	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+116	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+117	42	Compact pexec loader for flash by dwsJason
+118	36	F256 SuperBASIC %c2023 Paul Robson. 
+119	50	F256 f/manager %c2025 Micah Bly. Version %u.%ub%u.
+120	6	F256JR
+121	5	F256K
+122	18	<unknown hardware>
