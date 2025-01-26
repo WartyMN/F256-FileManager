@@ -112,13 +112,16 @@
 110	31	Error: Could not list directory
 111	39	Error: You cannot copy a bank to itself
 112	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-113	19	Out of memory error
-114	46	https://github.com/WartyMN/F256jr-FileManager/
-115	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-116	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-117	42	Compact pexec loader for flash by dwsJason
-118	36	F256 SuperBASIC %c2023 Paul Robson. 
-119	50	F256 f/manager %c2025 Micah Bly. Version %u.%ub%u.
-120	6	F256JR
-121	5	F256K
-122	18	<unknown hardware>
+113	142	No text editor was found. To open .txt files, install a text editor at '/_apps/textedit.pgz'. mless is an example of a compatible text editor.
+114	146	No MIDI player was found. To load .mid files, install a MIDI player at '/_apps/midiplayer.pgz'. midisam is an example of a compatible MIDI player.
+115	141	No mod player was found. To load .mod files, install a mod player at '/_apps/modplayer.pgz'. modojr is an example of a compatible mod player.
+116	19	Out of memory error
+117	46	https://github.com/WartyMN/F256jr-FileManager/
+118	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+119	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+120	42	Compact pexec loader for flash by dwsJason
+121	36	F256 SuperBASIC %c2023 Paul Robson. 
+122	50	F256 f/manager %c2025 Micah Bly. Version %u.%ub%u.
+123	6	F256JR
+124	5	F256K
+125	18	<unknown hardware>

@@ -141,6 +141,11 @@ int16_t File_GetFreeBytesOnDisk(WB2KFileObject* the_file);
 
 // **** OTHER FUNCTIONS *****
 
+// Checks if the file at the passed path can be opened for reading
+// if the file is not found/cannot be opened, the error message represented by feedback_string_id will be shown
+// returns false on any error, or if the file cannot be found/opened.
+bool File_CheckForFile(char* the_file_path, uint8_t feedback_string_id);
+
 // delete the passed file/folder. If a folder, it must have been previously emptied of files.
 bool File_Delete(char* the_file_path, bool is_directory);
 

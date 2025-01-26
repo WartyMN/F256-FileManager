@@ -1054,15 +1054,42 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_MUSIC)
 		{
-			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_MOD_PLAYER), global_temp_path_1);
+			global_temp_path_2 = General_GetString(ID_STR_APP_PATH_MOD_PLAYER);
+			
+			if (File_CheckForFile(global_temp_path_2, ID_STR_ERROR_NO_MOD_PLAYER) == true)
+			{
+				success = Kernal_LoadApp(global_temp_path_2, global_temp_path_1);
+			}
+			else
+			{
+				success = false;
+			}
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_MIDI)
 		{
-			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_MIDI_PLAYER), global_temp_path_1);
+			global_temp_path_2 = General_GetString(ID_STR_APP_PATH_MIDI_PLAYER);
+			
+			if (File_CheckForFile(global_temp_path_2, ID_STR_ERROR_NO_MIDI_PLAYER) == true)
+			{
+				success = Kernal_LoadApp(global_temp_path_2, global_temp_path_1);
+			}
+			else
+			{
+				success = false;
+			}
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_TEXT)
 		{
-			success = Kernal_LoadApp(General_GetString(ID_STR_APP_PATH_TEXT_EDITOR), global_temp_path_1);
+			global_temp_path_2 = General_GetString(ID_STR_APP_PATH_TEXT_EDITOR);
+			
+			if (File_CheckForFile(global_temp_path_2, ID_STR_ERROR_NO_TEXT_EDITOR) == true)
+			{
+				success = Kernal_LoadApp(global_temp_path_2, global_temp_path_1);
+			}
+			else
+			{
+				success = false;
+			}
 		}
 		else if (the_file->file_type_ == FNX_FILETYPE_BASIC)
 		{

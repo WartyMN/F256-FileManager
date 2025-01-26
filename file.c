@@ -866,6 +866,33 @@ error:
 // **** OTHER FUNCTIONS *****
 
 
+// Checks if the file at the passed path can be opened for reading
+// if the file is not found/cannot be opened, the error message represented by feedback_string_id will be shown
+// returns false on any error, or if the file cannot be found/opened.
+bool File_CheckForFile(char* the_file_path, uint8_t feedback_string_id)
+{
+	// LOGIC
+	//   goal is to test for the presence of an expected file. For example, for a utility mod player.
+	//   path will be opened for reading, then closed.
+	//   return false on any error
+
+	FILE*		the_file_handler;
+
+	//Open file
+	the_file_handler = fopen(the_file_path, "r");	
+
+	if (the_file_handler == NULL)
+	{
+		Buffer_NewMessage(General_GetString(feedback_string_id));
+		return false;
+	}
+
+	fclose(the_file_handler);
+		
+	return true;
+}
+
+
 // delete the passed file/folder. If a folder, it must have been previously emptied of files.
 bool File_Delete(char* the_file_path, bool is_directory)
 {
