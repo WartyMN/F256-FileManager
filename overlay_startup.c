@@ -25,6 +25,7 @@
 #include "kernel.h"
 #include "keyboard.h"
 #include "memory.h"
+//#include "screen.h"
 #include "sys.h"
 #include "text.h"
 #include "strings.h"
@@ -78,6 +79,8 @@
 #define INFO_FMANAGER_DISPLAY_ROW		(INFO_KERNEL_DISPLAY_ROW + 1)
 #define INFO_SUPERBASIC_DISPLAY_ROW		(INFO_FMANAGER_DISPLAY_ROW + 1)
 
+// #define WIFI_MAX_SSID_LEN				32
+// #define WIFI_MAX_PASSWORD_LEN			64
 
 
 
@@ -912,5 +915,112 @@ void App_InitializeDialogBox(void)
 	global_dlg.cancel_button_shortcut_ = CH_RUNSTOP;
 
 }
+
+
+// // ask user for their WiFi name and password. 
+// // for Meatloaf, this is not needed every time the computer turns on, it will retain a wifi connection
+// // the main point of this function is to let the user set their Wifi SSID and password. Meatloaf will remember it.
+// // this is not strictly a "startup" function, but startup has some space, and it's a one-time operation, so don't want it in MAIN
+// bool App_ConnectToWifi(void)
+// {
+// 	char*		the_name;
+// 	char*		the_pass;
+// 	char*		this_response;
+// 	char		password_buff[WIFI_MAX_PASSWORD_LEN];
+// 	char*		password = password_buff;
+// 	char		ssid_buff[WIFI_MAX_SSID_LEN];
+// 	char*		ssid = ssid_buff;
+// 
+// 	// do some kind of check to ensure we even have a Meatloaf connected?
+// 	// NO, because UI_Menu_Enabler_Info has a .is_meatloaf_ property that enables/disables meatloaf commands already.
+// // 	if (MEATLOAF-exists-and-is-working == false)
+// // 	{
+// // 		return false;
+// // 	}
+// 
+// 	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_WIFI_SSID_TITLE), APP_DIALOG_WIDTH);
+// 		
+// 	the_name = Screen_GetStringFromUser(
+// 		global_string_buff1, 
+// 		General_GetString(ID_STR_DLG_WIFI_SSID_BODY), 
+// 		ssid, 
+// 		WIFI_MAX_SSID_LEN);
+// 	
+// 	if (the_name == NULL)
+// 	{
+// 		return false;
+// 	}
+
+// 	
+// 	General_Strlcpy(ssid, the_name, WIFI_MAX_PASSWORD_LEN);
+// 	General_Strlcpy(global_string_buff1, General_GetString(ID_STR_DLG_WIFI_PASSWORD_TITLE), APP_DIALOG_WIDTH);
+// 		
+// 	the_pass = Screen_GetStringFromUser(
+// 		global_string_buff1, 
+// 		General_GetString(ID_STR_DLG_WIFI_PASSWORD_BODY), 
+// 		password, 
+// 		WIFI_MAX_PASSWORD_LEN);
+// 	
+// 	if (the_pass == NULL)
+// 	{
+// 		return false;
+// 	}
+// 
+// 	General_Strlcpy(password, the_name, WIFI_MAX_PASSWORD_LEN);
+// 	
+// 	// send CBM DOS command to Meatloaf
+// 	// OPEN1,30,15,"SETSSID:MYSSID,MYPASSWORD":CLOSE1
+// 	sprintf(global_string_buff1, "SETSSID:%s,%s", ssid, password);
+// 		
+// 		// try to change directory
+// 
+// 		cbm_k_setlfs(1, the_panel->device_number_, 15);	// 15 is command channel     
+// 		cbm_k_setnam("");				// no name supplied to OPEN when doing command channel
+// 		cbm_k_open();					// set logical file 1 as the 'out' file
+// 
+// 		if (cbm_k_readst() == 0)
+// 		{
+// 			// command channel successfully opened
+// 			Buffer_NewMessage(global_temp_path_2);
+// 			cbm_write(1, global_temp_path_2, strlen(global_temp_path_2));
+// 			cbm_k_close(1);		
+// 		
+// 			if (cbm_k_readst() == 0)
+// 			{
+// 				// change directory succeeded
+// 				if ( (the_panel->root_folder_ = Folder_NewOrReset(the_panel->root_folder_, global_temp_path_1, the_panel->device_number_, the_panel->unit_number_, 0)) == NULL )
+// 				{
+// 					LOG_ERR(("%s %d: could not reset the panel's root folder", __func__ , __LINE__));
+// 					#ifdef EXTRA_USER_FEEDBACK
+// 						Buffer_NewMessage("could not reset the panel's root folder");
+// 					#endif
+// 					App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
+// 				}
+// 	
+// 				Panel_Refresh(the_panel);
+// 				success = true;				
+// 			}
+// 			else
+// 			{
+// 				// change dir attempt failed.
+// 				success = false;
+// 				#ifdef EXTRA_USER_FEEDBACK
+// 					Buffer_NewMessage("failed to change directory");
+// 				#endif
+// 			}
+// 			
+// 		}
+// 		else
+// 		{
+// 			// couldn't open command channel to even try to change dir
+// 			cbm_k_close(1);		
+// 			success = false;
+// 			#ifdef EXTRA_USER_FEEDBACK
+// 				Buffer_NewMessage("failed to open command channel");
+// 			#endif
+// 		}
+// 	
+// }
+
 
 
