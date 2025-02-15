@@ -1810,7 +1810,7 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 // TODO: consider adding a boolean "do reflow". 
 void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 {
-	WB2KFileObject*		the_current_file;
+	WB2KFileObject*		the_file;
 	
 	// LOGIC: 
 	//   the panel has a concept of currently selected row. this is used to determine bounds for cursor up/down file selection
@@ -1821,21 +1821,22 @@ void Panel_SortAndDisplay(WB2KViewPanel* the_panel)
 	{
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		
-		the_current_file = Folder_GetCurrentFile(the_panel->root_folder_);
-		
 		List_InitMergeSort(the_panel->root_folder_->list_, the_panel->sort_compare_function_);
 
 		Panel_ReflowContent(the_panel);
 		Panel_RenderContents(the_panel);
 		
 		// now re-set the folder's idea of what the current file is
-		if (the_current_file != NULL)
+		// make no attempt to reselect the file that had been selected, as it may now be 4 pages down.
+		// just select the first file in the list
+		if (the_panel->root_folder_->file_count_ > 0)
 		{
-			Folder_SetCurrentRow(the_panel->root_folder_, the_current_file->row_);
+			the_file = Folder_SetFileSelectionByRow(the_panel->root_folder_, 0, true, the_panel->y_);
+			File_Render(the_file, File_IsSelected(the_file), the_panel->y_, the_panel->active_);
 		}
 		else
 		{
-			Folder_SetCurrentRow(the_panel->root_folder_, 1);
+			Folder_SetCurrentRow(the_panel->root_folder_, -1);
 		}
 		
 		// have screen function draw the sort triangle in the right place (doing it there to save space in MAIN)
