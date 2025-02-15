@@ -80,6 +80,10 @@ extern uint8_t				zp_bank_num;
 /*****************************************************************************/
 
 
+// compare the file extension of the passed file name to known values to find file type
+// returns an identified file type, or the default_file_type passed if no match found
+uint8_t File_GetFileTypeFromExtension(uint8_t default_file_type, const char* the_file_name);
+
 // return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
 // see cbm_filetype.h
 char* File_GetFileTypeString(uint8_t cbm_filetype_id);
@@ -88,6 +92,69 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id);
 /*****************************************************************************/
 /*                       Private Function Definitions                        */
 /*****************************************************************************/
+
+
+
+
+// compare the file extension of the passed file name to known values to find file type
+// returns an identified file type, or the default_file_type passed if no match found
+uint8_t File_GetFileTypeFromExtension(uint8_t default_file_type, const char* the_file_name)
+{
+	// get file extensions
+	General_ExtractFileExtensionFromFilename(the_file_name, (char*)&temp_file_extension_buffer);
+	
+	// do this in order of most likely to least likely
+	if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_EXE;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "bas", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_BASIC;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "txt", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_TEXT;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mod", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_MUSIC;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mid", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_MIDI;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_EXE;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "fnt", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_FONT;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "kup", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_EXE;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "lbm", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_IMAGE;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_IMAGE;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "src", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_TEXT;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "url", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return _CBM_T_DIR;
+	}
+
+	return default_file_type;
+}
 
 
 // return a human-readable(ish) string for the filetype of the filetype ID passed - no allocation
@@ -215,62 +282,7 @@ WB2KFileObject* File_New(uint8_t the_panel_id, const char* the_file_name, bool i
 	// accept filetype or determine subtype and use that instead
 	if (the_filetype == _CBM_T_REG)
 	{
-		// get file extensions
-		General_ExtractFileExtensionFromFilename(the_file_name, (char*)&temp_file_extension_buffer);
-		
-		// do this in order of most likely to least likely
-		if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "bas", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_BASIC;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mod", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_MUSIC;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mid", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_MIDI;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "fnt", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_FONT;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "kup", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_EXE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "lbm", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_IMAGE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "256", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_IMAGE;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "txt", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_TEXT;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "src", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = FNX_FILETYPE_TEXT;
-		}
-		else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "url", FILE_MAX_EXTENSION_SIZE) == 0)
-		{
-			the_file->file_type_ = _CBM_T_DIR;
-		}
-		else
-		{
-			the_file->file_type_ = the_filetype;
-		}
+		the_file->file_type_ = File_GetFileTypeFromExtension(the_filetype, the_file_name);
 	}
 	else
 	{
@@ -469,8 +481,6 @@ void File_UpdatePos(WB2KFileObject* the_file, uint8_t x, int8_t display_row, uin
 // update the existing file name to the passed one, freeing any previous one and allocating anew.
 bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 {
-	bool		success;
-	
 	if (the_file == NULL)
 	{
 		//LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
@@ -479,7 +489,7 @@ bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 	
 	App_SetFilenameInEM(the_file, new_file_name);
 	
-	return success;
+	return true;
 }
 
 
@@ -1001,6 +1011,8 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 			LOG_ERR(("%s %d: Rename action failed with file '%s': could not update file name", __func__ , __LINE__, new_file_name));
 			goto error;
 		}
+		
+		the_file->file_type_ = File_GetFileTypeFromExtension(_CBM_T_REG, new_file_name);
 	}
 
 	return true;
