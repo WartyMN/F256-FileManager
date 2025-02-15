@@ -59,8 +59,7 @@ static char*		folder_temp_filename = folder_temp_filename_buffer;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
-extern char*		global_temp_filename_1;
-extern char*		global_temp_filename_2;
+extern char*		global_retrieved_em_filename;
 
 extern char*		global_string_buff1;
 
@@ -249,11 +248,11 @@ WB2KList* Folder_FindListItemByFileName(WB2KFolderObject* the_folder, char* the_
 		
 		App_GetFilenameFromEM(this_file->id_);
 		
-		if ( General_Strnlen(global_temp_filename_1, FILE_MAX_FILENAME_SIZE) == the_compare_len )
+		if ( General_Strnlen(global_retrieved_em_filename, FILE_MAX_FILENAME_SIZE) == the_compare_len )
 		{			
 			//DEBUG_OUT(("%s %d: lengths reported as match", __func__ , __LINE__));
 			
-			if ( (General_Strncasecmp(the_file_name, global_temp_filename_1, the_compare_len)) == 0)
+			if ( (General_Strncasecmp(the_file_name, global_retrieved_em_filename, the_compare_len)) == 0)
 			{
 				return the_item;
 			}

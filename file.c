@@ -49,7 +49,14 @@
 /*                           File-scope Variables                            */
 /*****************************************************************************/
 
+#pragma data-name (push, "OVERLAY_DISKSYS")
+
+static char			file_compare_filename_buffer[FILE_MAX_FILENAME_SIZE];	// for stashing a 2nd filename from EM
+static char*		file_compare_filename = file_compare_filename_buffer;
+
 static uint8_t		temp_file_extension_buffer[FILE_MAX_EXTENSION_SIZE];	// 8 probably larger than needed, but... 
+
+#pragma data-name (pop)
 
 
 
@@ -63,8 +70,7 @@ extern char*		global_string_buff1;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
-extern char*		global_temp_filename_1;
-extern char*		global_temp_filename_2;
+extern char*		global_retrieved_em_filename;
 
 extern uint8_t				zp_bank_num;
 #pragma zpsym ("zp_bank_num");
@@ -1162,11 +1168,11 @@ bool File_CompareName(void* first_payload, void* second_payload)
 	WB2KFileObject*		file_1 = (WB2KFileObject*)first_payload;
 	WB2KFileObject*		file_2 = (WB2KFileObject*)second_payload;
 
-	App_GetFilenameFromEM(file_2->id_);	// puts file2 filename into temp filename1
-	memcpy(global_temp_filename_2, global_temp_filename_1, FILE_MAX_FILENAME_SIZE); // copy from 1 to 2 so we can overwrite 1
-	App_GetFilenameFromEM(file_1->id_);	// puts file1 filename into temp filename1
+	App_GetFilenameFromEM(file_2->id_);	// puts file2 filename into global_retrieved_em_filename
+	memcpy(file_compare_filename, global_retrieved_em_filename, FILE_MAX_FILENAME_SIZE); // copy from 1 to 2 so we can overwrite global_retrieved_em_filename
+	App_GetFilenameFromEM(file_1->id_);	// puts file1 filename into global_retrieved_em_filename
 	
-	if (General_Strncasecmp(global_temp_filename_1, global_temp_filename_2, FILE_MAX_FILENAME_SIZE) > 0)
+	if (General_Strncasecmp(global_retrieved_em_filename, file_compare_filename, FILE_MAX_FILENAME_SIZE) > 0)
 	{
 		return true;
 	}

@@ -362,7 +362,7 @@ void App_Exit(uint8_t the_error_number);
 // Brings the requested overlay into memory
 void App_LoadOverlay(uint8_t the_overlay_em_bank_number);
 
-// reads in a filename from the filename EM storage and copies to global_temp_filename_1
+// reads in a filename from the filename EM storage and copies to global_retrieved_em_filename
 // the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
 // returns a pointer to the local copy of the string (for compatibility reasons)
 char* App_GetFilenameFromEM(uint8_t the_row);

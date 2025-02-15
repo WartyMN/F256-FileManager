@@ -126,10 +126,8 @@ char					global_temp_path_2_buffer[FILE_MAX_PATHNAME_SIZE] = "";
 char*					global_temp_path_1 = global_temp_path_1_buffer;
 char*					global_temp_path_2 = global_temp_path_2_buffer;
 
-char					global_temp_filename_1_buffer[FILE_MAX_FILENAME_SIZE];	// for retrieving from EM
-char					global_temp_filename_2_buffer[FILE_MAX_FILENAME_SIZE];	// for retrieving from EM
-char*					global_temp_filename_1 = global_temp_filename_1_buffer;
-char*					global_temp_filename_2 = global_temp_filename_2_buffer;
+char					global_retrieved_em_filename_buffer[FILE_MAX_FILENAME_SIZE];	// for retrieving from EM
+char*					global_retrieved_em_filename = global_retrieved_em_filename_buffer;
 
 uint8_t					temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 uint8_t					temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
@@ -864,7 +862,7 @@ void App_DisplayTime(void)
 }
 
 
-// reads in a filename from the filename EM storage and copies to global_temp_filename_1
+// reads in a filename from the filename EM storage and copies to global_retrieved_em_filename
 // the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
 // returns a pointer to the local copy of the string (for compatibility reasons)
 char* App_GetFilenameFromEM(uint8_t the_row)
@@ -896,7 +894,7 @@ char* App_GetFilenameFromEM(uint8_t the_row)
 	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
 
 	// copy the string to buffer in MAIN space
-	memcpy(global_temp_filename_1, the_addr, FILE_MAX_FILENAME_SIZE);
+	memcpy(global_retrieved_em_filename, the_addr, FILE_MAX_FILENAME_SIZE);
 	
 	Memory_RestorePreviousBank(BANK_IO);
 	asm("CLI"); // restore interrupts
@@ -906,7 +904,7 @@ char* App_GetFilenameFromEM(uint8_t the_row)
 	asm("lda %b", ZP_OLD_IO_PAGE);	// we stashed the previous IO page at ZP_OLD_IO_PAGE
 	asm("sta $01");	// switch back to the previous IO setting
 
-	return global_temp_filename_1;
+	return global_retrieved_em_filename;
 }
 
 
