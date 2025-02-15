@@ -139,10 +139,9 @@ void Panel_ReflowContentForMemory(WB2KViewPanel* the_panel);
 void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 {
 	WB2KList*	the_item;
-	uint8_t		num_rows;
-	uint8_t		max_rows = PANEL_LIST_MAX_ROWS;
-	uint8_t		num_files = 0;
+	uint16_t	num_rows;
 	uint16_t	row;
+	uint8_t		num_files = 0;
 	int8_t		display_row;
 	uint8_t		first_viz_row = the_panel->content_top_;
 	uint8_t		last_viz_row = first_viz_row + the_panel->height_ - 1;
@@ -161,9 +160,9 @@ void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 	// see how many rows and V space we need by taking # of files (do NOT include space for a header row: that row is part of different spacer)
 	num_rows = num_files;
 	
-	if (num_rows > max_rows)
+	if (num_rows > PANEL_LIST_MAX_ROWS)
 	{
-		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, max_rows));
+		LOG_WARN(("%s %d: this folder is showing %u files, which is more than max of %u", __func__ , __LINE__, num_files, PANEL_LIST_MAX_ROWS));
 	}
 	
 	//sprintf(global_string_buff1, "num_files=%u, num_rows=%u", num_files, num_rows);
@@ -173,7 +172,7 @@ void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 	if (num_files == 0)
 	{
 		the_panel->num_rows_ = 0;
-		LOG_INFO(("%s %d: this folder ('%s') shows a file count of 0", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
+		LOG_INFO(("%s %d: this folder ('%s') shows a file count of 0", __func__ , __LINE__, the_panel->root_folder_->file_name_));
 		return;
 	}
 	
@@ -184,9 +183,9 @@ void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 	// no files?
 	if ( the_item == NULL )
 	{
-		//sprintf(global_string_buff1, "this folder ('%s') shows a file count of %u but file list seems to be empty!", the_panel->root_folder_->folder_file_->file_name_, num_files);
+		//sprintf(global_string_buff1, "this folder ('%s') shows a file count of %u but file list seems to be empty!", the_panel->root_folder_->file_name_, num_files);
 		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: this folder ('%s') shows a file count of %u but file list seems to be empty!", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_, num_files));
+		LOG_ERR(("%s %d: this folder ('%s') shows a file count of %u but file list seems to be empty!", __func__ , __LINE__, the_panel->root_folder_->file_name_, num_files));
 		App_Exit(ERROR_NO_FILES_IN_FILE_LIST); // crash early, crash often
 	}
 	
@@ -208,7 +207,7 @@ void Panel_ReflowContentForDisk(WB2KViewPanel* the_panel)
 		// store the icon's x, y, and rect info so we can use it for mouse detection
 		File_UpdatePos(this_file, the_panel->x_, display_row, row);
 
-		//sprintf(global_string_buff1, "file '%s' display row=%i, row=%u, first_viz_row=%u", this_file->file_name_, display_row, row, first_viz_row);
+		//sprintf(global_string_buff1, "file '%s' display row=%i, row=%u, first_viz_row=%u", App_GetFilenameFromEM(this_file->id_), display_row, row, first_viz_row);
 		//Buffer_NewMessage(global_string_buff1);
 		
 		// get next node
@@ -364,7 +363,7 @@ void Panel_Initialize(WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_
 	the_panel->content_top_ = 0;
 	the_panel->num_rows_ = 0;
 
-	//DEBUG_OUT(("%s %d: filename='%s'", __func__ , __LINE__, the_panel->root_folder_->folder_file_->file_name_));
+	//DEBUG_OUT(("%s %d: filename='%s'", __func__ , __LINE__, the_panel->root_folder_->file_name_));
 
 	return;
 }
@@ -856,7 +855,7 @@ bool Panel_Refresh(WB2KViewPanel* the_panel)
 // 				if (File_MarkSelected(this_file, the_panel->my_parent_surface_->content_left_, the_panel->content_top_, x_bound, y_bound, the_panel->col_highest_visible_) == false)
 // 				{
 // 					// the passed file was null. do anything?
-// 					LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, this_file->file_name_));
+// 					LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					App_Exit(ERROR_DEFINE_ME);
 // 				}
 // 			}
@@ -948,13 +947,13 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	//sprintf(global_string_buff1, "file to rename='%s'", the_file->file_name_);
+	//sprintf(global_string_buff1, "file to rename='%s'", App_GetFilenameFromEM(the_file->id_));
 	//Buffer_NewMessage(global_string_buff1);
 
-	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), the_file->file_name_);
+	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), App_GetFilenameFromEM(the_file->id_));
 
 	// copy the current file name into the edit buffer so user can edit
-	General_Strlcpy(global_string_buff2, the_file->file_name_, FILE_MAX_FILENAME_SIZE);
+	General_Strlcpy(global_string_buff2, App_GetFilenameFromEM(the_file->id_), FILE_MAX_FILENAME_SIZE);
 
 	App_LoadOverlay(OVERLAY_SCREEN);
 	new_file_name = Screen_GetStringFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), global_string_buff2, FILE_MAX_FILENAME_SIZE);
@@ -967,7 +966,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 	
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
 	General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_panel->root_folder_->file_path_, global_string_buff2);
 
 // 	sprintf(global_string_buff1, "new path='%s'", global_temp_path_1);
@@ -987,7 +986,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	// renew file listing
 	Panel_RenderContents(the_panel);
 	
-// 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, the_file->file_name_);
+// 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, App_GetFilenameFromEM(the_file->id_));
 // 	Buffer_NewMessage(global_string_buff2);
 	
 	return success;
@@ -1011,7 +1010,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 			return false;
 		}
 		
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
 		
 		if (the_file->file_type_ == _CBM_T_DIR)
 		{
@@ -1033,7 +1032,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 				// then force f/manager to refresh
 				
 				// try to change directory by "loading" the file. 
-				sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, the_file->file_name_);
+				sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, App_GetFilenameFromEM(the_file->id_));
 				success = File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
 				
 				//sprintf(global_string_buff1, "Trying to change meatloaf dirs with '%s'...", global_temp_path_1);
@@ -1141,7 +1140,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	strcpy(delete_file_name, the_file->file_name_);
+	strcpy(delete_file_name, App_GetFilenameFromEM(the_file->id_));
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), delete_file_name);
 
 	App_LoadOverlay(OVERLAY_SCREEN);
@@ -1157,7 +1156,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 
 	App_LoadOverlay(OVERLAY_DISKSYS);
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
 
 	success = File_Delete(global_temp_path_1, the_file->is_directory_);
 	
@@ -1242,7 +1241,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 		// load a file from disk into memory
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		the_file = Folder_GetCurrentFile(the_panel->root_folder_);
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
 		success = File_LoadFileToEM(global_temp_path_1, dst_bank_num);
 	}
 	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == true)
@@ -1365,8 +1364,8 @@ bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 	if (the_panel->for_disk_ == true)
 	{
 		the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_file->file_name_);
-		the_name = the_file->file_name_;
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
+		the_name = App_GetFilenameFromEM(the_file->id_);
 		num_pages = the_file->size_/256;
 		bank_num = EM_STORAGE_START_PHYS_BANK_NUM;
 		success = File_LoadFileToEM(global_temp_path_1, bank_num);
@@ -1568,7 +1567,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 // 	while (the_item != NULL)
 // 	{
 // 		WB2KFileObject* this_file = (WB2KFileObject*)(the_item->payload_);
-// 		//printf("Folder_UnSelectAllFiles: file %s selected=%i\n", this_file->file_name_, this_file->selected_);
+// 		//printf("Folder_UnSelectAllFiles: file %s selected=%i\n", App_GetFilenameFromEM(this_file->id_), this_file->selected_);
 // 
 // 		if (File_MarkUnSelected(this_file, the_panel->y_) == false)
 // 		{
@@ -1632,7 +1631,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 // 					goto error;
 // 				}
 // 
-// 				//DEBUG_OUT(("%s %d: root folder's filename='%s', is_disk=%i", __func__ , __LINE__, this_file->file_name_, the_root_folder->is_disk_));
+// 				//DEBUG_OUT(("%s %d: root folder's filename='%s', is_disk=%i", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_), the_root_folder->is_disk_));
 // 
 // 				// create a new surface
 // 				new_surface = App_GetOrCreateWindow(global_app, the_root_folder, the_panel->view_mode_, this_file, the_panel->my_parent_surface_);
@@ -1648,7 +1647,7 @@ bool Panel_SetFileSelectionByRow(WB2KViewPanel* the_panel, uint16_t the_row, boo
 // 			{
 // 				if (File_Open(this_file) == false)
 // 				{
-// 					LOG_ERR(("%s %d: Couldn't open the selected file '%s' using WBStartup", __func__ , __LINE__, this_file->file_name_));
+// 					LOG_ERR(("%s %d: Couldn't open the selected file '%s' using WBStartup", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					goto error;
 // 				}
 // 			}
@@ -1793,7 +1792,7 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel)
 
 	if (the_panel->for_disk_ == true)
 	{
-		Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, the_panel->root_folder_->folder_file_->file_name_, fore_color, back_color);
+		Text_DrawStringAtXY( the_panel->x_, the_panel->y_ - 3, the_panel->root_folder_->file_name_, fore_color, back_color);
 	}
 	else if (the_panel->device_number_ == DEVICE_RAM)
 	{

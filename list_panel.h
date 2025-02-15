@@ -38,7 +38,7 @@
 /*                            Macro Definitions                              */
 /*****************************************************************************/
 
-#define PANEL_LIST_MAX_ROWS			144	// hack... most files we can display. 8bit note: this is IEC max files/dir. FAT32 can do 255 with longnames on
+#define PANEL_LIST_MAX_ROWS			255	// hack... most files we can display. 8bit note: 144 is IEC max files/dir. FAT32 can do 255 with longnames on. we have enough memory for 256 files.
 
 #define PARAM_VIEW_AS_HEX			0	// parameter for Panel_ViewCurrentFile
 #define PARAM_VIEW_AS_TEXT			1	// parameter for Panel_ViewCurrentFile

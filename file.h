@@ -54,15 +54,16 @@
 
 typedef struct WB2KFileObject
 {
-	bool				is_directory_;
-	uint8_t				file_type_;			// F256jr... do what with this??
 	uint32_t			size_;				// FAT16: not sure max file size
 	struct DateTime		datetime_;			// IEC: not available. save for when SD card / FAT16 is available
+	bool				is_directory_;
 	bool				selected_;
+	uint8_t				id_;				// id_ is set once, when populating, and used as key for filenames, etc.
+	uint8_t				file_type_;			// F256jr... do what with this??
 	uint8_t				x_;
+	uint8_t				row_;				// row_ is relative to the first file in the folder. changes on sort.
 	int8_t				display_row_;		// offset from the first displayed row of parent panel. -1 if not to be visible.
-	uint8_t				row_;				// row_ is relative to the first file in the folder. 
-	char*				file_name_;
+	//char*				file_name_;
 	//char*				file_size_string_;	// human-readable version of file size
 } WB2KFileObject;
 

@@ -184,7 +184,7 @@ char* General_GetString(uint8_t the_string_id)
 	asm("SEI"); // disable interrupts in case some other process has a role here
 	
 	// map the string bank into CPU memory space
-	zp_bank_num = STRING_STORAGE_VALUE;
+	zp_bank_num = STRING_STORAGE_EM_SLOT;
 	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
 
 	// copy the string to buffer in MAIN space (we'll copy a whole page, because cheaper than checking len of string (??)

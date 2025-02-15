@@ -114,7 +114,6 @@ typedef struct FILEmimic
 
 typedef struct WB2KFolderObject
 {
-	WB2KFileObject*		folder_file_;
 	WB2KList**			list_;
 	uint16_t			file_count_;
 	int16_t				cur_row_;							// 0-n: selected file num. 0=first file. -1 if no file. 
@@ -124,6 +123,7 @@ typedef struct WB2KFolderObject
 // 	uint16_t			selected_blocks_;
 	bool				is_meatloaf_;						// flag set if the folder is currently configured in meatloaf mode. 
 	uint8_t				device_number_;						// For CBM, 8-9-10-11. for fnx, 0-1-2
+	char*				file_name_;							// rather than having whole folder object, we will only use a name now 
 	char*				file_path_;							// rather than having in file, where it gets stored a lot, will just have in folder. 
 } WB2KFolderObject;
 

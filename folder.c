@@ -59,6 +59,9 @@ static char*		folder_temp_filename = folder_temp_filename_buffer;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
+extern char*		global_temp_filename_1;
+extern char*		global_temp_filename_2;
+
 extern char*		global_string_buff1;
 
 
@@ -150,7 +153,7 @@ int32_t Folder_CopyFileBytes(const char* the_source_file_path, const char* the_t
 			{
 				// we hit end of file
 				//Buffer_NewMessage("s_bytes_read_from_disk was less than full row");
-				//LOG_ERR(("%s %d: reading file '%s' expected %u bytes, got %i bytes", __func__ , __LINE__, the_file->file_name_, num_bytes_to_read, s_bytes_read_from_disk));
+				//LOG_ERR(("%s %d: reading file '%s' expected %u bytes, got %i bytes", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), num_bytes_to_read, s_bytes_read_from_disk));
 				keep_going = false;
 			}
 
@@ -242,13 +245,15 @@ WB2KList* Folder_FindListItemByFileName(WB2KFolderObject* the_folder, char* the_
 		WB2KFileObject* this_file = (WB2KFileObject *)(the_item->payload_);
 
 		// is this the item we are looking for?
-		//DEBUG_OUT(("%s %d: examining file '%s' (len %i) against '%s' (len %i)", __func__ , __LINE__, this_file->file_name_, General_Strnlen(this_file->file_name_, FILE_MAX_PATHNAME_SIZE), the_file_name, the_compare_len));
+		//DEBUG_OUT(("%s %d: examining file '%s' (len %i) against '%s' (len %i)", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_), General_Strnlen(App_GetFilenameFromEM(this_file->id_), FILE_MAX_PATHNAME_SIZE), the_file_name, the_compare_len));
 		
-		if ( General_Strnlen(this_file->file_name_, FILE_MAX_FILENAME_SIZE) == the_compare_len )
+		App_GetFilenameFromEM(this_file->id_);
+		
+		if ( General_Strnlen(global_temp_filename_1, FILE_MAX_FILENAME_SIZE) == the_compare_len )
 		{			
 			//DEBUG_OUT(("%s %d: lengths reported as match", __func__ , __LINE__));
 			
-			if ( (General_Strncasecmp(the_file_name, this_file->file_name_, the_compare_len)) == 0)
+			if ( (General_Strncasecmp(the_file_name, global_temp_filename_1, the_compare_len)) == 0)
 			{
 				return the_item;
 			}
@@ -356,7 +361,6 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 {
 	WB2KFolderObject*	the_folder;
 	char**				this_string_p;
-	DateTime			this_datetime;
 	
 	if (the_existing_folder == NULL)
 	{
@@ -366,12 +370,6 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 			goto error;
 		}
 		LOG_ALLOC(("%s %d:	__ALLOC__	the_folder	%p	size	%i", __func__ , __LINE__, the_folder, sizeof(WB2KFolderObject)));
-		
-		// create a root file folder object
-		if ( (the_folder->folder_file_ = File_New(new_path, PARAM_FILE_IS_FOLDER, 0, 0, 0, &this_datetime) ) == NULL)
-		{
-			App_Exit(ERROR_COULD_NOT_CREATE_ROOT_FOLDER_FILE);
-		}
 	}
 	else
 	{
@@ -386,11 +384,11 @@ WB2KFolderObject* Folder_NewOrReset(WB2KFolderObject* the_existing_folder,uint8_
 		(the_folder)->list_ = NULL;
 		
 		// free strings
-LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
-		this_string_p = &the_folder->folder_file_->file_name_;
-LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
-		the_folder->folder_file_->file_name_ = NULL;
-LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->folder_file_->file_name_));
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->file_name_));
+		this_string_p = &the_folder->file_name_;
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->file_name_));
+		the_folder->file_name_ = NULL;
+LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->file_name_=%p", __func__ , __LINE__, this_string_p, &the_folder->file_name_));
 		
 		if (*this_string_p)
 		{
@@ -421,7 +419,7 @@ LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", 
 	the_folder->is_meatloaf_ = false;
 	
 	
-	// set the folder filepath to match device+":"
+	// set folderpath and filename to match the value passed for path
 	if ( (the_folder->file_path_ = General_StrlcpyWithAlloc(new_path, FILE_MAX_PATHNAME_SIZE)) == NULL)
 	{
 		//Buffer_NewMessage("could not allocate memory for the path name");
@@ -429,6 +427,8 @@ LOG_ALLOC(("%s %d:	this_string_p=%p, &the_folder->folder_file_->file_name_=%p", 
 		goto error;
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_folder->file_path_	%p	size	%i	%s", __func__ , __LINE__, the_folder->file_path_, General_Strnlen(the_folder->file_path_, FILE_MAX_PATHNAME_SIZE) + 1, the_folder->file_path_));
+
+	// do not set filename yet. Will be set by populate folder logic.
 
 	return the_folder;
 
@@ -455,10 +455,13 @@ void Folder_Destroy(WB2KFolderObject** the_folder)
 		(*the_folder)->file_path_ = NULL;
 	}
 
-	if ((*the_folder)->folder_file_ != NULL)
+	if ((*the_folder)->file_name_ != NULL)
 	{
-		File_Destroy(&(*the_folder)->folder_file_);
+		LOG_ALLOC(("%s %d:	__FREE__	(*the_folder)->file_name_	%p	size	%i	%s", __func__ , __LINE__, (*the_folder)->file_name_, General_Strnlen((*the_folder)->file_name_, FILE_MAX_FILENAME_SIZE) + 1, (*the_folder)->file_name_));
+		free((*the_folder)->file_name_);
+		(*the_folder)->file_name_ = NULL;
 	}
+
 
 	// free all files in the folder's file list
 	Folder_DestroyAllFiles(*the_folder);
@@ -490,7 +493,7 @@ void Folder_DestroyAllFiles(WB2KFolderObject* the_folder)
 	while (the_item != NULL)
 	{
 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
-		// sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", this_file->file_name_);
+		// sprintf(global_string_buff1, "Folder_DestroyAllFiles: destroying '%s'...", App_GetFilenameFromEM(this_file->id_));
 		// Buffer_NewMessage(global_string_buff1);	
 		
 		File_Destroy(&this_file);
@@ -828,7 +831,7 @@ uint8_t Folder_GetCurrentFileType(WB2KFolderObject* the_folder)
 // 		WB2KFileObject*		this_file = (WB2KFileObject*)(the_item->payload_);
 // 
 // 		// is this the item we are looking for?
-// 		if ( General_Strncasecmp(string_to_match, this_file->file_name_, compare_len) == 0)
+// 		if ( General_Strncasecmp(string_to_match, App_GetFilenameFromEM(this_file->id_), compare_len) == 0)
 // 		{
 // 			return this_file;
 // 		}
@@ -907,14 +910,6 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 	{
 		LOG_ERR(("%s %d: passed class object was null", __func__ , __LINE__));
 		App_Exit(ERROR_POPULATE_FILES_FOLDER_WAS_NULL);	// crash early, crash often
-	}
-
-	if (the_folder->folder_file_ == NULL)
-	{
-		//sprintf(global_string_buff1, "folder file was null");
-		//Buffer_NewMessage(global_string_buff1);
-		LOG_ERR(("%s %d: passed file was null", __func__ , __LINE__));
-		App_Exit(ERROR_FOLDER_FILE_WAS_NULL);	// crash early, crash often
 	}
 
 	if (the_folder->file_path_ == NULL)
@@ -1142,7 +1137,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 				if (this_file_name[0] == '0' && this_file_name[1] == ':')
 				{
 					// this is the internal SD card. give a more user-friendly name
-					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
+					the_folder->file_name_ = General_StrlcpyWithAlloc(General_GetString(ID_STR_DEV_SD_CARD), FILE_MAX_FILENAME_SIZE);
 				}
 				else if (this_file_name[0] == NO_DISK_PRESENT_FILE_NAME || this_file_name[0] == NO_DISK_PRESENT_ANYMORE_FILE_NAME)
 				{
@@ -1170,11 +1165,8 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 						the_folder->is_meatloaf_ = true;
 					}
 	
-					the_folder->folder_file_->file_name_ = General_StrlcpyWithAlloc(this_file_name, FILE_MAX_FILENAME_SIZE);
+					the_folder->file_name_ = General_StrlcpyWithAlloc(this_file_name, FILE_MAX_FILENAME_SIZE);
 				}
-				
-				the_folder->folder_file_->file_type_ = _CBM_T_HEADER;
-				
 				
 				//DEBUG_OUT(("%s %d: file '%s' identified by _DE_ISLBL", __func__ , __LINE__, dirent->d_name));
 			}
@@ -1246,7 +1238,7 @@ uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder)
 					//Buffer_NewMessage(global_string_buff1);
 					//sprintf(global_string_buff1, "file '%s' (%s) identified by _DE_ISREG", dirent->d_name, global_temp_path_2);
 					//Buffer_NewMessage(global_string_buff1);
-					//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, this_file->file_name_, this_file->file_path_);
+					//sprintf(global_string_buff1, "cnt=%u, new file='%s' ('%s')", file_cnt, App_GetFilenameFromEM(this_file->id_), this_file->file_path_);
 					//Buffer_NewMessage(global_string_buff1);
 				}
 			}
@@ -1393,7 +1385,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		
 		// check if the new file path is the same as the old: would be the case in a 'duplicate this file' situation
 		// if so, figure out a compliant name that is unique. in fact, don't compare to the file at all, compare to entire folder!
-		strcpy(folder_temp_filename, the_file->file_name_);
+		strcpy(folder_temp_filename, App_GetFilenameFromEM(the_file->id_));
 		name_uniqueifier = 48; // start artificially high so it resets to 48. 
 		
 		while ( (the_target_file_item = Folder_FindListItemByFileName(the_target_folder, folder_temp_filename)) != NULL && tries < max_tries)
@@ -1441,14 +1433,14 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 		
 		// build a file path for target file, based on FileMover's current target folder path and source file name
 		the_target_folder_path = the_target_folder->file_path_;
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, the_file->file_name_);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, App_GetFilenameFromEM(the_file->id_));
 		General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_target_folder_path, folder_temp_filename);
 		
 		//sprintf(global_string_buff1, "copy file src path='%s', tgt path='%s', size=%lu", global_temp_path_1, global_temp_path_2, the_file->size_);
 		//Buffer_NewMessage(global_string_buff1);
 
 		// call function to copy file bits
-		//DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, the_file->file_name_, global_temp_path_2));
+		//DEBUG_OUT(("%s %d: copying file '%s' to '%s'...", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), global_temp_path_2));
 		//Buffer_NewMessage(General_GetString(ID_STR_MSG_COPYING));
 		
 		bytes_copied = Folder_CopyFileBytes(global_temp_path_1, global_temp_path_2, the_file->size_);
@@ -1484,9 +1476,9 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // 
 // 	the_file = (WB2KFileObject*)the_item->payload_;
 // 
-// 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, the_file->file_name_);
+// 	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_folder->file_path_, App_GetFilenameFromEM(the_file->id_));
 // 	
-// // 	FileMover_SetCurrentFileName(App_GetFileMover(global_app), the_file->file_name_);
+// // 	FileMover_SetCurrentFileName(App_GetFileMover(global_app), App_GetFilenameFromEM(the_file->id_));
 // 	
 // 	// delete the files
 // 	if (File_Delete(global_temp_path_1, the_file->is_directory_) == false)
@@ -1496,7 +1488,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // 
 // // 	FileMover_IncrementProcessedFileCount(App_GetFileMover(global_app));
 // 
-// 	LOG_INFO(("%s %d: deleted file '%s' from disk", __func__ , __LINE__, the_file->file_name_));
+// 	LOG_INFO(("%s %d: deleted file '%s' from disk", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_)));
 // 
 // // 	// if this was a folder file, check if any open windows were representing its contents, and close them. 
 // // 	if (the_file->is_directory_)
@@ -1536,7 +1528,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // // 	bytes_removed = the_file->size_;
 // // 	blocks_removed = the_file->num_blocks_;
 // 	
-// 	//DEBUG_OUT(("%s %d: file '%s' is being removed from folder '%s' (current bytes=%lu, bytes being removed=%lu)", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_removed));
+// 	//DEBUG_OUT(("%s %d: file '%s' is being removed from folder '%s' (current bytes=%lu, bytes being removed=%lu)", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_removed));
 // 	
 // 	if (destroy_the_file_object)
 // 	{
@@ -1568,7 +1560,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // 		App_Exit(ERROR_DEFINE_ME);	// crash early, crash often
 // 	}
 // 
-// 	the_item = Folder_FindListItemByFileName(the_folder, the_file->file_name_);
+// 	the_item = Folder_FindListItemByFileName(the_folder, App_GetFilenameFromEM(the_file->id_));
 // 	
 // 	if (the_item == NULL)
 // 	{
@@ -1578,7 +1570,7 @@ bool Folder_CopyFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file, WB2
 // 	
 // 	Folder_RemoveFileListItem(the_folder, the_item, DO_NOT_DESTROY_FILE_OBJECT);
 // 	
-// 	//DEBUG_OUT(("%s %d: file '%s' was removed from folder '%s'", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_));
+// 	//DEBUG_OUT(("%s %d: file '%s' was removed from folder '%s'", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), the_folder->folder_file_->file_name_));
 // 	
 // 	return true;
 // }
@@ -1755,8 +1747,8 @@ bool Folder_AddNewFile(WB2KFolderObject* the_folder, WB2KFileObject* the_file)
 // 	the_folder->total_bytes_ += bytes_added;
 // 	the_folder->total_blocks_ += blocks_added;
 	
-	//DEBUG_OUT(("%s %d: file '%s' was added to folder '%s'", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_));
-	//DEBUG_OUT(("%s %d: file '%s' was added to folder folder '%s' (current bytes=%lu, bytes being added=%lu)", __func__ , __LINE__, the_file->file_name_, the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_added));
+	//DEBUG_OUT(("%s %d: file '%s' was added to folder '%s'", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), the_folder->folder_file_->file_name_));
+	//DEBUG_OUT(("%s %d: file '%s' was added to folder folder '%s' (current bytes=%lu, bytes being added=%lu)", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_), the_folder->folder_file_->file_name_, the_folder->total_bytes_, bytes_added));
 	
 	return true;
 }
@@ -1928,7 +1920,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // // NOTE Jan 14, 2023: need to look into this. probably needs total redesign. unsure it's even needed though. maybe for FAT32 on f256.
 // // 	FileMover_AddToSelectedCount(App_GetFileMover(global_app), the_file->size_);
 // 
-// 	//DEBUG_OUT(("%s %d: counted file '%s' in '%s'; selected bytes now = %lu", __func__ , __LINE__, the_file->file_name_,  the_folder->folder_file_->file_name_, FileMover_GetSelectedByteCount()));
+// 	//DEBUG_OUT(("%s %d: counted file '%s' in '%s'; selected bytes now = %lu", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_),  the_folder->folder_file_->file_name_, FileMover_GetSelectedByteCount()));
 // 	
 // 	return true;
 // }
@@ -1972,7 +1964,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 		next_item = the_item->next_item_; // capture this early, because if the action function is a delete, we may be removing this list item very shortly
 // 
 // 		this_file = (WB2KFileObject*)(the_item->payload_);
-// 		//DEBUG_OUT(("%s %d: looking at file '%s'", __func__ , __LINE__, this_file->file_name_));
+// 		//DEBUG_OUT(("%s %d: looking at file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 
 // 		if (the_scope == LIST_SCOPE_ALL || (the_scope == LIST_SCOPE_SELECTED && File_IsSelected(this_file)) || (the_scope == LIST_SCOPE_NOT_SELECTED && !File_IsSelected(this_file)))
 // 		{
@@ -1991,11 +1983,11 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 				
 // 				if (do_folder_before_children)
 // 				{
-// 					//DEBUG_OUT(("%s %d: Executing helper function on folder file '%s' before processing children", __func__ , __LINE__, this_file->file_name_));
+// 					//DEBUG_OUT(("%s %d: Executing helper function on folder file '%s' before processing children", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					
 // 					if ((*action_function)(the_folder, the_item, the_target_folder) == false)
 // 					{
-// 						DEBUG_OUT(("%s %d: Error executing helper function on folder file '%s'", __func__ , __LINE__, this_file->file_name_));
+// 						DEBUG_OUT(("%s %d: Error executing helper function on folder file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 						goto error;
 // 					}
 // 				}
@@ -2003,7 +1995,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 				if ( (the_sub_folder = Folder_New(this_file, PARAM_MAKE_COPY_OF_FOLDER_FILE) ) == NULL)
 // 				{
 // 					// couldn't get a folder object. probably should be returning some kind of error condition. TODO
-// 					LOG_ERR(("%s %d:  couldn't get a folder object for '%s'", __func__ , __LINE__, this_file->file_name_));
+// 					LOG_ERR(("%s %d:  couldn't get a folder object for '%s'", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					goto error;
 // 				}
 // 				else
@@ -2035,16 +2027,16 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 					}
 // 					else
 // 					{
-// 						DEBUG_OUT(("%s %d: folder '%s' has no children", __func__ , __LINE__, this_file->file_name_));
+// 						DEBUG_OUT(("%s %d: folder '%s' has no children", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					}
 // 
 // 					if (do_folder_before_children == false)
 // 					{
-// 						//DEBUG_OUT(("%s %d: Executing helper function on folder file '%s' after processing children", __func__ , __LINE__, this_file->file_name_));
+// 						//DEBUG_OUT(("%s %d: Executing helper function on folder file '%s' after processing children", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 					
 // 						if ((*action_function)(the_folder, the_item, the_target_folder) == false)
 // 						{
-// 							DEBUG_OUT(("%s %d: Error executing helper function on folder file '%s'", __func__ , __LINE__, this_file->file_name_));
+// 							DEBUG_OUT(("%s %d: Error executing helper function on folder file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 							goto error;
 // 						}
 // 					}
@@ -2164,13 +2156,13 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 
 // 			// compare new path to existing paths in target dir to see if (same-named) file already exists there
 // 
-// 			General_CreateFilePathFromFolderAndFile(target_file_path, the_target_folder->folder_file_->file_path_, this_file->file_name_);
+// 			General_CreateFilePathFromFolderAndFile(target_file_path, the_target_folder->folder_file_->file_path_, App_GetFilenameFromEM(this_file->id_));
 // 			same_named_file_in_target = Folder_FindFileByFilePath(the_target_folder, target_file_path, strlen((char*)target_file_path));
 // 
 // 			if (same_named_file_in_target != NULL)
 // 			{
 // 				// do what, exactly? warn user one file at a time? With a dialogue box? fail/stop? ignore this file, and continue with the rest? 
-// 				DEBUG_OUT(("%s %d: File '%s' already exists in the destination folder. This file will not be moved.", __func__ , __LINE__, this_file->file_name_));
+// 				DEBUG_OUT(("%s %d: File '%s' already exists in the destination folder. This file will not be moved.", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 			
 // 				the_item = the_item->next_item_;
 // 			}
@@ -2178,7 +2170,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 			{
 // 				bool		result_doesnt_matter;
 // 				
-// 				if ( File_Rename(this_file, this_file->file_name_, target_file_path) == false)
+// 				if ( File_Rename(this_file, App_GetFilenameFromEM(this_file->id_), target_file_path) == false)
 // 				{
 // 					LOG_ERR(("%s %d: Move action failed with file '%s' -> '%s'", __func__ , __LINE__, this_file->file_path_, target_file_path));
 // 					goto error;
@@ -2188,7 +2180,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 				File_SetSelected(this_file, false);
 // 
 // 				// add a copy of the file to any open panels match the target folder (but aren't it), then add the original to this target folder
-// 				//DEBUG_OUT(("%s %d: Adding file '%s' to any matching open windows/panels...", __func__ , __LINE__, this_file->file_name_));
+// 				//DEBUG_OUT(("%s %d: Adding file '%s' to any matching open windows/panels...", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 				// NOTE Jan 14, 2023: think about having something to handle when same disk is open in both panels. TODO
 // // 				result_doesnt_matter = App_ModifyOpenFolders(global_app, the_target_folder, this_file, &Folder_AddNewFileAsCopy);
 // 				result_doesnt_matter = Folder_AddNewFile(the_target_folder, this_file);
@@ -2196,7 +2188,7 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 				++num_files;
 // 				
 // 				// remove file from any open panels match the source folder (but aren't it), then remove from this source folder
-// 				//DEBUG_OUT(("%s %d: Removing file '%s' from any matching open windows/panels...", __func__ , __LINE__, this_file->file_name_));
+// 				//DEBUG_OUT(("%s %d: Removing file '%s' from any matching open windows/panels...", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 				// NOTE Jan 14, 2023: think about having something to handle when same disk is open in both panels. TODO
 // // 				result_doesnt_matter = App_ModifyOpenFolders(global_app, the_folder, this_file, &Folder_RemoveFile);
 // 				temp_item = the_item->next_item_;
@@ -2257,11 +2249,11 @@ bool Folder_AddNewFileAsCopy(WB2KFolderObject* the_folder, WB2KFileObject* the_f
 // 		if (File_IsSelected(this_file) == true)
 // 		{
 // 			// move file
-// 			General_CreateFilePathFromFolderAndFile(target_file_path, the_target_folder_file->file_path_, this_file->file_name_);
+// 			General_CreateFilePathFromFolderAndFile(target_file_path, the_target_folder_file->file_path_, App_GetFilenameFromEM(this_file->id_));
 // 
 // 			if ( rename( this_file->file_path_, target_file_path ) == 0)
 // 			{
-// 				LOG_ERR(("%s %d: Move action failed with file '%s'", __func__ , __LINE__, this_file->file_name_));
+// 				LOG_ERR(("%s %d: Move action failed with file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(this_file->id_)));
 // 				goto error;
 // 			}
 // 
@@ -2334,7 +2326,7 @@ WB2KFileObject* Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint1
 		if (File_MarkSelected(the_file, y_offset) == false)
 		{
 			// the passed file was null. do anything?
-			LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, the_file->file_name_));
+			LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_)));
 			App_Exit(ERROR_FILE_MARK_SELECTED_FILE_WAS_NULL);
 		}
 	}
@@ -2349,7 +2341,7 @@ WB2KFileObject* Folder_SetFileSelectionByRow(WB2KFolderObject* the_folder, uint1
 		if (File_MarkUnSelected(the_file, y_offset) == false)
 		{
 			// the passed file was null. do anything?
-			LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, the_file->file_name_));
+			LOG_ERR(("%s %d: couldn't mark file '%s' as selected", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_)));
 			App_Exit(ERROR_FILE_MARK_UNSELECTED_FILE_WAS_NULL);
 		}
 	}

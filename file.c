@@ -63,6 +63,9 @@ extern char*		global_string_buff1;
 extern char*		global_temp_path_1;
 extern char*		global_temp_path_2;
 
+extern char*		global_temp_filename_1;
+extern char*		global_temp_filename_2;
+
 extern uint8_t				zp_bank_num;
 #pragma zpsym ("zp_bank_num");
 
@@ -183,13 +186,12 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
 
-	if ( (the_file->file_name_ = General_StrlcpyWithAlloc(the_file_name, FILE_MAX_FILENAME_SIZE)) == NULL)
-	{
-		//Buffer_NewMessage("could not allocate memory for the file name");
-		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%li	%s", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1, the_file->file_name_));
+	// accept the row as the file ID.
+	the_file->row_ = the_row;
+	the_file->id_ = the_row;
+	
+	// copy the passed filename into EM
+	App_SetFilenameInEM(the_file_name, the_file->id_);
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
@@ -207,7 +209,7 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 	if (the_filetype == _CBM_T_REG)
 	{
 		// get file extensions
-		General_ExtractFileExtensionFromFilename(the_file->file_name_, (char*)&temp_file_extension_buffer);
+		General_ExtractFileExtensionFromFilename(the_file_name, (char*)&temp_file_extension_buffer);
 		
 		// do this in order of most likely to least likely
 		if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgZ", FILE_MAX_EXTENSION_SIZE) == 0)
@@ -272,8 +274,6 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 
 	// file is brand new: not selected yet.
 	the_file->selected_ = false;
-
-	the_file->row_ = the_row;
 	
 	// remember date stamp, for sorting, display to user, etc.
 	the_file->datetime_.year = the_datetime->year;
@@ -311,12 +311,15 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 	}
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file	%p	size	%i", __func__ , __LINE__, the_duplicate_file, sizeof(WB2KFileObject)));
 
-	if ( (the_duplicate_file->file_name_ = General_StrlcpyWithAlloc(the_original_file->file_name_, FILE_MAX_FILENAME_SIZE)) == NULL)
-	{
-		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
-		goto error;
-	}
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_name_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_name_, General_Strnlen(the_duplicate_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
+// 	if ( (the_duplicate_file->file_name_ = General_StrlcpyWithAlloc(the_original_file->file_name_, FILE_MAX_FILENAME_SIZE)) == NULL)
+// 	{
+// 		LOG_ERR(("%s %d: could not allocate memory for the file name", __func__ , __LINE__));
+// 		goto error;
+// 	}
+// 	LOG_ALLOC(("%s %d:	__ALLOC__	the_duplicate_file->file_name_	%p	size	%i", __func__ , __LINE__, the_duplicate_file->file_name_, General_Strnlen(the_duplicate_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
+
+	// no need to copy the filename: the duplicate file object is going to share the same row ID anyway
+
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_duplicate_file->size_ = the_original_file->size_;
@@ -375,6 +378,7 @@ WB2KFileObject* File_Duplicate(WB2KFileObject* the_original_file)
 	the_duplicate_file->x_ = the_original_file->x_;
 	the_duplicate_file->display_row_ = the_original_file->display_row_;
 	the_duplicate_file->row_ = the_original_file->row_;
+	the_duplicate_file->id_ = the_original_file->id_;
 	
 	return the_duplicate_file;
 
@@ -395,12 +399,12 @@ void File_Destroy(WB2KFileObject** the_file)
 		App_Exit(ERROR_FILE_TO_DESTROY_WAS_NULL);	// crash early, crash often
 	}
 
-	if ((*the_file)->file_name_ != NULL)
-	{
-		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_name_	%p	size	%li	%s", __func__ , __LINE__, (*the_file)->file_name_, General_Strnlen((*the_file)->file_name_, FILE_MAX_FILENAME_SIZE) + 1, (*the_file)->file_name_));
-		free((*the_file)->file_name_);
-		(*the_file)->file_name_ = NULL;
-	}
+// 	if ((*the_file)->file_name_ != NULL)
+// 	{
+// 		LOG_ALLOC(("%s %d:	__FREE__	(*the_file)->file_name_	%p	size	%li	%s", __func__ , __LINE__, (*the_file)->file_name_, General_Strnlen((*the_file)->file_name_, FILE_MAX_FILENAME_SIZE) + 1, (*the_file)->file_name_));
+// 		free((*the_file)->file_name_);
+// 		(*the_file)->file_name_ = NULL;
+// 	}
 	
 // 	if ((*the_file)->file_size_string_ != NULL)
 // 	{
@@ -466,35 +470,7 @@ bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 		return false;
 	}
 	
-	// LOGIC: 
-	//   couple things to know: 
-	//   1. this is likely called by File_Rename(). File_Rename() can be called with a user rename, in which case it will get passed a temp string with new name
-	//      File_Rename() can also be called by FileMover.movefiles(), in which case it will be passed the file->file_name_ (which doesn't change)
-	//      Need to test for getting passed the file->file_name_ and skip out in that event or we'll free ourselves without having any new to use.
-	//   2. even if not from move, it's possible we could get same actual name, just in different string. Might as well check for it.
-	//   Label_SetText() is probably time expensive
-
-	if (the_file->file_name_ == new_file_name)
-	{
-		return true;
-	}
-	
-	if (General_Strncasecmp(the_file->file_name_, new_file_name, FILE_MAX_FILENAME_SIZE) == 0)
-	{
-		return true;
-	}
-		
-	if (the_file->file_name_ != NULL)
-	{
-		LOG_ALLOC(("%s %d:	__FREE__	the_file->file_name_	%p	size	%i", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
-		free(the_file->file_name_);
-		the_file->file_name_ = NULL;
-	}
-
-	the_file->file_name_ = General_StrlcpyWithAlloc(new_file_name, FILE_MAX_FILENAME_SIZE);
-	LOG_ALLOC(("%s %d:	__ALLOC__	the_file->file_name_	%p	size	%i", __func__ , __LINE__, the_file->file_name_, General_Strnlen(the_file->file_name_, FILE_MAX_FILENAME_SIZE) + 1));
-	
-	success = (the_file->file_name_ != NULL);
+	App_SetFilenameInEM(new_file_name, the_file->id_);
 	
 	return success;
 }
@@ -1005,7 +981,7 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 	{
 		//sprintf(temp_buff, "rename returned err code %i", result_code);
 		//Buffer_NewMessage((char*)&temp_buff);
-		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, the_file->file_name_));
+		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_)));
 		goto error;
 	}
 	else
@@ -1115,7 +1091,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 		sprintf(global_string_buff1, "%6lu", the_file->size_);
 		y = the_file->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
-		Text_DrawStringAtXY( x1, y, the_file->file_name_, the_color, APP_BACKGROUND_COLOR);
+		Text_DrawStringAtXY( x1, y, App_GetFilenameFromEM(the_file->id_), the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( sizex, y, global_string_buff1, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( typex, y, File_GetFileTypeString(the_file->file_type_), the_color, APP_BACKGROUND_COLOR);
 		
@@ -1127,7 +1103,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 			// show full path of file in the special status line under the file panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);
 // 			sprintf(global_string_buff1, "%s (20%02u-%02u-%02u %02u:%02u:%02u)", the_file->file_path_, the_file->datetime_.year, the_file->datetime_.month, the_file->datetime_.day, the_file->datetime_.hour, the_file->datetime_.min, the_file->datetime_.sec);
-			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_name_, COLOR_GREEN, APP_BACKGROUND_COLOR);
+			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, App_GetFilenameFromEM(the_file->id_), COLOR_GREEN, APP_BACKGROUND_COLOR);
 			//Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_path_, COLOR_GREEN, APP_BACKGROUND_COLOR); // as of beta 16, files no longer know their path. until I add a "parent_folder_" property or similar, there's not a good way to get full path from this functino.
 		}
 	}
@@ -1143,7 +1119,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 // {
 // 	WB2KFileObject*		this_file = (WB2KFileObject*)(the_payload);
 // 
-// 	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", this_file->file_name_, this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
+// 	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", App_GetFilenameFromEM(this_file->id_), this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
 // }
 
 
@@ -1186,7 +1162,11 @@ bool File_CompareName(void* first_payload, void* second_payload)
 	WB2KFileObject*		file_1 = (WB2KFileObject*)first_payload;
 	WB2KFileObject*		file_2 = (WB2KFileObject*)second_payload;
 
-	if (General_Strncasecmp(file_1->file_name_, file_2->file_name_, FILE_MAX_FILENAME_SIZE) > 0)
+	App_GetFilenameFromEM(file_2->id_);	// puts file2 filename into temp filename1
+	memcpy(global_temp_filename_2, global_temp_filename_1, FILE_MAX_FILENAME_SIZE); // copy from 1 to 2 so we can overwrite 1
+	App_GetFilenameFromEM(file_1->id_);	// puts file1 filename into temp filename1
+	
+	if (General_Strncasecmp(global_temp_filename_1, global_temp_filename_2, FILE_MAX_FILENAME_SIZE) > 0)
 	{
 		return true;
 	}

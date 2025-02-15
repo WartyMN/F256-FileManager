@@ -632,8 +632,9 @@ bool MemSys_BankIsWriteable(FMMemorySystem* the_memsys)
 		}
 	}
 	
-	// user is not allowed to write to f/manager strings RAM either
-	if (the_bank->bank_num_ == STRING_STORAGE_VALUE)
+	// user is not allowed to write to f/manager strings or filenames RAM either
+	if (the_bank->bank_num_ == STRING_STORAGE_EM_SLOT ||
+		the_bank->bank_num_ == FILENAME_STORAGE_EM_SLOT )
 	{
 		return false;
 	}

@@ -62,7 +62,7 @@
 #define APP_DIALOG_BUFF_SIZE				((APP_DIALOG_WIDTH+2) * (APP_DIALOG_HEIGHT+2))	// for the temp char and color buffs when opening a window, this is how much mem we'll reserve for each
 
 #define FILE_MAX_FILENAME_SIZE_CBM	(16+1)	// CBM DOS defined
-#define FILE_MAX_FILENAME_SIZE		(40+1)	// in F256 kernel, total path can't be longer than 255 chars.
+#define FILE_MAX_FILENAME_SIZE		(31+1)	// in F256 kernel, total path can't be longer than 255 chars.
 #define FILE_MAX_PATHNAME_SIZE		(255)	// in F256 kernel, total path can't be longer than 255 chars.
 #define FILE_MAX_APPFILE_INFO_SIZE	255		// for info panel display about mime/app type, the max # of bytes to display
 #define FILE_MAX_TEXT_PREVIEW_SIZE	255		// for info panel previews, the max # of bytes to read in and display
@@ -108,9 +108,14 @@
 #define STORAGE_TEMP_UNUSED_1B				(STORAGE_STRING_BUFFER_2 + STORAGE_STRING_BUFFER_2_LEN)	// 799 is hard coded, so this is just noting that we have 1 unused byte here.
 
 
-#define STRING_STORAGE_SLOT                0x06
-#define STRING_STORAGE_VALUE               0x12
+#define STRING_STORAGE_LOCAL_SLOT          0x06	// will bring in under I/O page
+#define STRING_STORAGE_EM_SLOT             0x12
 #define STRING_STORAGE_PHYS_ADDR           0x24000
+
+// storage for 256 filesnames in 32b segments (31b + 1 b for terminator)
+#define FILENAME_STORAGE_LOCAL_SLOT          0x06	// will bring in under I/O page
+#define FILENAME_STORAGE_EM_SLOT             0x1C
+#define FILENAME_STORAGE_PHYS_ADDR           0x38000
 
 
 
@@ -357,5 +362,13 @@ void App_Exit(uint8_t the_error_number);
 // Brings the requested overlay into memory
 void App_LoadOverlay(uint8_t the_overlay_em_bank_number);
 
+// reads in a filename from the filename EM storage and copies to global_temp_filename_1
+// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
+// returns a pointer to the local copy of the string (for compatibility reasons)
+char* App_GetFilenameFromEM(uint8_t the_row);
+
+// stores the passed filename in the filename EM storage
+// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
+void App_SetFilenameInEM(const char* the_filename, uint8_t the_row);
 
 #endif /* FILE_MANAGER_H_ */

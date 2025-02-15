@@ -126,6 +126,11 @@ char					global_temp_path_2_buffer[FILE_MAX_PATHNAME_SIZE] = "";
 char*					global_temp_path_1 = global_temp_path_1_buffer;
 char*					global_temp_path_2 = global_temp_path_2_buffer;
 
+char					global_temp_filename_1_buffer[FILE_MAX_FILENAME_SIZE];	// for retrieving from EM
+char					global_temp_filename_2_buffer[FILE_MAX_FILENAME_SIZE];	// for retrieving from EM
+char*					global_temp_filename_1 = global_temp_filename_1_buffer;
+char*					global_temp_filename_2 = global_temp_filename_2_buffer;
+
 uint8_t					temp_screen_buffer_char[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 uint8_t					temp_screen_buffer_attr[APP_DIALOG_BUFF_SIZE];	// WARNING HBD: don't make dialog box bigger than will fit!
 
@@ -856,6 +861,95 @@ void App_DisplayTime(void)
 	
 	// draw at upper/right edge of screen, just under app title bar.
 	Text_DrawStringAtXY(64, 3, global_string_buff1, COLOR_BRIGHT_YELLOW, COLOR_BLACK);
+}
+
+
+// reads in a filename from the filename EM storage and copies to global_temp_filename_1
+// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
+// returns a pointer to the local copy of the string (for compatibility reasons)
+char* App_GetFilenameFromEM(uint8_t the_row)
+{
+	uint8_t		old_bank_under_io;
+	uint16_t	addr_loc;
+	char*		the_addr;
+
+	// LOGIC:
+	//   filenames are in fixed 32-char blocks in a specific EM bank
+	//   this EM bank is brought in under the I/O bank at $C000
+	//   when populating files from a directory, f/manager trims each to 31 if longer, and copies to EM
+	//   no pointer is set up, so we just do math.
+	//   row * 32 + 0xC000 is the address for any given filename
+	
+	// do math
+	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_row);
+	the_addr = (char*)addr_loc;
+	
+	// Disable the I/O page so we can get to RAM under it
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	asm("lda $01");	// Stash the current IO page at ZP_OLD_IO_PAGE
+	asm("sta %b", ZP_OLD_IO_PAGE);
+	R8(MMU_IO_CTRL) = 4; // set only bit 2
+	//Sys_DisableIOBank();
+	
+	// map the string bank into CPU memory space
+	zp_bank_num = FILENAME_STORAGE_EM_SLOT;
+	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
+
+	// copy the string to buffer in MAIN space
+	memcpy(global_temp_filename_1, the_addr, FILE_MAX_FILENAME_SIZE);
+	
+	Memory_RestorePreviousBank(BANK_IO);
+	asm("CLI"); // restore interrupts
+	
+	// Re-enable the I/O page, which unmaps the string bank from 6502 RAM space
+	//Sys_RestoreIOPage();
+	asm("lda %b", ZP_OLD_IO_PAGE);	// we stashed the previous IO page at ZP_OLD_IO_PAGE
+	asm("sta $01");	// switch back to the previous IO setting
+
+	return global_temp_filename_1;
+}
+
+
+// stores the passed filename in the filename EM storage
+// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
+void App_SetFilenameInEM(const char* the_filename, uint8_t the_row)
+{
+	uint8_t		old_bank_under_io;
+	uint16_t	addr_loc;
+	char*		the_addr;
+
+	// LOGIC:
+	//   filenames are in fixed 32-char blocks in a specific EM bank
+	//   this EM bank is brought in under the I/O bank at $C000
+	//   when populating files from a directory, f/manager trims each to 31 if longer, and copies to EM
+	//   no pointer is set up, so we just do math.
+	//   row * 32 + 0xC000 is the address for any given filename
+	
+	// do math
+	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_row);
+	the_addr = (char*)addr_loc;
+	
+	// Disable the I/O page so we can get to RAM under it
+	asm("SEI"); // disable interrupts in case some other process has a role here
+	asm("lda $01");	// Stash the current IO page at ZP_OLD_IO_PAGE
+	asm("sta %b", ZP_OLD_IO_PAGE);
+	R8(MMU_IO_CTRL) = 4; // set only bit 2
+	//Sys_DisableIOBank();
+	
+	// bring in the EM bank we want, under the I/O memory
+	zp_bank_num = FILENAME_STORAGE_EM_SLOT;
+	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
+
+	// copy the string from MAIN space to EM, using fixed 32-byte len
+	memcpy(the_addr, the_filename, FILE_MAX_FILENAME_SIZE);
+	
+	Memory_RestorePreviousBank(BANK_IO);
+	asm("CLI"); // restore interrupts
+	
+	// Re-enable the I/O page, which unmaps the string bank from 6502 RAM space
+	//Sys_RestoreIOPage();
+	asm("lda %b", ZP_OLD_IO_PAGE);	// we stashed the previous IO page at ZP_OLD_IO_PAGE
+	asm("sta $01");	// switch back to the previous IO setting
 }
 
 

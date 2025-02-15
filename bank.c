@@ -465,7 +465,7 @@ void Bank_Render(FMBankObject* the_bank, bool as_selected, int8_t y_offset, bool
 // {
 // 	FMBankObject*		this_file = (FMBankObject*)(the_payload);
 // 
-// 	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", this_file->file_name_, this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
+// 	DEBUG_OUT(("|%-34s|%-1i|%-12lu|%-10s|%-8s|", App_GetFilenameFromEM(this_file->id_), this_file->selected_, this_file->size_, this_file->datetime_.dat_StrDate, this_file->datetime_.dat_StrTime));
 // }
 
 

@@ -781,7 +781,7 @@ void Startup_LoadString(void)
 	//  - then loop around until all strings read in.
 
 	// map the string buffer into CPU memory space
-	zp_bank_num = STRING_STORAGE_VALUE;
+	zp_bank_num = STRING_STORAGE_EM_SLOT;
 	io_bank_value_kernel = Memory_SwapInNewBank(BANK_IO);
 
 	asm("SEI"); // disable interrupts in case some other process has a role here
