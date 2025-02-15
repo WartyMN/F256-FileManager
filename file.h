@@ -31,6 +31,9 @@
 
 #include "app.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "f256.h"
 
 /*****************************************************************************/
@@ -58,6 +61,7 @@ typedef struct WB2KFileObject
 	struct DateTime		datetime_;			// IEC: not available. save for when SD card / FAT16 is available
 	bool				is_directory_;
 	bool				selected_;
+	uint8_t				panel_id_;			// need this so we can know which EM bank the filename is stored in.
 	uint8_t				id_;				// id_ is set once, when populating, and used as key for filenames, etc.
 	uint8_t				file_type_;			// F256jr... do what with this??
 	uint8_t				x_;
@@ -83,7 +87,7 @@ typedef struct WB2KFileObject
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime);
+WB2KFileObject* File_New(uint8_t the_panel_id, const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime);
 
 
 // duplicator

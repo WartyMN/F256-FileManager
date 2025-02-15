@@ -61,6 +61,7 @@ typedef struct WB2KViewPanel
 {
 	WB2KFolderObject*	root_folder_;
 	FMMemorySystem*		memory_system_;
+	uint8_t				id_;								// 0 (left) or 1 (right)
 	uint8_t				x_;		// this set of position data is for the panel within the window
 	uint8_t				y_;
 	uint8_t				width_;
@@ -94,7 +95,7 @@ bool printdir (char *newdir);
 // **** CONSTRUCTOR AND DESTRUCTOR *****
 
 // (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
-void Panel_Initialize(WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+void Panel_Initialize(uint8_t the_panel_id, WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 
 // Forget all its files, and repopulate from the specified disk or memory system
 bool Panel_SwitchDevice(WB2KViewPanel* the_panel, device_number the_device);

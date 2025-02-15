@@ -17,6 +17,7 @@
 
 
 // project includes
+#include "file.h"
 
 // C includes
 #include <stdint.h>
@@ -114,9 +115,8 @@
 
 // storage for 256 filesnames in 32b segments (31b + 1 b for terminator)
 #define FILENAME_STORAGE_LOCAL_SLOT          0x06	// will bring in under I/O page
-#define FILENAME_STORAGE_EM_SLOT             0x1C
-#define FILENAME_STORAGE_PHYS_ADDR           0x38000
-
+#define FILENAME_STORAGE_EM_SLOT             0x1B
+#define FILENAME_STORAGE_PHYS_ADDR           0x36000
 
 
 /*****************************************************************************/
@@ -363,12 +363,10 @@ void App_Exit(uint8_t the_error_number);
 void App_LoadOverlay(uint8_t the_overlay_em_bank_number);
 
 // reads in a filename from the filename EM storage and copies to global_retrieved_em_filename
-// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
 // returns a pointer to the local copy of the string (for compatibility reasons)
-char* App_GetFilenameFromEM(uint8_t the_row);
+char* App_GetFilenameFromEM(WB2KFileObject* the_file);
 
 // stores the passed filename in the filename EM storage
-// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
-void App_SetFilenameInEM(const char* the_filename, uint8_t the_row);
+void App_SetFilenameInEM(WB2KFileObject* the_file, const char* the_filename);
 
 #endif /* FILE_MANAGER_H_ */

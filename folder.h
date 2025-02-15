@@ -115,6 +115,8 @@ typedef struct FILEmimic
 typedef struct WB2KFolderObject
 {
 	WB2KList**			list_;
+	char*				file_name_;							// rather than having whole folder object, we will only use a name now 
+	char*				file_path_;							// rather than having in file, where it gets stored a lot, will just have in folder. 
 	uint16_t			file_count_;
 	int16_t				cur_row_;							// 0-n: selected file num. 0=first file. -1 if no file. 
 //	uint32_t			total_bytes_;
@@ -123,8 +125,6 @@ typedef struct WB2KFolderObject
 // 	uint16_t			selected_blocks_;
 	bool				is_meatloaf_;						// flag set if the folder is currently configured in meatloaf mode. 
 	uint8_t				device_number_;						// For CBM, 8-9-10-11. for fnx, 0-1-2
-	char*				file_name_;							// rather than having whole folder object, we will only use a name now 
-	char*				file_path_;							// rather than having in file, where it gets stored a lot, will just have in folder. 
 } WB2KFolderObject;
 
 
@@ -246,7 +246,7 @@ bool Folder_CopyCurrentFile(WB2KFolderObject* the_folder, WB2KFolderObject* the_
 bool Folder_SyncFolderContentsByFilePath(WB2KFolderObject* original_root_folder, WB2KFolderObject* updated_root_folder);
 
 // populate the files in a folder by doing a directory command
-uint8_t Folder_PopulateFiles(WB2KFolderObject* the_folder);
+uint8_t Folder_PopulateFiles(uint8_t the_panel_id, WB2KFolderObject* the_folder);
 
 // counts the bytes in the passed file/folder, and adds them to folder.selected_bytes_
 bool Folder_CountBytes(WB2KFolderObject* the_folder, WB2KList* the_item, WB2KFolderObject* not_needed);

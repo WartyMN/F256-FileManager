@@ -301,6 +301,7 @@ void App_InitializePanelForDisk(uint8_t panel_id)
 	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
 	
 	Panel_Initialize(
+		panel_id,
 		&app_file_panel[panel_id], 
 		PARAM_INITIALIZE_FOR_DISK,
 		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
@@ -327,6 +328,7 @@ void App_InitializePanelForMemory(uint8_t panel_id, bool for_flash)
 	panel_x_offset = UI_RIGHT_PANEL_X_DELTA * panel_id; // panel id is either 0 or 1.
 
 	Panel_Initialize(
+		panel_id,
 		&app_file_panel[panel_id], 
 		PARAM_INITIALIZE_FOR_MEMORY,
 		(UI_LEFT_PANEL_BODY_X1 + panel_x_offset + 1), (UI_VIEW_PANEL_BODY_Y1 + 2), 
@@ -863,9 +865,8 @@ void App_DisplayTime(void)
 
 
 // reads in a filename from the filename EM storage and copies to global_retrieved_em_filename
-// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
 // returns a pointer to the local copy of the string (for compatibility reasons)
-char* App_GetFilenameFromEM(uint8_t the_row)
+char* App_GetFilenameFromEM(WB2KFileObject* the_file)
 {
 	uint8_t		old_bank_under_io;
 	uint16_t	addr_loc;
@@ -879,7 +880,7 @@ char* App_GetFilenameFromEM(uint8_t the_row)
 	//   row * 32 + 0xC000 is the address for any given filename
 	
 	// do math
-	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_row);
+	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_file->id_);
 	the_addr = (char*)addr_loc;
 	
 	// Disable the I/O page so we can get to RAM under it
@@ -890,7 +891,7 @@ char* App_GetFilenameFromEM(uint8_t the_row)
 	//Sys_DisableIOBank();
 	
 	// map the string bank into CPU memory space
-	zp_bank_num = FILENAME_STORAGE_EM_SLOT;
+	zp_bank_num = FILENAME_STORAGE_EM_SLOT + the_file->panel_id_;	// panel ID is 0 or 1, so left panel goes to lower bank.
 	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
 
 	// copy the string to buffer in MAIN space
@@ -909,8 +910,7 @@ char* App_GetFilenameFromEM(uint8_t the_row)
 
 
 // stores the passed filename in the filename EM storage
-// the_row is a 0-255 index to the filename associated with the file object with row_ property matching the_row
-void App_SetFilenameInEM(const char* the_filename, uint8_t the_row)
+void App_SetFilenameInEM(WB2KFileObject* the_file, const char* the_filename)
 {
 	uint8_t		old_bank_under_io;
 	uint16_t	addr_loc;
@@ -924,7 +924,7 @@ void App_SetFilenameInEM(const char* the_filename, uint8_t the_row)
 	//   row * 32 + 0xC000 is the address for any given filename
 	
 	// do math
-	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_row);
+	addr_loc = (0xC000 + FILE_MAX_FILENAME_SIZE * the_file->id_);
 	the_addr = (char*)addr_loc;
 	
 	// Disable the I/O page so we can get to RAM under it
@@ -935,7 +935,7 @@ void App_SetFilenameInEM(const char* the_filename, uint8_t the_row)
 	//Sys_DisableIOBank();
 	
 	// bring in the EM bank we want, under the I/O memory
-	zp_bank_num = FILENAME_STORAGE_EM_SLOT;
+	zp_bank_num = FILENAME_STORAGE_EM_SLOT + the_file->panel_id_;	// panel ID is 0 or 1, so left panel goes to lower bank.
 	old_bank_under_io = Memory_SwapInNewBank(BANK_IO);
 
 	// copy the string from MAIN space to EM, using fixed 32-byte len

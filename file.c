@@ -179,7 +179,7 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 
 // constructor
 // allocates space for the object, accepts the 2 string pointers (allocates and copies them)
-WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime)
+WB2KFileObject* File_New(uint8_t the_panel_id, const char* the_file_name, bool is_directory, uint32_t the_filesize, uint8_t the_filetype, uint8_t the_row, DateTime* the_datetime)
 {
 	WB2KFileObject*		the_file;
 	bool				date_ok = false;
@@ -193,11 +193,12 @@ WB2KFileObject* File_New(const char* the_file_name, bool is_directory, uint32_t 
 	LOG_ALLOC(("%s %d:	__ALLOC__	the_file	%p	size	%i", __func__ , __LINE__, the_file, sizeof(WB2KFileObject)));
 
 	// accept the row as the file ID.
+	the_file->panel_id_ = the_panel_id;
 	the_file->row_ = the_row;
 	the_file->id_ = the_row;
 	
 	// copy the passed filename into EM
-	App_SetFilenameInEM(the_file_name, the_file->id_);
+	App_SetFilenameInEM(the_file, the_file_name);
 
 	// remember fizesize, to use when moving/copying files, and giving status feedback to user
 	the_file->size_ = the_filesize;
@@ -476,7 +477,7 @@ bool File_UpdateFileName(WB2KFileObject* the_file, const char* new_file_name)
 		return false;
 	}
 	
-	App_SetFilenameInEM(new_file_name, the_file->id_);
+	App_SetFilenameInEM(the_file, new_file_name);
 	
 	return success;
 }
@@ -987,7 +988,7 @@ bool File_Rename(WB2KFileObject* the_file, const char* new_file_name, const char
 	{
 		//sprintf(temp_buff, "rename returned err code %i", result_code);
 		//Buffer_NewMessage((char*)&temp_buff);
-		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(the_file->id_)));
+		LOG_ERR(("%s %d: Rename action failed with file '%s'", __func__ , __LINE__, App_GetFilenameFromEM(the_file)));
 		goto error;
 	}
 	else
@@ -1097,7 +1098,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 		sprintf(global_string_buff1, "%6lu", the_file->size_);
 		y = the_file->display_row_ + y_offset;
 		Text_FillBox(x1, y, x2, y, CH_SPACE, the_color, APP_BACKGROUND_COLOR);
-		Text_DrawStringAtXY( x1, y, App_GetFilenameFromEM(the_file->id_), the_color, APP_BACKGROUND_COLOR);
+		Text_DrawStringAtXY( x1, y, App_GetFilenameFromEM(the_file), the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( sizex, y, global_string_buff1, the_color, APP_BACKGROUND_COLOR);
 		Text_DrawStringAtXY( typex, y, File_GetFileTypeString(the_file->file_type_), the_color, APP_BACKGROUND_COLOR);
 		
@@ -1109,7 +1110,7 @@ void File_Render(WB2KFileObject* the_file, bool as_selected, int8_t y_offset, bo
 			// show full path of file in the special status line under the file panels, above the comms
 			Text_FillBox( 0, UI_FULL_PATH_LINE_Y, 79, UI_FULL_PATH_LINE_Y, CH_SPACE, APP_BACKGROUND_COLOR, APP_BACKGROUND_COLOR);
 // 			sprintf(global_string_buff1, "%s (20%02u-%02u-%02u %02u:%02u:%02u)", the_file->file_path_, the_file->datetime_.year, the_file->datetime_.month, the_file->datetime_.day, the_file->datetime_.hour, the_file->datetime_.min, the_file->datetime_.sec);
-			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, App_GetFilenameFromEM(the_file->id_), COLOR_GREEN, APP_BACKGROUND_COLOR);
+			Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, App_GetFilenameFromEM(the_file), COLOR_GREEN, APP_BACKGROUND_COLOR);
 			//Text_DrawStringAtXY( 0, UI_FULL_PATH_LINE_Y, the_file->file_path_, COLOR_GREEN, APP_BACKGROUND_COLOR); // as of beta 16, files no longer know their path. until I add a "parent_folder_" property or similar, there's not a good way to get full path from this functino.
 		}
 	}
@@ -1168,9 +1169,9 @@ bool File_CompareName(void* first_payload, void* second_payload)
 	WB2KFileObject*		file_1 = (WB2KFileObject*)first_payload;
 	WB2KFileObject*		file_2 = (WB2KFileObject*)second_payload;
 
-	App_GetFilenameFromEM(file_2->id_);	// puts file2 filename into global_retrieved_em_filename
+	App_GetFilenameFromEM(file_2);	// puts file2 filename into global_retrieved_em_filename
 	memcpy(file_compare_filename, global_retrieved_em_filename, FILE_MAX_FILENAME_SIZE); // copy from 1 to 2 so we can overwrite global_retrieved_em_filename
-	App_GetFilenameFromEM(file_1->id_);	// puts file1 filename into global_retrieved_em_filename
+	App_GetFilenameFromEM(file_1);	// puts file1 filename into global_retrieved_em_filename
 	
 	if (General_Strncasecmp(global_retrieved_em_filename, file_compare_filename, FILE_MAX_FILENAME_SIZE) > 0)
 	{

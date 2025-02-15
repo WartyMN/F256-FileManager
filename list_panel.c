@@ -332,7 +332,7 @@ void Panel_RenderTitleOnly(WB2KViewPanel* the_panel);
 
 
 // (re)initializer: does not allocate. takes a valid panel and resets it to starting values (+ those passed)
-void Panel_Initialize(WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
+void Panel_Initialize(uint8_t the_panel_id, WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
 	// deal with disk vs memory differences
 	if (for_disk)
@@ -356,6 +356,7 @@ void Panel_Initialize(WB2KViewPanel* the_panel, bool for_disk, uint8_t x, uint8_
 	
 	// some common attributes
 	the_panel->for_disk_ = for_disk;
+	the_panel->id_ = the_panel_id;
 	the_panel->x_ = x;
 	the_panel->y_ = y;
 	the_panel->width_ = width;
@@ -648,7 +649,7 @@ bool Panel_Refresh(WB2KViewPanel* the_panel)
 		Folder_DestroyAllFiles(the_panel->root_folder_);
 
 		// have root folder populate its list of files
-		if ( (the_error_code = Folder_PopulateFiles(the_panel->root_folder_)) > ERROR_NO_ERROR)
+		if ( (the_error_code = Folder_PopulateFiles(the_panel->id_, the_panel->root_folder_)) > ERROR_NO_ERROR)
 		{		
 			LOG_INFO(("%s %d: Root folder reported that file population failed with error %u", __func__ , __LINE__, the_error_code));
 			//sprintf(global_string_buff1, "pop err %u", the_error_code);
@@ -947,13 +948,13 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 
-	//sprintf(global_string_buff1, "file to rename='%s'", App_GetFilenameFromEM(the_file->id_));
+	//sprintf(global_string_buff1, "file to rename='%s'", App_GetFilenameFromEM(the_file));
 	//Buffer_NewMessage(global_string_buff1);
 
-	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), App_GetFilenameFromEM(the_file->id_));
+	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_RENAME_TITLE), App_GetFilenameFromEM(the_file));
 
 	// copy the current file name into the edit buffer so user can edit
-	General_Strlcpy(global_string_buff2, App_GetFilenameFromEM(the_file->id_), FILE_MAX_FILENAME_SIZE);
+	General_Strlcpy(global_string_buff2, App_GetFilenameFromEM(the_file), FILE_MAX_FILENAME_SIZE);
 
 	App_LoadOverlay(OVERLAY_SCREEN);
 	new_file_name = Screen_GetStringFromUser(global_string_buff1, General_GetString(ID_STR_DLG_ENTER_NEW_NAME), global_string_buff2, FILE_MAX_FILENAME_SIZE);
@@ -966,7 +967,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 		return false;
 	}
 	
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file));
 	General_CreateFilePathFromFolderAndFile(global_temp_path_2, the_panel->root_folder_->file_path_, global_string_buff2);
 
 // 	sprintf(global_string_buff1, "new path='%s'", global_temp_path_1);
@@ -986,7 +987,7 @@ bool Panel_RenameCurrentFile(WB2KViewPanel* the_panel)
 	// renew file listing
 	Panel_RenderContents(the_panel);
 	
-// 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, App_GetFilenameFromEM(the_file->id_));
+// 	sprintf(global_string_buff2, General_GetString(ID_STR_MSG_RENAME_SUCCESS), global_string_buff1, App_GetFilenameFromEM(the_file));
 // 	Buffer_NewMessage(global_string_buff2);
 	
 	return success;
@@ -1010,7 +1011,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 			return false;
 		}
 		
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file));
 		
 		if (the_file->file_type_ == _CBM_T_DIR)
 		{
@@ -1032,7 +1033,7 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 				// then force f/manager to refresh
 				
 				// try to change directory by "loading" the file. 
-				sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, App_GetFilenameFromEM(the_file->id_));
+				sprintf(global_temp_path_1, "%u:%s", the_panel->root_folder_->device_number_, App_GetFilenameFromEM(the_file));
 				success = File_LoadFileToEM(global_temp_path_1, EM_STORAGE_START_PHYS_BANK_NUM);
 				
 				//sprintf(global_string_buff1, "Trying to change meatloaf dirs with '%s'...", global_temp_path_1);
@@ -1140,7 +1141,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 	
 	the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-	strcpy(delete_file_name, App_GetFilenameFromEM(the_file->id_));
+	strcpy(delete_file_name, App_GetFilenameFromEM(the_file));
 	sprintf(global_string_buff1, General_GetString(ID_STR_DLG_DELETE_TITLE), delete_file_name);
 
 	App_LoadOverlay(OVERLAY_SCREEN);
@@ -1156,7 +1157,7 @@ bool Panel_DeleteCurrentFile(WB2KViewPanel* the_panel)
 	}
 
 	App_LoadOverlay(OVERLAY_DISKSYS);
-	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
+	General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file));
 
 	success = File_Delete(global_temp_path_1, the_file->is_directory_);
 	
@@ -1241,7 +1242,7 @@ bool Panel_CopyCurrentFile(WB2KViewPanel* the_panel, WB2KViewPanel* the_other_pa
 		// load a file from disk into memory
 		App_LoadOverlay(OVERLAY_DISKSYS);
 		the_file = Folder_GetCurrentFile(the_panel->root_folder_);
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file));
 		success = File_LoadFileToEM(global_temp_path_1, dst_bank_num);
 	}
 	else if (the_panel->for_disk_ == false && the_other_panel->for_disk_ == true)
@@ -1364,8 +1365,8 @@ bool Panel_ViewCurrentFile(WB2KViewPanel* the_panel, uint8_t the_viewer_type)
 	if (the_panel->for_disk_ == true)
 	{
 		the_file = Folder_FindFileByRow(the_panel->root_folder_, the_current_row);
-		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, App_GetFilenameFromEM(the_file->id_));
-		the_name = App_GetFilenameFromEM(the_file->id_);
+		the_name = App_GetFilenameFromEM(the_file);
+		General_CreateFilePathFromFolderAndFile(global_temp_path_1, the_panel->root_folder_->file_path_, the_name);
 		num_pages = the_file->size_/256;
 		bank_num = EM_STORAGE_START_PHYS_BANK_NUM;
 		success = File_LoadFileToEM(global_temp_path_1, bank_num);
