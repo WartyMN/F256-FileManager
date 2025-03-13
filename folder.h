@@ -81,6 +81,9 @@
 #define FNX_FILETYPE_IMAGE	204 // a .256 or .lbm image file.
 #define FNX_FILETYPE_TEXT	205 // a .txt or .src text file that can/will be opened in a text editor
 #define FNX_FILETYPE_MIDI	206 // a .mid file that f/manager will try to pass to midiplayer.pgz
+#define FNX_FILETYPE_MP3	207 // a .mp3 file that f/manager will try to pass to audioplayer.pgz
+#define FNX_FILETYPE_OGG	208 // a .ogg file that f/manager will try to pass to audioplayer.pgz
+#define FNX_FILETYPE_WAV	209 // a .wav file that f/manager will try to pass to audioplayer.pgz
 
 
 

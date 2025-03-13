@@ -87,41 +87,46 @@
 85	18	_apps/textedit.pgz
 86	20	_apps/midiplayer.pgz
 87	19	_apps/modplayer.pgz
-88	3	dsk
-89	3	 d 
-90	3	lnk
-91	3	par
-92	3	oth
-93	3	bas
-94	3	exe
-95	3	fnt
-96	3	mus
-97	3	img
-98	3	txt
-99	3	mid
-100	14	Fatal error %u
-101	21	Unable to delete file
-102	26	Unable to delete directory
-103	40	We don't need no stinkin' error messages
-104	75	No connected devices were detected. f/manager will probably die of boredom.
-105	16	The disk is full
-106	21	A disk error occurred
-107	33	No disk detected in disk drive %u
-108	60	Error: I did not like that file. I will not show that file. 
-109	31	Error: Could not open file '%s'
-110	31	Error: Could not list directory
-111	39	Error: You cannot copy a bank to itself
-112	74	Error: All these banks are yours, except Europa. Attempt no landing there.
-113	142	No text editor was found. To open .txt files, install a text editor at '/_apps/textedit.pgz'. mless is an example of a compatible text editor.
-114	146	No MIDI player was found. To load .mid files, install a MIDI player at '/_apps/midiplayer.pgz'. midisam is an example of a compatible MIDI player.
-115	141	No mod player was found. To load .mod files, install a mod player at '/_apps/modplayer.pgz'. modojr is an example of a compatible mod player.
-116	19	Out of memory error
-117	46	https://github.com/WartyMN/F256jr-FileManager/
-118	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
-119	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
-120	42	Compact pexec loader for flash by dwsJason
-121	36	F256 SuperBASIC %c2023 Paul Robson. 
-122	50	F256 f/manager %c2025 Micah Bly. Version %u.%ub%u.
-123	6	F256JR
-124	5	F256K
-125	18	<unknown hardware>
+88	21	_apps/audioplayer.pgz
+89	3	dsk
+90	3	 d 
+91	3	lnk
+92	3	par
+93	3	oth
+94	3	bas
+95	3	exe
+96	3	fnt
+97	3	mus
+98	3	img
+99	3	txt
+100	3	mid
+101	3	mp3
+102	3	ogg
+103	3	wav
+104	14	Fatal error %u
+105	21	Unable to delete file
+106	26	Unable to delete directory
+107	40	We don't need no stinkin' error messages
+108	75	No connected devices were detected. f/manager will probably die of boredom.
+109	16	The disk is full
+110	21	A disk error occurred
+111	33	No disk detected in disk drive %u
+112	60	Error: I did not like that file. I will not show that file. 
+113	31	Error: Could not open file '%s'
+114	31	Error: Could not list directory
+115	39	Error: You cannot copy a bank to itself
+116	74	Error: All these banks are yours, except Europa. Attempt no landing there.
+117	142	No text editor was found. To open .txt files, install a text editor at '/_apps/textedit.pgz'. mless is an example of a compatible text editor.
+118	146	No MIDI player was found. To load .mid files, install a MIDI player at '/_apps/midiplayer.pgz'. midisam is an example of a compatible MIDI player.
+119	141	No mod player was found. To load .mod files, install a mod player at '/_apps/modplayer.pgz'. modojr is an example of a compatible mod player.
+120	173	No player was found. To load .mp3, .ogg, and .wav files, install a suitable audio player at '/_apps/audioplayer.pgz'. F256amp.pgz is an example of a compatible audio player.
+121	19	Out of memory error
+122	46	https://github.com/WartyMN/F256jr-FileManager/
+123	97	F256 hardware design %c2024 Stefany Allaire. FPGA %02X%02X.%02X%02X.%02X%02X, PCB %02X%02X '%c%c'
+124	75	F256 MicroKernel %c20%c%c Jessie Oberreuter. Build %c%c, 20%c%c-%c%c-%c%c. 
+125	42	Compact pexec loader for flash by dwsJason
+126	36	F256 SuperBASIC %c2023 Paul Robson. 
+127	50	F256 f/manager %c2025 Micah Bly. Version %u.%ub%u.
+128	6	F256JR
+129	5	F256K
+130	18	<unknown hardware>

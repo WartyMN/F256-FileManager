@@ -643,7 +643,7 @@ void Screen_UpdateMenuStates(UI_Menu_Enabler_Info* the_enabling_info)
 			uibutton[BUTTON_ID_SORT_BY_SIZE].changed_ = true;
 		}
 
-		if (the_file_type == _CBM_T_DIR || the_file_type == FNX_FILETYPE_FONT || the_file_type == FNX_FILETYPE_EXE || the_file_type == FNX_FILETYPE_IMAGE || the_file_type == FNX_FILETYPE_MUSIC || the_file_type == FNX_FILETYPE_BASIC)
+		if (the_file_type == _CBM_T_DIR || the_file_type == FNX_FILETYPE_FONT || the_file_type == FNX_FILETYPE_EXE || the_file_type == FNX_FILETYPE_IMAGE || the_file_type == FNX_FILETYPE_MUSIC || the_file_type == FNX_FILETYPE_MIDI || the_file_type == FNX_FILETYPE_MP3 || the_file_type == FNX_FILETYPE_OGG || the_file_type == FNX_FILETYPE_BASIC)
 		{
 			if (uibutton[BUTTON_ID_LOAD].active_ != true)
 			{

@@ -124,6 +124,18 @@ uint8_t File_GetFileTypeFromExtension(uint8_t default_file_type, const char* the
 	{
 		return FNX_FILETYPE_MIDI;
 	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "mp3", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_MP3;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "ogg", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_OGG;
+	}
+	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "wav", FILE_MAX_EXTENSION_SIZE) == 0)
+	{
+		return FNX_FILETYPE_WAV;
+	}
 	else if (General_Strncasecmp((char*)&temp_file_extension_buffer, "pgx", FILE_MAX_EXTENSION_SIZE) == 0)
 	{
 		return FNX_FILETYPE_EXE;
@@ -207,6 +219,18 @@ char* File_GetFileTypeString(uint8_t cbm_filetype_id)
 		case FNX_FILETYPE_MUSIC:
 			// any .mod etc music file that modo can play
 			return General_GetString(ID_STR_FILETYPE_MUSIC);
+
+		case FNX_FILETYPE_MP3:
+			// any .mp3 music file that F256amp (or similar) can play
+			return General_GetString(ID_STR_FILETYPE_MP3);
+		
+		case FNX_FILETYPE_OGG:
+			// any .ogg music file that F256amp (or similar) can play
+			return General_GetString(ID_STR_FILETYPE_OGG);
+		
+		case FNX_FILETYPE_WAV:
+			// any .wav file that F256amp (or similar) can play
+			return General_GetString(ID_STR_FILETYPE_WAV);
 		
 		case FNX_FILETYPE_TEXT:
 			// any .txt, .src, etc file that can be opened with a text editor

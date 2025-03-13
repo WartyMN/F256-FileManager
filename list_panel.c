@@ -1078,6 +1078,19 @@ bool Panel_OpenCurrentFileOrFolder(WB2KViewPanel* the_panel)
 				success = false;
 			}
 		}
+		else if (the_file->file_type_ == FNX_FILETYPE_MP3 || the_file->file_type_ == FNX_FILETYPE_OGG || the_file->file_type_ == FNX_FILETYPE_WAV)
+		{
+			global_temp_path_2 = General_GetString(ID_STR_APP_PATH_AUDIO_PLAYER);
+			
+			if (File_CheckForFile(global_temp_path_2, ID_STR_ERROR_NO_AUDIO_PLAYER) == true)
+			{
+				success = Kernal_LoadApp(global_temp_path_2, global_temp_path_1);
+			}
+			else
+			{
+				success = false;
+			}
+		}
 		else if (the_file->file_type_ == FNX_FILETYPE_TEXT)
 		{
 			global_temp_path_2 = General_GetString(ID_STR_APP_PATH_TEXT_EDITOR);
